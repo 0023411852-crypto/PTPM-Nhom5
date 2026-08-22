@@ -77,12 +77,22 @@ namespace CloudService.WebApi.Controllers
         }
 
         [HttpGet("{id}/payment-qr")]
-        public IActionResult GetPaymentQR(Guid id, [FromQuery] decimal amount)
+        public async Task<IActionResult> GetPaymentQR(Guid id, [FromQuery] decimal? amount = null)
         {
-            // Format: BankTransfer|OrderId|Amount
-            var paymentString = $"BANK|0123456789|{amount}|{id}";
+            var requesterIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(requesterIdValue, out var requesterId))
+                return Unauthorized();
+
+            // amount chỉ giữ để tương thích với FE cũ; không được dùng làm nguồn sự thật.
+            var serverAmount = await _orderService.GetPaymentAmountAsync(id, requesterId, User.IsInRole("Admin"));
+            if (serverAmount == null)
+                return NotFound(new { message = "Không tìm thấy đơn hàng." });
+            if (serverAmount <= 0)
+                return BadRequest(new { message = "Tổng tiền đơn hàng không hợp lệ." });
+
+            var paymentString = $"BANK|0123456789|{serverAmount.Value:0.##}|{id}";
             var base64Qr = _qrCodeService.GenerateQRCodeBase64(paymentString);
-            return Ok(new { qrCode = base64Qr, paymentString });
+            return Ok(new { qrCode = base64Qr, paymentString, amount = serverAmount.Value });
         }
 
         [HttpPost("admin-create")]

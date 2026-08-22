@@ -28,6 +28,7 @@ namespace CloudService.Infrastructure.Data
         public DbSet<MediaFile> MediaFiles { get; set; }
         public DbSet<PartnerRequest> PartnerRequests { get; set; }
         public DbSet<CustomerReview> CustomerReviews { get; set; }
+        public DbSet<NewsletterSubscriber> NewsletterSubscribers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -162,6 +163,12 @@ namespace CloudService.Infrastructure.Data
             modelBuilder.Entity<CustomerReview>(entity =>
             {
                 entity.Property(e => e.Rating).HasPrecision(3, 1);
+            });
+
+            modelBuilder.Entity<NewsletterSubscriber>(entity =>
+            {
+                entity.HasIndex(e => e.Email).IsUnique();
+                entity.Property(e => e.Email).HasMaxLength(320).IsRequired();
             });
         }
     }

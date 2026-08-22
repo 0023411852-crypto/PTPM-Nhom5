@@ -10,6 +10,7 @@ namespace CloudService.Application.Services
 {
     public class OrderService : IOrderService
     {
+        private const decimal VatRate = 0.10m;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
@@ -63,15 +64,18 @@ namespace CloudService.Application.Services
             var priceRepo = _unitOfWork.Repository<PlanPrice>();
             var planPrice = await priceRepo.GetByIdAsync(dto.PlanPriceId);
             if (planPrice == null) throw new Exception("Plan Price not found");
+            if (planPrice.ServicePlanId != dto.ServicePlanId)
+                throw new Exception("Plan Price does not belong to the selected Service Plan");
 
             var order = new OrderRequest
             {
                 UserId = userId,
                 ServicePlanId = dto.ServicePlanId,
                 PlanPriceId = dto.PlanPriceId,
-                PromotionId = dto.PromotionId,
+                // PromotionId được giữ trong DTO để tương thích nhưng không được áp dụng.
+                PromotionId = null,
                 CustomerNotes = dto.CustomerNotes,
-                TotalAmount = planPrice.Price + planPrice.SetupFee,
+                TotalAmount = CalculateTotal(planPrice),
                 Status = OrderStatus.Pending,
                 OrderDate = DateTime.UtcNow
             };
@@ -90,6 +94,21 @@ namespace CloudService.Application.Services
             await _eventDispatcher.DispatchAsync(new CloudService.Domain.Events.OrderPlacedEvent(userId, order.Id, order.TotalAmount));
 
             return _mapper.Map<OrderDto>(order);
+        }
+
+        public async Task<decimal?> GetPaymentAmountAsync(Guid orderId, Guid requesterId, bool isAdmin)
+        {
+            var order = await _unitOfWork.Repository<OrderRequest>().GetByIdAsync(orderId);
+            if (order == null || (!isAdmin && order.UserId != requesterId))
+                return null;
+
+            return order.TotalAmount;
+        }
+
+        private static decimal CalculateTotal(PlanPrice planPrice)
+        {
+            var subtotal = planPrice.Price + planPrice.SetupFee;
+            return Math.Round(subtotal * (1 + VatRate), 2, MidpointRounding.AwayFromZero);
         }
 
         public async Task<bool> UpdateOrderStatusAsync(Guid orderId, string status)
@@ -158,6 +177,8 @@ namespace CloudService.Application.Services
             var priceRepo = _unitOfWork.Repository<PlanPrice>();
             var planPrice = await priceRepo.GetByIdAsync(dto.PlanPriceId);
             if (planPrice == null) throw new Exception("Plan Price not found");
+            if (planPrice.ServicePlanId != dto.ServicePlanId)
+                throw new Exception("Plan Price does not belong to the selected Service Plan");
 
             var userRepo = _unitOfWork.Repository<AppUser>();
             var user = await userRepo.GetByIdAsync(dto.UserId);
@@ -174,7 +195,7 @@ namespace CloudService.Application.Services
                 ServicePlanId = dto.ServicePlanId,
                 PlanPriceId = dto.PlanPriceId,
                 AdminNotes = dto.AdminNotes,
-                TotalAmount = planPrice.Price + planPrice.SetupFee,
+                TotalAmount = CalculateTotal(planPrice),
                 Status = parsedStatus,
                 OrderDate = DateTime.UtcNow
             };
