@@ -41,6 +41,34 @@ namespace CloudService.Application.Services
             return new PagedResponse<OrderDto>(dtos, userOrders.Count, filter.PageNumber, filter.PageSize);
         }
 
+        public async Task<OrderDetailDto?> GetOrderDetailAsync(Guid orderId, Guid requesterId, bool isAdmin)
+        {
+            var repo = _unitOfWork.Repository<OrderRequest>();
+            var orders = await repo.GetAllAsync(includeProperties: "ServicePlan,ServicePlan.Category,PlanPrice,Promotion");
+            var order = orders.FirstOrDefault(item => item.Id == orderId);
+            if (order == null || (!isAdmin && order.UserId != requesterId)) return null;
+
+            return new OrderDetailDto
+            {
+                Id = order.Id,
+                UserId = order.UserId,
+                ServicePlanName = order.ServicePlan?.Name ?? string.Empty,
+                ServicePlanDescription = order.ServicePlan?.Description ?? string.Empty,
+                ServicePlanSpecifications = order.ServicePlan?.Specifications ?? "{}",
+                CategoryName = order.ServicePlan?.Category?.Name ?? string.Empty,
+                BillingCycle = order.PlanPrice?.BillingCycle ?? 0,
+                Price = order.PlanPrice?.Price ?? 0,
+                SetupFee = order.PlanPrice?.SetupFee ?? 0,
+                TotalAmount = order.TotalAmount,
+                Status = order.Status,
+                OrderDate = order.OrderDate,
+                CustomerNotes = order.CustomerNotes,
+                AdminNotes = isAdmin ? order.AdminNotes : null,
+                PromotionCode = order.Promotion?.Code,
+                DiscountPercentage = order.Promotion?.DiscountPercentage
+            };
+        }
+
         public async Task<PagedResponse<OrderDto>> GetAllOrdersAsync(PaginationFilter filter)
         {
             var repo = _unitOfWork.Repository<OrderRequest>();

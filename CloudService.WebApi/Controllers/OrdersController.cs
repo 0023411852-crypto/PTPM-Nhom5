@@ -32,6 +32,20 @@ namespace CloudService.WebApi.Controllers
             return Ok(result);
         }
 
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetOrderDetail(Guid id)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdStr, out var userId))
+                return Unauthorized();
+
+            var result = await _orderService.GetOrderDetailAsync(id, userId, User.IsInRole("Admin"));
+            if (result == null)
+                return NotFound(new { message = "Không tìm thấy đơn hàng hoặc bạn không có quyền xem." });
+
+            return Ok(result);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto dto)
         {

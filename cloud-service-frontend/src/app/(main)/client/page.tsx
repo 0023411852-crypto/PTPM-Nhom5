@@ -3,6 +3,32 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+type OrderDetail = {
+    id: string;
+    servicePlanName: string;
+    servicePlanDescription: string;
+    servicePlanSpecifications: string;
+    categoryName: string;
+    billingCycle: number;
+    price: number;
+    setupFee: number;
+    totalAmount: number;
+    status: string;
+    orderDate: string;
+    customerNotes?: string | null;
+    promotionCode?: string | null;
+    discountPercentage?: number | null;
+};
+
+function parseOrderSpecifications(value: string) {
+    try {
+        const parsed = JSON.parse(value || '{}');
+        return Object.entries(parsed).filter(([, item]) => item !== null && item !== undefined && item !== '');
+    } catch {
+        return [];
+    }
+}
+
 export default function ClientPortalPage() {
     const [activeTab, setActiveTab] = useState<'services' | 'orders' | 'support' | 'profile'>('services');
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -22,6 +48,9 @@ export default function ClientPortalPage() {
     // Orders state
     const [orders, setOrders] = useState<any[]>([]);
     const [loadingOrders, setLoadingOrders] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState<OrderDetail | null>(null);
+    const [loadingOrderDetail, setLoadingOrderDetail] = useState(false);
+    const [orderDetailError, setOrderDetailError] = useState('');
 
     // Tickets state
     const [tickets, setTickets] = useState<any[]>([]);
@@ -151,6 +180,24 @@ export default function ClientPortalPage() {
             console.error("Lỗi khi tải lịch sử đơn hàng", e);
         } finally {
             setLoadingOrders(false);
+        }
+    };
+
+    const handleViewOrderDetail = async (orderId: string) => {
+        if (!token) return;
+        setLoadingOrderDetail(true);
+        setOrderDetailError('');
+        try {
+            const res = await fetch(`http://localhost:5154/api/Orders/${orderId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json().catch(() => null);
+            if (!res.ok) throw new Error(data?.message || 'Không thể tải chi tiết đơn hàng.');
+            setSelectedOrder(data);
+        } catch (error) {
+            setOrderDetailError(error instanceof Error ? error.message : 'Không thể tải chi tiết đơn hàng.');
+        } finally {
+            setLoadingOrderDetail(false);
         }
     };
 
@@ -416,6 +463,14 @@ export default function ClientPortalPage() {
                                                     {order.customerNotes && <p className="text-[13px] text-error mt-1 italic">{order.customerNotes}</p>}
                                                 </div>
                                                 <div className="flex flex-col gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleViewOrderDetail(order.id)}
+                                                        disabled={loadingOrderDetail}
+                                                        className="px-md py-sm border border-primary text-primary font-medium rounded-lg hover:bg-primary-container transition-colors text-center whitespace-nowrap disabled:opacity-60"
+                                                    >
+                                                        {loadingOrderDetail ? 'Đang tải...' : 'Xem chi tiết'}
+                                                    </button>
                                                     {order.status === 'Pending' && (
                                                         <Link href={`/checkout?orderId=${order.id}`} className="px-md py-sm bg-primary text-on-primary font-medium rounded-lg hover:bg-primary-container transition-colors text-center whitespace-nowrap">
                                                             Thanh toán ngay
@@ -636,6 +691,41 @@ export default function ClientPortalPage() {
                     </div>
                 </div>
             </div>
+
+            {selectedOrder && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-md backdrop-blur-sm">
+                    <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-surface shadow-xl">
+                        <div className="flex items-center justify-between border-b border-outline-variant p-xl">
+                            <div>
+                                <p className="font-label-caps text-label-caps uppercase tracking-wider text-primary">Chi tiết đơn hàng</p>
+                                <h2 className="font-headline-sm text-headline-sm text-on-surface">#{selectedOrder.id.substring(0, 8)}</h2>
+                            </div>
+                            <button type="button" onClick={() => { setSelectedOrder(null); setOrderDetailError(''); }} className="text-on-surface-variant hover:text-on-surface"><span className="material-symbols-outlined text-[24px]">close</span></button>
+                        </div>
+                        <div className="space-y-lg overflow-y-auto p-xl">
+                            {orderDetailError && <p className="rounded-lg bg-error-container/20 p-md text-error">{orderDetailError}</p>}
+                            <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg">
+                                <div className="mb-sm flex items-center justify-between gap-md"><h3 className="font-headline-sm text-headline-sm text-on-surface">{selectedOrder.servicePlanName || 'Gói dịch vụ'}</h3><span className="rounded-full bg-primary-container px-sm py-xs text-sm font-semibold text-primary">{selectedOrder.categoryName || 'Dịch vụ'}</span></div>
+                                <p className="text-sm text-on-surface-variant">{selectedOrder.servicePlanDescription || 'Không có mô tả.'}</p>
+                            </div>
+                            <div className="grid grid-cols-1 gap-md sm:grid-cols-2">
+                                {parseOrderSpecifications(selectedOrder.servicePlanSpecifications).map(([key, value]) => <div key={key} className="rounded-lg border border-outline-variant p-md"><p className="text-xs uppercase tracking-wide text-on-surface-variant">{key}</p><p className="mt-1 font-semibold text-on-surface">{String(value)}</p></div>)}
+                                <div className="rounded-lg border border-outline-variant p-md"><p className="text-xs uppercase tracking-wide text-on-surface-variant">Chu kỳ thanh toán</p><p className="mt-1 font-semibold text-on-surface">{selectedOrder.billingCycle ? `${selectedOrder.billingCycle} tháng` : '—'}</p></div>
+                                <div className="rounded-lg border border-outline-variant p-md"><p className="text-xs uppercase tracking-wide text-on-surface-variant">Trạng thái</p><p className="mt-1 font-semibold text-primary">{selectedOrder.status}</p></div>
+                            </div>
+                            <div className="space-y-sm rounded-xl border border-outline-variant p-lg text-sm">
+                                <div className="flex justify-between gap-md"><span className="text-on-surface-variant">Ngày đặt</span><strong>{new Date(selectedOrder.orderDate).toLocaleString('vi-VN')}</strong></div>
+                                <div className="flex justify-between gap-md"><span className="text-on-surface-variant">Giá gói</span><strong>{selectedOrder.price.toLocaleString('vi-VN')}đ</strong></div>
+                                <div className="flex justify-between gap-md"><span className="text-on-surface-variant">Phí khởi tạo</span><strong>{selectedOrder.setupFee.toLocaleString('vi-VN')}đ</strong></div>
+                                {selectedOrder.promotionCode && <div className="flex justify-between gap-md"><span className="text-on-surface-variant">Mã khuyến mãi</span><strong>{selectedOrder.promotionCode}{selectedOrder.discountPercentage ? ` (-${selectedOrder.discountPercentage}%)` : ''}</strong></div>}
+                                <div className="flex justify-between gap-md border-t border-outline-variant pt-sm text-base"><span className="font-semibold">Tổng tiền</span><strong className="text-primary">{selectedOrder.totalAmount.toLocaleString('vi-VN')}đ</strong></div>
+                            </div>
+                            {selectedOrder.customerNotes && <div className="rounded-lg bg-surface-container-low p-md text-sm"><strong>Ghi chú của bạn:</strong> {selectedOrder.customerNotes}</div>}
+                        </div>
+                        <div className="border-t border-outline-variant p-xl"><button type="button" onClick={() => setSelectedOrder(null)} className="w-full rounded-lg bg-primary px-lg py-sm font-medium text-on-primary">Đóng</button></div>
+                    </div>
+                </div>
+            )}
 
             {/* Review Modal */}
             {reviewOrderId && (
