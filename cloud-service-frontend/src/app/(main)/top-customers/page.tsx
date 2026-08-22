@@ -21,6 +21,15 @@ interface Review {
     content: string;
 }
 
+interface ServicePlanQr {
+    id: string;
+    name: string;
+    description: string;
+    isActive: boolean;
+    qrCodeBase64?: string | null;
+    category?: { name?: string } | null;
+}
+
 export default function TopCustomersPage() {
     const [vipCustomers, setVipCustomers] = useState<VipCustomer[]>([]);
     const [reviews, setReviews] = useState<Review[]>([]);
@@ -29,6 +38,16 @@ export default function TopCustomersPage() {
     const [loadingVip, setLoadingVip] = useState(true);
     const [loadingReviews, setLoadingReviews] = useState(false);
     const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+    const [servicePlans, setServicePlans] = useState<ServicePlanQr[]>([]);
+    const [loadingPlans, setLoadingPlans] = useState(true);
+
+    useEffect(() => {
+        fetch('http://localhost:5154/api/ServicePlans?PageNumber=1&PageSize=50')
+            .then(res => res.ok ? res.json() : Promise.reject(new Error('Không thể tải gói dịch vụ')))
+            .then(data => setServicePlans((data.data || []).filter((plan: ServicePlanQr) => plan.isActive)))
+            .catch(err => console.error("Failed to fetch service plans:", err))
+            .finally(() => setLoadingPlans(false));
+    }, []);
 
     useEffect(() => {
         // Fetch VIP Customers
@@ -161,6 +180,40 @@ export default function TopCustomersPage() {
                     </div>
                 </section>
                 
+                {/* Service Plans and QR Section */}
+                <section className="mb-16">
+                    <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-10">
+                        <div>
+                            <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Dịch vụ nổi bật</p>
+                            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mt-2">Mã QR theo từng gói dịch vụ</h2>
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">Quét mã để xem nhanh thông tin gói và mức giá hiện có.</p>
+                    </div>
+                    {loadingPlans ? (
+                        <p className="text-gray-500 dark:text-gray-400">Đang tải gói dịch vụ...</p>
+                    ) : servicePlans.length === 0 ? (
+                        <p className="text-gray-500 dark:text-gray-400">Chưa có gói dịch vụ khả dụng.</p>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {servicePlans.map(plan => (
+                                <article key={plan.id} className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm flex gap-4 items-center">
+                                    <div className="w-28 h-28 shrink-0 rounded-lg bg-white border border-gray-200 flex items-center justify-center p-2">
+                                        {plan.qrCodeBase64 ? (
+                                            <img src={plan.qrCodeBase64} alt={`Mã QR gói ${plan.name}`} className="w-full h-full object-contain" />
+                                        ) : (
+                                            <span className="text-center text-xs text-gray-500">Chưa có mã QR</span>
+                                        )}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">{plan.category?.name || 'Cloud'}</p>
+                                        <h3 className="font-bold text-gray-900 dark:text-white mt-1">{plan.name}</h3>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 mt-1">{plan.description}</p>
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    )}
+                </section>
                 {/* Testimonials Section */}
                 <section>
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-10 text-center">Đánh Giá Từ Khách Hàng</h2>

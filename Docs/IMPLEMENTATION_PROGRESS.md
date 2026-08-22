@@ -64,7 +64,8 @@ Chỉ bổ sung giao diện quản lý danh mục tại Admin, gồm danh sách 
 - Batch 8 hợp nhất route Affiliate: **Đã hoàn tất và đã push** (`c5675f3`).
 - Batch 9 liên kết trang Dịch vụ: **Đã hoàn tất và đã push** (`bc81d6f`).
 - Batch 10 dữ liệu động trang chủ: **Đã hoàn tất và đã push** (`fae6be2`).
-- Batch 11 sửa lỗi regenerate QR: **Đã triển khai, kiểm thử FE/diff pass và chuẩn bị commit**.
+- Batch 11 sửa lỗi regenerate QR: **Đã hoàn tất và đã push** (`41d956b`).
+- Batch 12 QR public trên trang Khách hàng: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
 - Các batch khác: Chưa bắt đầu.
 
 ## Batch 1 — Giao diện CRUD danh mục dịch vụ
@@ -268,3 +269,20 @@ Luồng Admin gọi đúng `POST /api/ServicePlans/{id}/regenerate-qr` và backe
 ### Nghiệm thu và lưu ý
 
 `npx tsc --noEmit` và `git diff --check` đã pass. Sandbox không có .NET SDK hoặc SQL Server nên chưa thể gọi endpoint thực tế. Sau khi cherry-pick, cần restart Web API để chạy code mới; nếu lỗi vẫn xảy ra, cần kiểm tra response HTTP 401/403/400 trong Network và log exception backend.
+
+## Batch 12 — Hiển thị QR theo gói trên trang Khách hàng
+
+### Phân tích trước khi sửa
+
+Trang `/(main)/top-customers` đã có dữ liệu khách hàng VIP và testimonial từ `Users/vip` và `Users/reviews`, nhưng chưa gọi `ServicePlans` và chưa có khu vực mã QR. API public `GET /api/ServicePlans?PageNumber=1&PageSize=50` đã trả `qrCodeBase64`, nên không cần tạo endpoint hoặc thay đổi database.
+
+### File đã sửa
+
+| File | Nội dung |
+|---|---|
+| `cloud-service-frontend/src/app/(main)/top-customers/page.tsx` | Gọi ServicePlans API, lọc gói active và hiển thị QR, tên, danh mục, mô tả; có trạng thái loading/rỗng |
+| `Docs/IMPLEMENTATION_PROGRESS.md` | Cập nhật nhật ký Batch 12 |
+
+### Nghiệm thu và lưu ý
+
+`npx tsc --noEmit` và `git diff --check` đã pass. QR được dùng trực tiếp từ `qrCodeBase64` do backend sinh/lưu. Nếu gói chưa được regenerate hoặc database chưa có giá trị QR, giao diện hiển thị rõ `Chưa có mã QR`; cần Admin sinh QR trước. Không sửa testimonial, logo/ảnh đại diện hoặc schema.
