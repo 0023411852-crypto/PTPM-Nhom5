@@ -127,5 +127,19 @@ namespace CloudService.Tests
             result.Should().BeTrue();
             user.FullName.Should().Be("New Name");
         }
+
+        [Fact]
+        public async Task UpdateProfileAsync_ShouldUpdatePhone_WhenPhoneIsProvided()
+        {
+            var userId = Guid.NewGuid();
+            var user = new AppUser { Id = userId, Phone = "0123" };
+            _userRepoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(user);
+            var dto = new UpdateProfileDto { Phone = "0987654321" };
+
+            var result = await _userService.UpdateProfileAsync(userId, dto);
+
+            result.Should().BeTrue();
+            user.Phone.Should().Be("0987654321");
+        }
     }
 }
