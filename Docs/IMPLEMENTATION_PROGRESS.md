@@ -134,3 +134,22 @@ Backend đã có entity, DTO, service và controller CRUD promotion; form Admin 
 ### Giới hạn và nghiệm thu
 
 Không sửa controller, service, entity, DbContext, migration hoặc payload API. `npx tsc --noEmit` và `git diff --check` đã pass. Ngày kết thúc để trống vẫn hợp lệ; nếu có giá trị thì bắt buộc phải sau ngày bắt đầu.
+
+## Batch 5 — Kết nối Admin Affiliate với PartnerRequests API
+
+### Phân tích trước khi sửa
+
+Route `admin/affiliates` đang chứa dữ liệu mẫu cố định và chỉ cập nhật trạng thái trong React state, nên thao tác duyệt hoặc từ chối bị mất sau khi tải lại trang. Backend đã có sẵn `PartnerRequestsController`, `IPartnerRequestService`, `PartnerRequestService` và các endpoint `GET /api/PartnerRequests` cùng `PATCH /api/PartnerRequests/{id}/status`. Endpoint đọc và cập nhật đều yêu cầu role `Admin`; trạng thái hợp lệ theo luồng hiện tại là `Pending`, `Approved` và `Rejected`.
+
+Dự án đồng thời đã có trang `admin/partner-requests` kết nối đúng API, có tìm kiếm, lọc trạng thái, phân trang và modal cập nhật trạng thái. Vì vậy không tạo API hoặc viết lại nghiệp vụ. Route Affiliate cũ được chuyển sang tái sử dụng trang Partner Requests chuẩn để loại bỏ dữ liệu hard-code và tránh hai màn hình quản lý cùng một luồng.
+
+### File đã sửa
+
+| File | Nội dung |
+|---|---|
+| `cloud-service-frontend/src/app/admin/affiliates/page.tsx` | Thay toàn bộ dữ liệu mẫu và cập nhật state cục bộ bằng việc tái sử dụng `admin/partner-requests/page.tsx`, giữ nguyên URL cũ |
+| `Docs/IMPLEMENTATION_PROGRESS.md` | Ghi lại phân tích, API contract và phạm vi Batch 5 |
+
+### Giới hạn và nghiệm thu
+
+Không sửa backend, entity, DTO, database hoặc migration vì API và logic approve/reject đã tồn tại và phù hợp. `npx tsc --noEmit` và `git diff --check` đã pass. Route `/admin/affiliates` hiện dùng dữ liệu server; route menu chính `/admin/partner-requests` vẫn hoạt động độc lập với cùng nghiệp vụ.
