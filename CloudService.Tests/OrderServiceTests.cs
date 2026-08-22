@@ -22,6 +22,7 @@ namespace CloudService.Tests
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<IEmailService> _emailServiceMock;
         private readonly Mock<IEventDispatcher> _eventDispatcherMock;
+        private readonly Mock<Microsoft.Extensions.Configuration.IConfiguration> _configMock;
         private readonly OrderService _orderService;
 
         private readonly Mock<IGenericRepository<ServicePlan>> _planRepoMock;
@@ -35,6 +36,10 @@ namespace CloudService.Tests
             _mapperMock = new Mock<IMapper>();
             _emailServiceMock = new Mock<IEmailService>();
             _eventDispatcherMock = new Mock<IEventDispatcher>();
+            _configMock = new Mock<Microsoft.Extensions.Configuration.IConfiguration>();
+            var configSectionMock = new Mock<Microsoft.Extensions.Configuration.IConfigurationSection>();
+            configSectionMock.Setup(s => s.Value).Returns("true");
+            _configMock.Setup(c => c.GetSection("DemoPayment:Enabled")).Returns(configSectionMock.Object);
 
             _planRepoMock = new Mock<IGenericRepository<ServicePlan>>();
             _priceRepoMock = new Mock<IGenericRepository<PlanPrice>>();
@@ -50,7 +55,8 @@ namespace CloudService.Tests
                 _unitOfWorkMock.Object,
                 _mapperMock.Object,
                 _emailServiceMock.Object,
-                _eventDispatcherMock.Object
+                _eventDispatcherMock.Object,
+                _configMock.Object
             );
         }
 
