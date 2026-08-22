@@ -61,7 +61,8 @@ Chỉ bổ sung giao diện quản lý danh mục tại Admin, gồm danh sách 
 - Batch 5 Affiliate/PartnerRequests: **Đã hoàn tất và đã push** (`c5c1a16`).
 - Batch 6 thống kê báo cáo: **Đã hoàn tất và đã push** (`88e4a55`).
 - Batch 7 export danh sách đơn hàng: **Đã hoàn tất và đã push** (`c590d4e`).
-- Batch 8 hợp nhất route Affiliate: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
+- Batch 8 hợp nhất route Affiliate: **Đã hoàn tất và đã push** (`c5675f3`).
+- Batch 9 liên kết trang Dịch vụ: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
 - Các batch khác: Chưa bắt đầu.
 
 ## Batch 1 — Giao diện CRUD danh mục dịch vụ
@@ -214,3 +215,20 @@ Không xóa entity hoặc API legacy vì chưa có migration dữ liệu và có
 ### Giới hạn và nghiệm thu
 
 Không xóa `AffiliateApplication`, controller, service, database hoặc migration. Không thay đổi public form. Sau batch này, đăng ký từ `/partners` và cả các route Admin Affiliate/Partners đều hiển thị trong cùng luồng PartnerRequests; approve/reject được lưu server-side. Cần chạy `npx tsc --noEmit` và `git diff --check` trước khi commit.
+
+## Batch 9 — Sửa liên kết placeholder trên trang Dịch vụ
+
+### Phân tích trước khi sửa
+
+Trang public Services có bốn thẻ Domain, Business Email, SSL và DDoS Security sử dụng `href="#"`. Các sản phẩm này chưa có route hoặc API mua riêng; route `/pricing` là luồng thật hiện có để xem gói và đặt dịch vụ. Vì vậy không tạo route giả hoặc thêm backend, mà chuyển cả bốn CTA về bảng giá.
+
+### File đã sửa
+
+| File | Nội dung |
+|---|---|
+| `cloud-service-frontend/src/app/(main)/services/page.tsx` | Thay bốn `href="#"` bằng `href="/pricing"` cho Domain, Email, SSL và Security |
+| `Docs/IMPLEMENTATION_PROGRESS.md` | Cập nhật nhật ký Batch 9 |
+
+### Giới hạn và nghiệm thu
+
+Không sửa API, database hoặc nội dung thẻ dịch vụ. Các CTA hiện điều hướng tới route bảng giá đang tồn tại. Cần chạy `npx tsc --noEmit` và `git diff --check` trước khi commit.
