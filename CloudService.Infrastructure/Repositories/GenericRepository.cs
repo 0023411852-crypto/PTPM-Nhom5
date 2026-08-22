@@ -17,26 +17,19 @@ namespace CloudService.Infrastructure.Repositories
 
         public async Task<T?> GetByIdAsync(Guid id, string includeProperties = "")
         {
+            if (string.IsNullOrEmpty(includeProperties))
+            {
+                return await _dbSet.FindAsync(id);
+            }
+
+            // Khi có includeProperties, dùng LINQ query thay vì FindAsync
             IQueryable<T> query = _dbSet;
-            
-            foreach (var includeProperty in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (var prop in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
             {
-                query = query.Include(includeProperty);
+                query = query.Include(prop.Trim());
             }
-            
-            var entity = await _dbSet.FindAsync(id);
-            if (entity != null && !string.IsNullOrEmpty(includeProperties))
-            {
-                // FindAsync doesn't support Includes well if entity is already loaded, 
-                // so we reload from query for safety if includes are provided.
-                // Wait, it's better to just query by ID if includeProperties are provided.
-                // Assuming T has an Id property is hard without generic constraints, but we can just use FindAsync for now
-                // Actually, let's just do:
-            }
-            
-            // To properly do generic Include with GetById, we can't easily filter by ID if we don't know the ID column name.
-            // But we can just use the provided includeProperties on GetAllAsync, and then find.
-            return await _dbSet.FindAsync(id); // Warning: GetByIdAsync with Include is complex for generic repos. Let's just use it on GetAllAsync.
+
+            return await query.FirstOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id);
         }
 
         public async Task<IEnumerable<T>> GetAllAsync(string includeProperties = "")

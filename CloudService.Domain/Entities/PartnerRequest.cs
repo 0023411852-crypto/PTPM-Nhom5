@@ -12,6 +12,6 @@ namespace CloudService.Domain.Entities
         public string PromotionDetails { get; set; } = string.Empty;
         public string Status { get; set; } = "Pending"; // Pending, Approved, Rejected
         public string Notes { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public new DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

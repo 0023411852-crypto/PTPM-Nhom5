@@ -16,8 +16,9 @@ async function getStaticPage(slug: string) {
     }
 }
 
-export default async function StaticPageRender({ params }: { params: { slug: string } }) {
-    const page = await getStaticPage(params.slug);
+export default async function StaticPageRender({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params;
+    const page = await getStaticPage(slug);
 
     if (!page) {
         notFound();
