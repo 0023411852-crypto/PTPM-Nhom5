@@ -8,6 +8,7 @@ using FluentValidation.AspNetCore;
 using CloudService.Application.Validators;
 using System.Text;
 using CloudService.WebApi.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -89,6 +90,13 @@ builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddHostedService<CloudService.WebApi.BackgroundServices.UserCleanupBackgroundService>();
 
 var app = builder.Build();
+
+// Tự động Apply Migration và tạo DB nếu chưa có
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<CloudService.Infrastructure.Data.ApplicationDbContext>();
+    db.Database.Migrate();
+}
 
 app.UseMiddleware<CloudService.WebApi.Middlewares.ExceptionMiddleware>();
 
