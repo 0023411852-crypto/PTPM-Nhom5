@@ -7,6 +7,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using CloudService.Application.Validators;
 using System.Text;
+using CloudService.WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -58,6 +59,7 @@ builder.Services.AddSwaggerGen(c =>
 
 // Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+builder.Services.AddHostedService<OrderExpirationService>();
 var key = Encoding.ASCII.GetBytes(jwtSettings["Secret"]!);
 
 builder.Services.AddAuthentication(options =>

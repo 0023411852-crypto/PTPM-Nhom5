@@ -20,8 +20,7 @@ namespace CloudService.Domain.Entities
         public bool IsFeatured { get; set; }
 
         // For specific plan discounts (Optional)
-        public Guid? ServicePlanId { get; set; }
-        public virtual ServicePlan? ServicePlan { get; set; }
+        public virtual ICollection<ServicePlan> ServicePlans { get; set; } = new List<ServicePlan>();
 
         public string Code { get; set; } = string.Empty;
         public decimal DiscountPercentage { get; set; }

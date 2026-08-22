@@ -4,16 +4,23 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function ClientPortalPage() {
-    const [activeTab, setActiveTab] = useState<'services' | 'support' | 'profile'>('services');
+    const [activeTab, setActiveTab] = useState<'services' | 'orders' | 'support' | 'profile'>('services');
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [token, setToken] = useState<string | null>(null);
     const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [avatarUrl, setAvatarUrl] = useState('');
+    const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
     // Services state
     const [services, setServices] = useState<any[]>([]);
     const [loadingServices, setLoadingServices] = useState(false);
+
+    // Orders state
+    const [orders, setOrders] = useState<any[]>([]);
+    const [loadingOrders, setLoadingOrders] = useState(false);
 
     // Tickets state
     const [tickets, setTickets] = useState<any[]>([]);
@@ -28,6 +35,12 @@ export default function ClientPortalPage() {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
+    // Review state
+    const [reviewOrderId, setReviewOrderId] = useState<string | null>(null);
+    const [reviewRating, setReviewRating] = useState(5);
+    const [reviewContent, setReviewContent] = useState('');
+    const [submittingReview, setSubmittingReview] = useState(false);
+
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
         if (!storedToken) {
@@ -35,11 +48,74 @@ export default function ClientPortalPage() {
             return;
         }
         setToken(storedToken);
-        setFullName(localStorage.getItem("fullName") || "Khách hàng");
         
+        fetchProfile(storedToken);
         fetchServices(storedToken);
         fetchTickets(storedToken);
+        fetchOrders(storedToken);
     }, []);
+
+    const fetchProfile = async (tokenStr: string) => {
+        try {
+            const res = await fetch("http://localhost:5154/api/Users/me", {
+                headers: { "Authorization": `Bearer ${tokenStr}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setFullName(data.fullName || '');
+                setEmail(data.email || '');
+                setAvatarUrl(data.avatarUrl || '');
+                localStorage.setItem("fullName", data.fullName || '');
+                localStorage.setItem("avatarUrl", data.avatarUrl || '');
+                window.dispatchEvent(new Event('profileUpdated'));
+            }
+        } catch (e) {
+            console.error("Lỗi khi tải thông tin cá nhân", e);
+        }
+    };
+
+    const handleUpdateProfile = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!token) return;
+        setIsUpdatingProfile(true);
+        try {
+            const res = await fetch("http://localhost:5154/api/Users/me/profile", {
+                method: "PUT",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}` 
+                },
+                body: JSON.stringify({ fullName, email, avatarUrl: avatarUrl || null })
+            });
+
+            if (res.ok) {
+                alert("Cập nhật thông tin thành công!");
+                fetchProfile(token); // Reload data and update local storage
+            } else {
+                const error = await res.json();
+                alert(error.message || "Cập nhật thất bại.");
+            }
+        } catch (e) {
+            alert("Lỗi kết nối.");
+        } finally {
+            setIsUpdatingProfile(false);
+        }
+    };
+
+    const fetchOrders = async (tokenStr: string) => {
+        setLoadingOrders(true);
+        try {
+            const res = await fetch("http://localhost:5154/api/Orders/my-orders?PageNumber=1&PageSize=50", {
+                headers: { "Authorization": `Bearer ${tokenStr}` }
+            });
+            const data = await res.json();
+            if (res.ok) setOrders(data.data || []);
+        } catch (e) {
+            console.error("Lỗi khi tải lịch sử đơn hàng", e);
+        } finally {
+            setLoadingOrders(false);
+        }
+    };
 
     const fetchServices = async (tokenStr: string) => {
         setLoadingServices(true);
@@ -129,6 +205,41 @@ export default function ClientPortalPage() {
         }
     };
 
+    const handleSubmitReview = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!token || !reviewOrderId) return;
+        
+        setSubmittingReview(true);
+        try {
+            const res = await fetch('http://localhost:5154/api/Users/reviews', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify({ 
+                    orderId: reviewOrderId,
+                    rating: reviewRating,
+                    content: reviewContent
+                })
+            });
+
+            if (res.ok) {
+                alert('Cảm ơn bạn đã gửi đánh giá!');
+                setReviewOrderId(null);
+                setReviewRating(5);
+                setReviewContent('');
+            } else {
+                const data = await res.json();
+                alert(data.message || 'Lỗi khi gửi đánh giá.');
+            }
+        } catch (e) {
+            alert('Lỗi kết nối.');
+        } finally {
+            setSubmittingReview(false);
+        }
+    };
+
     if (!token) return <div className="text-center p-2xl">Đang chuyển hướng...</div>;
 
     return (
@@ -152,6 +263,13 @@ export default function ClientPortalPage() {
                             >
                                 <span className="material-symbols-outlined text-[20px]">dns</span>
                                 Dịch vụ của tôi
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('orders')}
+                                className={`w-full flex items-center gap-md px-md py-sm rounded-xl transition-colors ${activeTab === 'orders' ? 'bg-primary-container text-primary font-medium' : 'text-on-surface-variant hover:bg-surface-container'}`}
+                            >
+                                <span className="material-symbols-outlined text-[20px]">receipt_long</span>
+                                Lịch sử đơn hàng
                             </button>
                             <button 
                                 onClick={() => setActiveTab('support')}
@@ -231,6 +349,57 @@ export default function ClientPortalPage() {
                             </div>
                         )}
 
+                        {/* Tab Lịch sử đơn hàng */}
+                        {activeTab === 'orders' && (
+                            <div className="bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
+                                <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">Lịch sử đơn hàng</h2>
+                                
+                                {loadingOrders ? (
+                                    <div className="text-center py-xl text-secondary">Đang tải dữ liệu...</div>
+                                ) : orders.length === 0 ? (
+                                    <div className="text-center py-2xl">
+                                        <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-md">
+                                            <span className="material-symbols-outlined text-[32px] text-secondary">receipt_long</span>
+                                        </div>
+                                        <p className="text-on-surface-variant mb-md">Bạn chưa có đơn hàng nào.</p>
+                                        <Link href="/pricing" className="inline-block px-lg py-sm bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors">Mua ngay VPS</Link>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-md">
+                                        {orders.map(order => (
+                                            <div key={order.id} className="border border-outline-variant rounded-xl p-lg flex flex-col md:flex-row gap-lg justify-between items-start md:items-center hover:border-primary transition-colors">
+                                                <div>
+                                                    <div className="flex items-center gap-sm mb-xs">
+                                                        <h3 className="font-headline-md text-headline-md text-on-surface">Đơn hàng #{order.id.substring(0, 8)}</h3>
+                                                        {order.status === 'Pending' && <span className="bg-warning/10 text-warning font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Chờ thanh toán</span>}
+                                                        {order.status === 'Completed' && <span className="bg-success/10 text-success font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Hoàn thành</span>}
+                                                        {order.status === 'Cancelled' && <span className="bg-error/10 text-error font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Đã huỷ</span>}
+                                                    </div>
+                                                    <p className="text-[14px] text-on-surface-variant mb-md">Ngày đặt: {new Date(order.orderDate).toLocaleString('vi-VN')} • Tổng tiền: {order.totalAmount.toLocaleString('vi-VN')}đ</p>
+                                                    {order.customerNotes && <p className="text-[13px] text-error mt-1 italic">{order.customerNotes}</p>}
+                                                </div>
+                                                <div className="flex flex-col gap-2">
+                                                    {order.status === 'Pending' && (
+                                                        <Link href={`/checkout?orderId=${order.id}`} className="px-md py-sm bg-primary text-on-primary font-medium rounded-lg hover:bg-primary-container transition-colors text-center whitespace-nowrap">
+                                                            Thanh toán ngay
+                                                        </Link>
+                                                    )}
+                                                    {order.status === 'Completed' && (
+                                                        <button 
+                                                            onClick={() => setReviewOrderId(order.id)}
+                                                            className="px-md py-sm bg-surface-container text-primary font-medium rounded-lg hover:bg-surface-variant transition-colors whitespace-nowrap"
+                                                        >
+                                                            Đánh giá ngay
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {/* Tab Hỗ trợ */}
                         {activeTab === 'support' && (
                             <div className="space-y-xl">
@@ -303,25 +472,48 @@ export default function ClientPortalPage() {
                         {activeTab === 'profile' && (
                             <div className="space-y-xl">
                                 <div className="bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
-                                    <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">Thông tin cá nhân</h2>
-                                    <form className="space-y-md">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
-                                            <div>
-                                                <label className="block font-label-caps text-[12px] text-on-surface-variant mb-[8px] uppercase">Họ và tên</label>
-                                                <input type="text" className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-[10px] px-[12px] font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" defaultValue={fullName} />
+                                <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">Thông tin cơ bản</h2>
+                                <form onSubmit={handleUpdateProfile} className="space-y-md">
+                                    <div>
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-1">Ảnh đại diện (URL)</label>
+                                        <input 
+                                            type="text" 
+                                            value={avatarUrl}
+                                            onChange={(e) => setAvatarUrl(e.target.value)}
+                                            className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface focus:border-primary outline-none" 
+                                            placeholder="https://example.com/avatar.png"
+                                        />
+                                        {avatarUrl && (
+                                            <div className="mt-2">
+                                                <img src={avatarUrl} alt="Avatar Preview" className="w-16 h-16 rounded-full object-cover border border-outline-variant" onError={(e) => (e.currentTarget.style.display = 'none')} />
                                             </div>
-                                            <div>
-                                                <label className="block font-label-caps text-[12px] text-on-surface-variant mb-[8px] uppercase">Số điện thoại</label>
-                                                <input type="text" className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-[10px] px-[12px] font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" placeholder="Chưa cập nhật" />
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-end mt-md">
-                                            <button type="button" className="px-lg py-sm bg-primary text-on-primary rounded-lg font-body-sm text-body-sm font-medium hover:bg-primary-container transition-colors shadow-sm flex items-center gap-sm">
-                                                Lưu thay đổi
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-1">Họ và tên</label>
+                                        <input 
+                                            type="text" 
+                                            value={fullName}
+                                            onChange={(e) => setFullName(e.target.value)}
+                                            required
+                                            className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface focus:border-primary outline-none" 
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-1">Email</label>
+                                        <input 
+                                            type="email" 
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            required
+                                            className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface focus:border-primary outline-none" 
+                                        />
+                                    </div>
+                                    <button disabled={isUpdatingProfile} className="bg-primary text-on-primary px-lg py-sm rounded-lg font-medium hover:bg-primary-container transition-colors disabled:opacity-70">
+                                        {isUpdatingProfile ? 'Đang lưu...' : 'Lưu thay đổi'}
+                                    </button>
+                                </form>
+                            </div>
 
                                 <div className="bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
                                     <h3 className="font-headline-sm text-headline-sm text-on-surface mb-md">Đổi mật khẩu</h3>
@@ -401,6 +593,59 @@ export default function ClientPortalPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Review Modal */}
+            {reviewOrderId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-md bg-black/50 backdrop-blur-sm">
+                    <div className="bg-surface rounded-2xl w-full max-w-lg shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-xl border-b border-outline-variant flex justify-between items-center">
+                            <h2 className="font-headline-sm text-headline-sm text-on-surface">Đánh giá đơn hàng #{reviewOrderId.substring(0, 8)}</h2>
+                            <button onClick={() => setReviewOrderId(null)} className="text-on-surface-variant hover:text-on-surface transition-colors">
+                                <span className="material-symbols-outlined text-[24px]">close</span>
+                            </button>
+                        </div>
+                        <form onSubmit={handleSubmitReview} className="p-xl overflow-y-auto">
+                            <div className="space-y-md">
+                                <div>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-2">Đánh giá của bạn</label>
+                                    <div className="flex gap-2">
+                                        {[1, 2, 3, 4, 5].map(star => (
+                                            <button 
+                                                key={star} 
+                                                type="button"
+                                                onClick={() => setReviewRating(star)}
+                                                className={`text-[32px] material-symbols-outlined ${star <= reviewRating ? 'text-[#FFB800] star-filled' : 'text-outline-variant'}`}
+                                            >
+                                                {star <= reviewRating ? 'star' : 'star_border'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-on-surface-variant mb-1">Nội dung đánh giá</label>
+                                    <textarea 
+                                        value={reviewContent}
+                                        onChange={e => setReviewContent(e.target.value)}
+                                        rows={4} 
+                                        className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface focus:border-primary outline-none resize-none" 
+                                        placeholder="Chia sẻ trải nghiệm của bạn về dịch vụ..."
+                                        required
+                                    ></textarea>
+                                </div>
+                            </div>
+                            
+                            <div className="mt-xl flex justify-end gap-md">
+                                <button type="button" onClick={() => setReviewOrderId(null)} className="px-lg py-sm text-on-surface-variant hover:bg-surface-container rounded-lg font-medium transition-colors">
+                                    Hủy
+                                </button>
+                                <button type="submit" disabled={submittingReview} className="px-lg py-sm bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors disabled:opacity-70">
+                                    {submittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }

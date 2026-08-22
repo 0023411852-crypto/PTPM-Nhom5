@@ -64,7 +64,23 @@ namespace CloudService.Application.Services
             var user = await repo.GetByIdAsync(userId);
             if (user == null) throw new NotFoundException("Không tìm thấy người dùng");
 
+            // Kiểm tra email trùng lặp nếu có thay đổi
+            if (user.Email != dto.Email)
+            {
+                var allUsers = await repo.GetAllAsync();
+                if (allUsers.Any(u => u.Email == dto.Email && u.Id != userId))
+                {
+                    throw new ConflictException("Email đã được sử dụng bởi một tài khoản khác.");
+                }
+            }
+
             user.FullName = dto.FullName;
+            user.Email = dto.Email;
+            if (dto.AvatarUrl != null)
+            {
+                user.AvatarUrl = dto.AvatarUrl;
+            }
+
             repo.Update(user);
             await _unitOfWork.SaveChangesAsync();
             return true;

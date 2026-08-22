@@ -27,6 +27,7 @@ namespace CloudService.Infrastructure.Data
         public DbSet<StaticPage> StaticPages { get; set; }
         public DbSet<MediaFile> MediaFiles { get; set; }
         public DbSet<PartnerRequest> PartnerRequests { get; set; }
+        public DbSet<CustomerReview> CustomerReviews { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -61,10 +62,9 @@ namespace CloudService.Infrastructure.Data
 
             modelBuilder.Entity<Promotion>(entity =>
             {
-                entity.HasOne(e => e.ServicePlan)
+                entity.HasMany(e => e.ServicePlans)
                       .WithMany(s => s.Promotions)
-                      .HasForeignKey(e => e.ServicePlanId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                      .UsingEntity(j => j.ToTable("PromotionServicePlans"));
                 entity.Property(e => e.DiscountPercentage).HasColumnType("decimal(5,2)");
             });
 
