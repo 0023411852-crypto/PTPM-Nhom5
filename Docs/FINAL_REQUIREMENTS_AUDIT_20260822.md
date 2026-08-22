@@ -10,11 +10,11 @@
 
 ## 1. Kết luận điều hành
 
-Dự án đã hình thành đầy đủ khung sản phẩm chính: backend ASP.NET Core Web API theo bốn project Domain–Application–Infrastructure–WebApi, frontend Next.js App Router, cơ sở dữ liệu SQL Server qua EF Core, xác thực JWT/refresh token, phân quyền, CRUD dịch vụ/gói/giá/khuyến mãi/tin tức/trang tĩnh, checkout, lịch sử đơn, dịch vụ khách hàng, đánh giá, đối tác và hỗ trợ.
+Dự án đã hình thành đầy đủ khung sản phẩm chính: backend ASP.NET Core Web API theo bốn project Domain–Application–Infrastructure–WebApi, frontend Next.js App Router, cơ sở dữ liệu SQL Server qua EF Core, xác thực JWT/refresh token, phân quyền, CRUD dịch vụ/gói/giá/khuyến mãi/tin tức/trang tĩnh, checkout, lịch sử đơn, dịch vụ khách hàng, đánh giá, đối tác và hỗ trợ. Sau đợt audit, README gốc và cấu hình Docker/Compose đã được hoàn thiện; các phần này vẫn cần được xác minh bằng chạy thực tế trên máy có Docker và .NET SDK.
 
 Các luồng frontend đã được build thành công trong môi trường sandbox. Tuy nhiên, chưa thể khẳng định end-to-end ở runtime vì sandbox không có .NET SDK, backend/database chưa chạy sẵn và frontend hiện gọi API bằng các URL `localhost:5154` hard-code. Vì vậy kết luận dưới đây phân biệt rõ giữa **có mã nguồn**, **đã kiểm tra tĩnh/build**, và **đã chứng minh chạy thực tế**.
 
-Theo yêu cầu trong đề, dự án hiện ở mức **đáp ứng phần lớn chức năng lõi nhưng chưa sẵn sàng để tuyên bố đáp ứng 100%**. Các thiếu hụt lớn nhất trước khi demo/nộp là Docker/`docker compose up`, CI trên đúng nhánh, README triển khai, kiểm thử backend/coverage, payment thật hoặc mô tả rõ demo payment, và hoàn thiện bằng chứng báo cáo/ERD/design patterns/đóng góp PR.
+Theo yêu cầu trong đề, dự án hiện ở mức **đáp ứng phần lớn chức năng lõi nhưng chưa sẵn sàng để tuyên bố đáp ứng 100%**. Các thiếu hụt lớn nhất trước khi demo/nộp là xác minh thực tế `docker compose up`, CI trên đúng nhánh, kiểm thử backend/coverage, payment thật hoặc mô tả rõ demo payment, và hoàn thiện bằng chứng báo cáo/ERD/design patterns/đóng góp PR.
 
 ## 2. Kết quả kiểm tra kỹ thuật
 
@@ -31,8 +31,8 @@ Theo yêu cầu trong đề, dự án hiện ở mức **đáp ứng phần lớ
 | Backend build/test | Không chạy được do sandbox không có .NET SDK | Chưa có bằng chứng build/test backend trong môi trường kiểm tra |
 | Tests | Có 3 file test chính: `AuthServiceTests.cs`, `UserServiceTests.cs`, `UnitTest1.cs`; tổng số test hiện hữu khoảng 15, trong đó có test mẫu `UnitTest1` | Đủ gần ngưỡng số lượng nhưng chưa có coverage report và chưa chứng minh chạy |
 | CI/CD trên nhánh mục tiêu | Không có workflow tracked trong `Linh-dev-1`; GitHub có một workflow run thành công trên branch `Linh-CI/CD` | Chưa đáp ứng chắc chắn cho nhánh cần nộp |
-| Docker | Không tìm thấy Dockerfile hoặc docker-compose trên nhánh `Linh-dev-1` | Chưa đáp ứng; rủi ro trừ điểm –10 theo đề |
-| README | `README.md` hiện chỉ có tiêu đề `BaiTapPTPMHDT` | Chưa đáp ứng hướng dẫn chạy, tài khoản demo và kiến trúc |
+| Docker | Đã có Dockerfile cho Web API/frontend và `docker-compose.yml`; Compose có healthcheck SQL Server và auto-migration có cờ cấu hình | Có cấu hình; chưa xác minh chạy thực tế vì sandbox không có Docker |
+| README | Đã bổ sung README gốc với kiến trúc, Docker/local run, database, tài khoản demo, kịch bản demo và giới hạn Demo Payment | Đã cải thiện; cần nhóm kiểm tra lại trên máy sạch |
 | Git/PR | Có nhiều commit, nhưng truy vấn PR của repository trả về danh sách rỗng | Có lịch sử commit; chưa có bằng chứng tối thiểu 10 PR/review |
 | Logging | Có logging mặc định của ASP.NET; chưa thấy Serilog | Chưa đáp ứng điểm cộng triển khai/logging |
 
@@ -74,12 +74,12 @@ Luồng này phù hợp để trình diễn đồ án nhưng **không phải tha
 | Mức | Vấn đề | Ảnh hưởng |
 |---|---|---|
 | Cao | `appsettings.json` chứa JWT secret hard-code và connection string SQL Server gắn với máy `DESKTOP-2BS439P` | Không an toàn và không portable khi deploy |
-| Cao | Không có Dockerfile/docker-compose trong nhánh mục tiêu | `docker compose up` không thể chạy theo yêu cầu nộp |
+| Cao | Dockerfile và docker-compose đã có nhưng chưa được chạy xác minh trong môi trường audit | Cần kiểm tra `docker compose up --build` trên máy có Docker |
 | Cao | Không có workflow CI tracked trên `Linh-dev-1` | Không chứng minh được CI build/test trên branch nộp |
 | Cao | Không chạy được backend test/build trong môi trường audit | Chưa loại trừ lỗi compile/runtime ở C# |
 | Trung bình | Frontend gọi trực tiếp `http://localhost:5154` ở nhiều file | Hỏng khi chạy máy khác, container hoặc URL deploy khác |
 | Trung bình | `npm run lint` có 76 lỗi và 48 cảnh báo | Chất lượng mã và khả năng bảo trì chưa đạt |
-| Trung bình | README gần như trống | Người chấm khó chạy dự án và chấm kiến trúc |
+| Trung bình | README đã được bổ sung nhưng chưa được kiểm chứng từ máy sạch | Cần rà soát lại lệnh chạy, tài khoản và kịch bản demo |
 | Trung bình | Một số danh sách frontend tải cố định 50/100 bản ghi | Có thể thiếu dữ liệu khi vượt giới hạn |
 | Trung bình | CORS `AllowAnyOrigin/AllowAnyMethod/AllowAnyHeader` | Chính sách quá rộng cho production |
 | Thấp | Còn `WeatherForecastController` mẫu và `UnitTest1` mẫu | Làm giảm độ hoàn thiện khi review |
@@ -93,14 +93,13 @@ Luồng này phù hợp để trình diễn đồ án nhưng **không phải tha
 | Frontend | **Đáp ứng khá**: nhiều route và luồng chức năng, build pass; lint còn nhiều lỗi và cần kiểm tra responsive thực tế |
 | Bảo mật | **Đáp ứng một phần**: JWT/refresh/role/BCrypt/QR có; secret hard-code, CORS rộng và chưa có payment thật là điểm trừ |
 | Unit testing | **Đáp ứng một phần**: có khoảng 15 test nhưng chưa có bằng chứng chạy và coverage; còn test mẫu |
-| Git teamwork + CI/CD + Docker | **Chưa đáp ứng đầy đủ**: có nhiều commit và nhiều tác giả, nhưng không có bằng chứng 10 PR, workflow ở branch mục tiêu hoặc Docker |
+| Git teamwork + CI/CD + Docker | **Chưa đáp ứng đầy đủ**: có nhiều commit và nhiều tác giả; chưa có bằng chứng 10 PR, workflow đầy đủ ở branch mục tiêu hoặc chạy Docker thành công |
 | Báo cáo/thuyết trình/demo | **Chưa đủ bằng chứng**: có ERD và nhiều tài liệu nội bộ nhưng thiếu README hoàn chỉnh, báo cáo PDF 15–25 trang và slides |
 | Deploy thực tế + logging | **Chưa đáp ứng**: chưa thấy deployment và Serilog |
 
 ## 8. Checklist bắt buộc trước khi nộp
 
-1. Thêm README hoàn chỉnh: kiến trúc, prerequisites, migrate/seed DB, `docker compose up`, tài khoản demo, URL frontend/backend và hướng dẫn demo.
-2. Thêm Dockerfile cho Web API, frontend và `docker-compose.yml` với SQL Server; kiểm tra chạy từ máy sạch.
+1. Kiểm tra README, Dockerfile và `docker compose up --build` trên máy có Docker thật; xác nhận database, API và frontend khởi động thành công từ trạng thái sạch.
 3. Đưa workflow CI vào đúng branch cần nộp; workflow phải restore, build, test và lưu coverage.
 4. Cài .NET SDK đúng phiên bản, chạy `dotnet build CloudServiceSolution.sln` và `dotnet test` thực tế; bổ sung test Domain/Application để có coverage report.
 5. Đưa JWT secret, connection string và DemoPayment flag ra environment/user secrets; đổi CORS sang allowlist.

@@ -91,9 +91,10 @@ builder.Services.AddHostedService<CloudService.WebApi.BackgroundServices.UserCle
 
 var app = builder.Build();
 
-// Tự động Apply Migration và tạo DB nếu chưa có
-using (var scope = app.Services.CreateScope())
+// Chỉ tự động apply migration khi được bật rõ ràng, phù hợp cho Docker/demo.
+if (app.Configuration.GetValue<bool>("Database:AutoMigrate"))
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<CloudService.Infrastructure.Data.ApplicationDbContext>();
     db.Database.Migrate();
 }
