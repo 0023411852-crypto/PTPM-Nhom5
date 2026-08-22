@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver-db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong!Passw0rd
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+  api:
+    build:
+      context: .
+      dockerfile: CloudService.WebApi/Dockerfile
+    container_name: cloudservice-api
+    ports:
+      - "5154:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=CloudServiceDB_v2;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;
+      - JwtSettings__Secret=your_super_secret_key_needs_to_be_long_enough_for_hmac_sha256
+      - JwtSettings__Issuer=CloudServiceApp
+      - JwtSettings__Audience=CloudServiceUsers
+      - JwtSettings__ExpiryMinutes=1440
+    depends_on:
+      - sqlserver
+
+  frontend:
+    build:
+      context: ./cloud-service-frontend
+      dockerfile: Dockerfile
+    container_name: cloudservice-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - api
+
+volumes:
+  sqlserver_data:
