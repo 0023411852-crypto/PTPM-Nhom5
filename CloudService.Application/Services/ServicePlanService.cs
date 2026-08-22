@@ -134,7 +134,8 @@ namespace CloudService.Application.Services
                 .Select(price => $"{price.BillingCycle}:{price.Price + price.SetupFee:0.##}"));
             var qrPayload = $"CLOUDNOVA|SERVICE_PLAN|{entity.Id}|{entity.Name}|{priceSummary}";
             entity.QRCodeBase64 = _qrCodeService.GenerateQRCodeBase64(qrPayload);
-            repo.Update(entity);
+            // Entity đã được DbContext tracking; chỉ lưu thay đổi QRCodeBase64.
+            // Không gọi Update vì Prices/Category đã được Include và không cần đánh dấu Modified.
             await _unitOfWork.SaveChangesAsync();
 
             return _mapper.Map<ServicePlanDto>(entity);

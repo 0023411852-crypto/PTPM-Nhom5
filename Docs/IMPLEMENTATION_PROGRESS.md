@@ -63,7 +63,8 @@ Chỉ bổ sung giao diện quản lý danh mục tại Admin, gồm danh sách 
 - Batch 7 export danh sách đơn hàng: **Đã hoàn tất và đã push** (`c590d4e`).
 - Batch 8 hợp nhất route Affiliate: **Đã hoàn tất và đã push** (`c5675f3`).
 - Batch 9 liên kết trang Dịch vụ: **Đã hoàn tất và đã push** (`bc81d6f`).
-- Batch 10 dữ liệu động trang chủ: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
+- Batch 10 dữ liệu động trang chủ: **Đã hoàn tất và đã push** (`fae6be2`).
+- Batch 11 sửa lỗi regenerate QR: **Đã triển khai, kiểm thử FE/diff pass và chuẩn bị commit**.
 - Các batch khác: Chưa bắt đầu.
 
 ## Batch 1 — Giao diện CRUD danh mục dịch vụ
@@ -250,3 +251,20 @@ Trang chủ chỉ lấy slogan từ `SiteSettings`; các mục gói nổi bật,
 ### Giới hạn và nghiệm thu
 
 Không sửa backend, database, migration hoặc checkout. Dữ liệu không tải được sẽ không làm hỏng Hero; các khu vực có trạng thái rỗng rõ ràng. `npx tsc --noEmit` và `git diff --check` đã pass. Cần kiểm thử browser với API đang chạy để xác nhận dữ liệu thực tế và CORS.
+
+## Batch 11 — Sửa lỗi lưu QR Service Plan
+
+### Phân tích và nguyên nhân
+
+Luồng Admin gọi đúng `POST /api/ServicePlans/{id}/regenerate-qr` và backend đã có quyền Admin, nhưng service truy vấn `ServicePlan` cùng `Prices,Category` rồi gọi `Update(entity)`. Vì entity và navigation graph đã được Entity Framework tracking, thao tác `Update` có thể đánh dấu cả `Prices` và `Category` là Modified, gây lỗi khi `SaveChangesAsync` dù mục tiêu chỉ là cập nhật `QRCodeBase64`.
+
+### File đã sửa
+
+| File | Nội dung |
+|---|---|
+| `CloudService.Application/Services/ServicePlanService.cs` | Bỏ `repo.Update(entity)` trong regenerate QR; giữ entity tracking và chỉ gọi `SaveChangesAsync` để lưu trường QR |
+| `Docs/IMPLEMENTATION_PROGRESS.md` | Cập nhật nhật ký Batch 11 |
+
+### Nghiệm thu và lưu ý
+
+`npx tsc --noEmit` và `git diff --check` đã pass. Sandbox không có .NET SDK hoặc SQL Server nên chưa thể gọi endpoint thực tế. Sau khi cherry-pick, cần restart Web API để chạy code mới; nếu lỗi vẫn xảy ra, cần kiểm tra response HTTP 401/403/400 trong Network và log exception backend.
