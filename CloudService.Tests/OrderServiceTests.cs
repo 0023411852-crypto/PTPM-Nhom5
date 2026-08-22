@@ -24,10 +24,10 @@ namespace CloudService.Tests
         private readonly Mock<IEventDispatcher> _eventDispatcherMock;
         private readonly OrderService _orderService;
 
-        private readonly Mock<IGenericRepository<AppUser>> _userRepoMock;
-        private readonly Mock<IGenericRepository<Product>> _productRepoMock;
-        private readonly Mock<IGenericRepository<Order>> _orderRepoMock;
-        private readonly Mock<IGenericRepository<OrderDetail>> _orderDetailRepoMock;
+        private readonly Mock<IGenericRepository<ServicePlan>> _planRepoMock;
+        private readonly Mock<IGenericRepository<PlanPrice>> _priceRepoMock;
+        private readonly Mock<IGenericRepository<OrderRequest>> _orderRepoMock;
+        private readonly Mock<IGenericRepository<CustomerService>> _serviceRepoMock;
 
         public OrderServiceTests()
         {
@@ -36,15 +36,15 @@ namespace CloudService.Tests
             _emailServiceMock = new Mock<IEmailService>();
             _eventDispatcherMock = new Mock<IEventDispatcher>();
 
-            _userRepoMock = new Mock<IGenericRepository<AppUser>>();
-            _productRepoMock = new Mock<IGenericRepository<Product>>();
-            _orderRepoMock = new Mock<IGenericRepository<Order>>();
-            _orderDetailRepoMock = new Mock<IGenericRepository<OrderDetail>>();
+            _planRepoMock = new Mock<IGenericRepository<ServicePlan>>();
+            _priceRepoMock = new Mock<IGenericRepository<PlanPrice>>();
+            _orderRepoMock = new Mock<IGenericRepository<OrderRequest>>();
+            _serviceRepoMock = new Mock<IGenericRepository<CustomerService>>();
 
-            _unitOfWorkMock.Setup(u => u.Repository<AppUser>()).Returns(_userRepoMock.Object);
-            _unitOfWorkMock.Setup(u => u.Repository<Product>()).Returns(_productRepoMock.Object);
-            _unitOfWorkMock.Setup(u => u.Repository<Order>()).Returns(_orderRepoMock.Object);
-            _unitOfWorkMock.Setup(u => u.Repository<OrderDetail>()).Returns(_orderDetailRepoMock.Object);
+            _unitOfWorkMock.Setup(u => u.Repository<ServicePlan>()).Returns(_planRepoMock.Object);
+            _unitOfWorkMock.Setup(u => u.Repository<PlanPrice>()).Returns(_priceRepoMock.Object);
+            _unitOfWorkMock.Setup(u => u.Repository<OrderRequest>()).Returns(_orderRepoMock.Object);
+            _unitOfWorkMock.Setup(u => u.Repository<CustomerService>()).Returns(_serviceRepoMock.Object);
 
             _orderService = new OrderService(
                 _unitOfWorkMock.Object,
@@ -55,28 +55,28 @@ namespace CloudService.Tests
         }
 
         [Fact]
-        public async Task CreateOrderAsync_ShouldThrowNotFound_WhenUserDoesNotExist()
+        public async Task CreateOrderAsync_ShouldThrowException_WhenPlanDoesNotExist()
         {
             var userId = Guid.NewGuid();
-            _userRepoMock.Setup(r => r.GetByIdAsync(userId, "")).ReturnsAsync((AppUser)null);
+            _planRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), "")).ReturnsAsync((ServicePlan)null);
             
-            var dto = new CreateOrderDto { ProductIds = new List<Guid> { Guid.NewGuid() } };
+            var dto = new CreateOrderDto { ServicePlanId = Guid.NewGuid(), PlanPriceId = Guid.NewGuid() };
 
             Func<Task> act = async () => await _orderService.CreateOrderAsync(userId, dto);
 
-            await act.Should().ThrowAsync<NotFoundException>().WithMessage("Người dùng không tồn tại");
+            await act.Should().ThrowAsync<Exception>().WithMessage("Service Plan not found");
         }
 
         [Fact]
-        public async Task ConfirmDemoPaymentAsync_ShouldThrowNotFound_WhenOrderDoesNotExist()
+        public async Task ConfirmDemoPaymentAsync_ShouldReturnNull_WhenOrderDoesNotExist()
         {
             var orderId = Guid.NewGuid();
             var userId = Guid.NewGuid();
-            _orderRepoMock.Setup(r => r.GetByIdAsync(orderId, "")).ReturnsAsync((Order)null);
+            _orderRepoMock.Setup(r => r.GetAllAsync("ServicePlan")).ReturnsAsync(new List<OrderRequest>().AsQueryable());
 
-            Func<Task> act = async () => await _orderService.ConfirmDemoPaymentAsync(orderId, userId);
+            var result = await _orderService.ConfirmDemoPaymentAsync(orderId, userId);
 
-            await act.Should().ThrowAsync<NotFoundException>().WithMessage("Không tìm thấy đơn hàng");
+            result.Should().BeNull();
         }
     }
 }
