@@ -4,6 +4,8 @@ using CloudService.Application.DTOs.Users;
 using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
 using CloudService.Domain.Interfaces;
+using CloudService.Domain.Exceptions;
+using CloudService.Domain.Events;
 
 namespace CloudService.Application.Services
 {
@@ -11,11 +13,13 @@ namespace CloudService.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IEventDispatcher _eventDispatcher;
 
-        public UserService(IUnitOfWork unitOfWork, IMapper mapper)
+        public UserService(IUnitOfWork unitOfWork, IMapper mapper, IEventDispatcher eventDispatcher)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _eventDispatcher = eventDispatcher;
         }
 
         public async Task<PagedResponse<UserDto>> GetAllUsersAsync(PaginationFilter filter)
@@ -45,7 +49,7 @@ namespace CloudService.Application.Services
         public async Task<UserDto?> GetUserByIdAsync(Guid id)
         {
             var user = await _unitOfWork.Repository<AppUser>().GetByIdAsync(id);
-            if (user == null) return null;
+            if (user == null) throw new NotFoundException("User not found");
 
             var dto = _mapper.Map<UserDto>(user);
             var role = await _unitOfWork.Repository<Role>().GetByIdAsync(user.RoleId);
@@ -58,7 +62,7 @@ namespace CloudService.Application.Services
         {
             var repo = _unitOfWork.Repository<AppUser>();
             var user = await repo.GetByIdAsync(userId);
-            if (user == null) return false;
+            if (user == null) throw new NotFoundException("User not found");
 
             user.FullName = dto.FullName;
             repo.Update(user);
@@ -70,19 +74,22 @@ namespace CloudService.Application.Services
         {
             var repo = _unitOfWork.Repository<AppUser>();
             var user = await repo.GetByIdAsync(userId);
-            if (user == null) return false;
+            if (user == null) throw new NotFoundException("User not found");
 
             if (!BCrypt.Net.BCrypt.Verify(dto.OldPassword, user.PasswordHash))
             {
-                throw new Exception("Mật khẩu cũ không chính xác.");
+                throw new UnauthorizedException("Current password is incorrect");
             }
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
             repo.Update(user);
             
-            await RevokeAllUserSessionsAsync(userId, "PASSWORD_CHANGED");
+            await _eventDispatcher.DispatchAsync(new PasswordChangedEvent 
+            { 
+                UserId = userId,
+                IPAddress = "" // IP will be injected via context accessor in a real app
+            });
             
-            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
@@ -90,38 +97,28 @@ namespace CloudService.Application.Services
         {
             if (adminId == targetUserId)
             {
-                throw new Exception("Bạn không thể tự khóa tài khoản của chính mình.");
+                throw new ValidationException("You cannot lock your own account.");
             }
 
             var repo = _unitOfWork.Repository<AppUser>();
             var user = await repo.GetByIdAsync(targetUserId);
-            if (user == null) return false;
+            if (user == null) throw new NotFoundException("User not found");
 
             user.IsActive = dto.IsActive;
             repo.Update(user);
             
             if (!dto.IsActive)
             {
-                await RevokeAllUserSessionsAsync(targetUserId, "ADMIN_LOCK");
+                await _eventDispatcher.DispatchAsync(new UserLockedEvent 
+                { 
+                    TargetUserId = targetUserId,
+                    AdminId = adminId
+                });
             }
             
-            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
-        private async Task RevokeAllUserSessionsAsync(Guid userId, string reason)
-        {
-            var repo = _unitOfWork.Repository<UserSession>();
-            var allSessions = await repo.GetAllAsync();
-            var activeSessions = allSessions.Where(s => s.UserId == userId && !s.IsRevoked).ToList();
-            
-            foreach(var session in activeSessions)
-            {
-                session.IsRevoked = true;
-                session.RevokedAt = DateTime.UtcNow;
-                session.RevokedReason = reason;
-                repo.Update(session);
-            }
-        }
+
     }
 }

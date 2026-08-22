@@ -1,4 +1,6 @@
 using CloudService.Application.DTOs.Auth;
+using CloudService.Domain.Events;
+using CloudService.Domain.Exceptions;
 using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
 using CloudService.Domain.Interfaces;
@@ -15,11 +17,13 @@ namespace CloudService.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
+        private readonly IEventDispatcher _eventDispatcher;
 
-        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration)
+        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration, IEventDispatcher eventDispatcher)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
+            _eventDispatcher = eventDispatcher;
         }
 
         private string GenerateRefreshToken()
@@ -46,12 +50,12 @@ namespace CloudService.Application.Services
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
-                throw new Exception("Invalid credentials");
+                throw new UnauthorizedException("Invalid credentials");
             }
 
             if (!user.IsActive)
             {
-                throw new Exception("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+                throw new UnauthorizedException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
             }
 
             var roleRepo = _unitOfWork.Repository<Role>();
@@ -72,6 +76,8 @@ namespace CloudService.Application.Services
             await _unitOfWork.Repository<UserSession>().AddAsync(userSession);
             await _unitOfWork.SaveChangesAsync();
 
+            await _eventDispatcher.DispatchAsync(new UserLoggedInEvent { UserId = user.Id, Email = user.Email });
+
             return new AuthResponse
             {
                 Token = token,
@@ -89,7 +95,7 @@ namespace CloudService.Application.Services
             
             if (allUsers.Any(u => u.Email == request.Email))
             {
-                throw new Exception("Email already exists");
+                throw new ConflictException("Email already exists");
             }
 
             var roleRepo = _unitOfWork.Repository<Role>();
@@ -130,6 +136,8 @@ namespace CloudService.Application.Services
             await _unitOfWork.Repository<UserSession>().AddAsync(userSession);
             await _unitOfWork.SaveChangesAsync();
 
+            await _eventDispatcher.DispatchAsync(new UserRegisteredEvent { UserId = newUser.Id, Email = newUser.Email });
+
             return new AuthResponse
             {
                 Token = token,
@@ -149,7 +157,7 @@ namespace CloudService.Application.Services
             var session = sessions.FirstOrDefault(s => s.RefreshTokenHash == hashedToken && !s.IsRevoked);
 
             if (session == null)
-                throw new Exception("Invalid session or refresh token.");
+                throw new UnauthorizedException("Invalid session or refresh token.");
 
             var now = DateTime.UtcNow;
 
@@ -160,7 +168,7 @@ namespace CloudService.Application.Services
                 session.RevokedReason = "ABSOLUTE_TIMEOUT";
                 repo.Update(session);
                 await _unitOfWork.SaveChangesAsync();
-                throw new Exception("Session absolutely expired. Please login again.");
+                throw new UnauthorizedException("Session absolutely expired. Please login again.");
             }
 
             if ((now - session.LastActiveTimestamp).TotalMinutes > 15)
@@ -170,7 +178,7 @@ namespace CloudService.Application.Services
                 session.RevokedReason = "IDLE_TIMEOUT";
                 repo.Update(session);
                 await _unitOfWork.SaveChangesAsync();
-                throw new Exception("Session expired due to idle timeout.");
+                throw new UnauthorizedException("Session expired due to idle timeout.");
             }
 
             var userRepo = _unitOfWork.Repository<AppUser>();
@@ -178,7 +186,7 @@ namespace CloudService.Application.Services
             
             if (user == null || !user.IsActive)
             {
-                throw new Exception("User is disabled or not found.");
+                throw new UnauthorizedException("User is disabled or not found.");
             }
             
             var roleRepo = _unitOfWork.Repository<Role>();
@@ -219,6 +227,8 @@ namespace CloudService.Application.Services
                 session.RevokedReason = "USER_LOGOUT";
                 repo.Update(session);
                 await _unitOfWork.SaveChangesAsync();
+                
+                await _eventDispatcher.DispatchAsync(new UserLoggedOutEvent { UserId = session.UserId });
             }
             
             return true;
