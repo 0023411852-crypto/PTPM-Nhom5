@@ -2,9 +2,13 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ "main", "master", "develop" ]
+    branches: [ "main", "master", "develop", "Linh-dev-1" ]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [ "main", "master", "develop", "Linh-dev-1" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build-and-test-backend:
@@ -42,7 +46,7 @@ jobs:
         
     - name: Install dependencies
       working-directory: ./cloud-service-frontend
-      run: npm ci || npm install
+      run: npm ci
       
     - name: Build Next.js app
       working-directory: ./cloud-service-frontend
