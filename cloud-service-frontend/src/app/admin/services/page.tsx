@@ -231,6 +231,14 @@ export default function AdminServicesPage() {
                     <p className="font-body-sm text-body-sm text-on-surface-variant mt-unit">Cấu hình các gói VPS, Cloud Server và bảng giá</p>
                 </div>
                 <div className="flex gap-sm">
+                    <button
+                        type="button"
+                        onClick={() => router.push('/admin/services/categories')}
+                        className="px-md py-sm bg-surface-container border border-outline-variant text-on-surface rounded-lg font-body-sm text-body-sm font-medium hover:bg-surface-variant transition-colors shadow-sm flex items-center gap-sm"
+                    >
+                        <span className="material-symbols-outlined text-[18px]">category</span>
+                        Quản lý danh mục
+                    </button>
                     <button 
                         onClick={handleOpenAdd}
                         className="px-md py-sm bg-primary text-on-primary rounded-lg font-body-sm text-body-sm font-medium hover:bg-primary-container transition-colors shadow-sm flex items-center gap-sm"
