@@ -212,7 +212,9 @@ export default function PartnersPage() {
                                     <span>Hỗ trợ qua ticket (SLA 24h)</span>
                                 </li>
                             </ul>
-                            <button className="w-full bg-transparent border border-primary text-primary font-semibold py-2 rounded-lg hover:bg-primary/5 transition-colors mt-auto">
+                            <button 
+                                onClick={() => { setRequestedService('Silver Partner'); setIsModalOpen(true); }}
+                                className="w-full bg-transparent border border-primary text-primary font-semibold py-2 rounded-lg hover:bg-primary/5 transition-colors mt-auto">
                                 Bắt đầu ngay
                             </button>
                         </div>
@@ -245,7 +247,9 @@ export default function PartnersPage() {
                                     <span>Hỗ trợ qua Phone/Chat (SLA 4h)</span>
                                 </li>
                             </ul>
-                            <button className="w-full bg-primary text-on-primary font-semibold py-2 rounded-lg hover:bg-primary/90 transition-colors mt-auto">
+                            <button 
+                                onClick={() => { setRequestedService('Gold Partner'); setIsModalOpen(true); }}
+                                className="w-full bg-primary text-on-primary font-semibold py-2 rounded-lg hover:bg-primary/90 transition-colors mt-auto">
                                 Đăng ký Gold
                             </button>
                         </div>
@@ -339,22 +343,18 @@ export default function PartnersPage() {
                         <input type="url" value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="https://" />
                     </div>
                     <div>
-                        <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Dịch vụ muốn đăng ký</label>
+                        <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Cấp độ Đối tác mong muốn</label>
                         <select
                             required
                             value={requestedService}
                             onChange={e => setRequestedService(e.target.value)}
                             className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                         >
-                            <option value="">Chọn dịch vụ/gói muốn đăng ký</option>
-                            {servicePlans.map(plan => (
-                                <option key={plan.id} value={plan.name}>{plan.name}</option>
-                            ))}
-                            <option value="Tư vấn dịch vụ tổng thể">Chưa xác định - cần tư vấn tổng thể</option>
+                            <option value="">Chọn cấp độ đối tác...</option>
+                            <option value="Silver Partner">Đối tác Silver (Chiết khấu 10%)</option>
+                            <option value="Gold Partner">Đối tác Gold (Chiết khấu 20%)</option>
+                            <option value="Tư vấn tổng thể">Chưa xác định - Cần tư vấn thêm</option>
                         </select>
-                        {servicePlans.length === 0 && (
-                            <p className="text-xs text-secondary mt-1">Danh sách gói đang được cập nhật; bạn vẫn có thể chọn tư vấn tổng thể.</p>
-                        )}
                     </div>
                     <div>
                         <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Hình thức quảng bá (Promotion Method)</label>

@@ -160,10 +160,6 @@ export default function AdminServiceCategoriesPage() {
     <div className="mx-auto max-w-container-max space-y-lg pb-xl">
       <div className="flex flex-col justify-between gap-md sm:flex-row sm:items-end">
         <div>
-          <button type="button" onClick={() => router.push('/admin/services')} className="mb-sm inline-flex items-center gap-xs font-body-sm text-primary hover:underline">
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-            Quay lại quản lý gói dịch vụ
-          </button>
           <h2 className="font-headline-lg text-headline-lg text-on-surface">Danh mục dịch vụ</h2>
           <p className="mt-unit font-body-sm text-body-sm text-on-surface-variant">Quản lý nhóm dịch vụ dùng cho các gói VPS, Hosting và Cloud.</p>
         </div>

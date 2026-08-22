@@ -206,9 +206,9 @@ export default function CheckoutPage() {
                     <div className="w-20 h-20 bg-primary-container text-primary rounded-full flex items-center justify-center mx-auto mb-lg">
                         <span className="material-symbols-outlined text-[40px]">check_circle</span>
                     </div>
-                    <h1 className="font-display-sm text-display-sm text-on-surface mb-sm">Đặt hàng thành công!</h1>
+                    <h1 className="font-display-sm text-display-sm text-on-surface mb-sm">Đơn hàng đã được tạo!</h1>
                     <p className="font-body-lg text-body-lg text-on-surface-variant mb-xl">
-                        Đây là luồng thanh toán <strong>DEMO</strong> cho bài kết thúc môn. Bạn có thể xem QR minh họa hoặc bấm xác nhận đã thanh toán để mô phỏng callback thành công.
+                        Vui lòng thanh toán để hoàn tất. Đây là luồng thanh toán <strong>DEMO</strong>, bạn có thể quét mã QR minh họa hoặc bấm xác nhận bên dưới.
                     </p>
                     
                     {qrCodeData && (

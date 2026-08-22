@@ -17,8 +17,10 @@ export default function Home() {
     fetch("http://localhost:5154/api/SiteSettings/public")
       .then(res => res.json())
       .then(data => {
-        const found = data.find((x: any) => x.key === 'Slogan');
-        if (found) setSlogan(found.value);
+        if (Array.isArray(data)) {
+          const found = data.find((x: any) => x.key === 'Slogan');
+          if (found) setSlogan(found.value);
+        }
       })
       .catch(e => console.error(e));
   }, []);

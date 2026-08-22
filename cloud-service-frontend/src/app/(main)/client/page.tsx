@@ -700,7 +700,7 @@ export default function ClientPortalPage() {
 
             {selectedOrder && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-md backdrop-blur-sm">
-                    <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-surface shadow-xl">
+                    <div className="flex max-h-[90vh] w-[95%] md:w-full min-w-[300px] max-w-2xl flex-col overflow-hidden rounded-2xl bg-surface shadow-xl">
                         <div className="flex items-center justify-between border-b border-outline-variant p-xl">
                             <div>
                                 <p className="font-label-caps text-label-caps uppercase tracking-wider text-primary">Chi tiết đơn hàng</p>

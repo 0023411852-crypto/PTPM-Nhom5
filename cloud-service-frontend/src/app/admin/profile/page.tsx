@@ -118,6 +118,8 @@ export default function AdminProfilePage() {
         if (file) {
             const imageUrl = URL.createObjectURL(file);
             setUser(prev => ({ ...prev, avatar: imageUrl }));
+            localStorage.setItem('avatar', imageUrl);
+            window.dispatchEvent(new Event('profileUpdated'));
         }
     };
 
