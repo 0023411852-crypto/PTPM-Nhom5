@@ -141,5 +141,19 @@ namespace CloudService.Tests
             result.Should().BeTrue();
             user.AvatarUrl.Should().Be("new-avatar");
         }
+
+        [Fact]
+        public async Task UpdateProfileAsync_ShouldNotUpdateEmail_WhenEmailIsEmpty()
+        {
+            var userId = Guid.NewGuid();
+            var user = new AppUser { Id = userId, FullName = "Test User", Email = "old@example.com" };
+            _userRepoMock.Setup(r => r.GetByIdAsync(userId, "")).ReturnsAsync(user);
+            var dto = new UpdateProfileDto { FullName = "New Name", Email = "" };
+
+            var result = await _userService.UpdateProfileAsync(userId, dto);
+
+            result.Should().BeTrue();
+            user.Email.Should().Be("old@example.com"); // Email không nên bị ghi đè thành rỗng
+        }
     }
 }
