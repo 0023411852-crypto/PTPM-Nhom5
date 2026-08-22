@@ -4,6 +4,7 @@ using CloudService.Application.DTOs.NewsArticles;
 using CloudService.Application.DTOs.Orders;
 using CloudService.Application.DTOs.ServiceCategories;
 using CloudService.Application.DTOs.ServicePlans;
+using CloudService.Application.DTOs.Users;
 using CloudService.Domain.Entities;
 
 namespace CloudService.Application.Mappings
@@ -32,6 +33,8 @@ namespace CloudService.Application.Mappings
             CreateMap<AffiliateApplication, AffiliateApplicationDto>();
             CreateMap<CreateAffiliateApplicationDto, AffiliateApplication>();
             CreateMap<UpdateAffiliateApplicationDto, AffiliateApplication>();
+
+            CreateMap<AppUser, UserDto>();
         }
 
         private string GenerateSlug(string phrase)

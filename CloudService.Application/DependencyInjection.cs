@@ -18,6 +18,7 @@ namespace CloudService.Application
             services.AddScoped<IQRCodeService, QRCodeService>();
             services.AddScoped<INewsArticleService, NewsArticleService>();
             services.AddScoped<IAffiliateApplicationService, AffiliateApplicationService>();
+            services.AddScoped<IUserService, UserService>();
             
             return services;
         }

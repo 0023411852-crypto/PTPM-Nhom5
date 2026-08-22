@@ -1,0 +1,10 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace CloudService.Application.DTOs.Users
+{
+    public class UpdateUserStatusDto
+    {
+        [Required]
+        public bool IsActive { get; set; }
+    }
+}
