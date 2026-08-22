@@ -62,7 +62,8 @@ Chỉ bổ sung giao diện quản lý danh mục tại Admin, gồm danh sách 
 - Batch 6 thống kê báo cáo: **Đã hoàn tất và đã push** (`88e4a55`).
 - Batch 7 export danh sách đơn hàng: **Đã hoàn tất và đã push** (`c590d4e`).
 - Batch 8 hợp nhất route Affiliate: **Đã hoàn tất và đã push** (`c5675f3`).
-- Batch 9 liên kết trang Dịch vụ: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
+- Batch 9 liên kết trang Dịch vụ: **Đã hoàn tất và đã push** (`bc81d6f`).
+- Batch 10 dữ liệu động trang chủ: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
 - Các batch khác: Chưa bắt đầu.
 
 ## Batch 1 — Giao diện CRUD danh mục dịch vụ
@@ -232,3 +233,20 @@ Trang public Services có bốn thẻ Domain, Business Email, SSL và DDoS Secur
 ### Giới hạn và nghiệm thu
 
 Không sửa API, database hoặc nội dung thẻ dịch vụ. Các CTA hiện điều hướng tới route bảng giá đang tồn tại. Cần chạy `npx tsc --noEmit` và `git diff --check` trước khi commit.
+
+## Batch 10 — Kết nối dữ liệu động cho trang chủ
+
+### Phân tích trước khi sửa
+
+Trang chủ chỉ lấy slogan từ `SiteSettings`; các mục gói nổi bật, khuyến mãi đang chạy và tin mới nhất trong ma trận chưa có luồng API. Backend đã có các endpoint `ServicePlans`, `Promotions` và `NewsArticles`, nên batch này chỉ bổ sung fetch dữ liệu và UI trạng thái rỗng, không tạo endpoint mới.
+
+### File đã sửa
+
+| File | Nội dung |
+|---|---|
+| `cloud-service-frontend/src/app/(main)/page.tsx` | Gọi ba API hiện có, hiển thị tối đa ba gói active, ba promotion active và ba bài viết published; thêm link tới pricing/news |
+| `Docs/IMPLEMENTATION_PROGRESS.md` | Cập nhật nhật ký Batch 10 |
+
+### Giới hạn và nghiệm thu
+
+Không sửa backend, database, migration hoặc checkout. Dữ liệu không tải được sẽ không làm hỏng Hero; các khu vực có trạng thái rỗng rõ ràng. `npx tsc --noEmit` và `git diff --check` đã pass. Cần kiểm thử browser với API đang chạy để xác nhận dữ liệu thực tế và CORS.

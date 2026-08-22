@@ -9,6 +9,9 @@ export default function Home() {
   const threeContainerRef = useRef<HTMLDivElement>(null);
 
   const [slogan, setSlogan] = useState("Hạ tầng Cloud mạnh mẽ cho mọi ý tưởng.");
+  const [featuredPlans, setFeaturedPlans] = useState<any[]>([]);
+  const [activePromotions, setActivePromotions] = useState<any[]>([]);
+  const [latestNews, setLatestNews] = useState<any[]>([]);
 
   useEffect(() => {
     fetch("http://localhost:5154/api/SiteSettings/public")
@@ -18,6 +21,33 @@ export default function Home() {
         if (found) setSlogan(found.value);
       })
       .catch(e => console.error(e));
+  }, []);
+
+  useEffect(() => {
+    const loadHomepageData = async () => {
+      try {
+        const [plansRes, promotionsRes, newsRes] = await Promise.all([
+          fetch("http://localhost:5154/api/ServicePlans?PageNumber=1&PageSize=3"),
+          fetch("http://localhost:5154/api/Promotions?PageNumber=1&PageSize=3&onlyActive=true"),
+          fetch("http://localhost:5154/api/NewsArticles?onlyPublished=true&pageNumber=1&pageSize=3")
+        ]);
+        if (plansRes.ok) {
+          const data = await plansRes.json();
+          setFeaturedPlans((data.data || []).filter((plan: any) => plan.isActive).slice(0, 3));
+        }
+        if (promotionsRes.ok) {
+          const data = await promotionsRes.json();
+          setActivePromotions((data.data || []).slice(0, 3));
+        }
+        if (newsRes.ok) {
+          const data = await newsRes.json();
+          setLatestNews((data.data || []).slice(0, 3));
+        }
+      } catch (error) {
+        console.error("Failed to load homepage data", error);
+      }
+    };
+    loadHomepageData();
   }, []);
 
   // WebGL Shader Animation (from STITCH_SHADER_START:ANIMATION_3)
@@ -349,6 +379,67 @@ void main() {
             <div className="relative h-[400px] lg:h-[600px] flex items-center justify-center">
               <div className="absolute inset-0 bg-gradient-to-tr from-surface-tint/10 to-transparent rounded-full blur-3xl"></div>
               <div ref={threeContainerRef} className="w-full h-full relative z-10" style={{ display: "block" }}></div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-2xl px-gutter bg-background">
+          <div className="max-w-container-max mx-auto">
+            <div className="flex items-end justify-between gap-md mb-lg">
+              <div>
+                <p className="font-label-caps text-label-caps text-primary">Dịch vụ nổi bật</p>
+                <h2 className="font-headline-lg text-headline-lg text-on-background">Gói Cloud được quan tâm</h2>
+              </div>
+              <Link href="/pricing" className="text-primary font-body-sm font-semibold hover:underline">Xem bảng giá</Link>
+            </div>
+            {featuredPlans.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-lg">
+                {featuredPlans.map((plan) => (
+                  <article key={plan.id} className="bg-surface rounded-xl border border-outline-variant p-lg shadow-sm">
+                    <p className="font-label-caps text-label-caps text-primary">{plan.category?.name || "Cloud"}</p>
+                    <h3 className="font-headline-md text-headline-md text-on-surface mt-sm">{plan.name}</h3>
+                    <p className="font-body-sm text-on-surface-variant mt-sm line-clamp-2">{plan.description}</p>
+                    <p className="font-headline-sm text-headline-sm text-on-surface mt-lg">{plan.prices?.[0]?.price?.toLocaleString("vi-VN") || "Liên hệ"} đ</p>
+                  </article>
+                ))}
+              </div>
+            ) : <p className="text-on-surface-variant">Chưa có gói dịch vụ nổi bật.</p>}
+          </div>
+        </section>
+
+        <section className="py-2xl px-gutter bg-surface-container-lowest">
+          <div className="max-w-container-max mx-auto grid grid-cols-1 lg:grid-cols-2 gap-lg">
+            <div className="bg-primary-container/30 rounded-xl p-lg border border-primary/20">
+              <p className="font-label-caps text-label-caps text-primary">Khuyến mãi đang chạy</p>
+              <div className="mt-md space-y-md">
+                {activePromotions.length > 0 ? activePromotions.map((promotion) => (
+                  <div key={promotion.id} className="bg-surface rounded-lg p-md border border-outline-variant">
+                    <div className="flex items-center justify-between gap-md">
+                      <h3 className="font-headline-sm text-headline-sm text-on-surface">{promotion.title}</h3>
+                      <span className="text-primary font-semibold whitespace-nowrap">-{promotion.discountPercentage}%</span>
+                    </div>
+                    <p className="font-body-sm text-on-surface-variant mt-xs">{promotion.description}</p>
+                  </div>
+                )) : <p className="text-on-surface-variant">Hiện chưa có chương trình khuyến mãi.</p>}
+              </div>
+            </div>
+            <div className="bg-surface rounded-xl p-lg border border-outline-variant">
+              <div className="flex items-end justify-between gap-md">
+                <div>
+                  <p className="font-label-caps text-label-caps text-primary">Tin tức mới nhất</p>
+                  <h2 className="font-headline-md text-headline-md text-on-surface">CloudNova Insights</h2>
+                </div>
+                <Link href="/news" className="text-primary font-body-sm font-semibold hover:underline">Xem tất cả</Link>
+              </div>
+              <div className="mt-md space-y-md">
+                {latestNews.length > 0 ? latestNews.map((article) => (
+                  <Link key={article.id} href={`/news/${article.id}`} className="block border-b border-outline-variant pb-md last:border-0 last:pb-0 hover:text-primary">
+                    <p className="font-label-caps text-label-caps text-secondary">{article.category || "Tin tức"}</p>
+                    <h3 className="font-body-md font-semibold text-on-surface mt-xs">{article.title}</h3>
+                    <p className="font-body-sm text-on-surface-variant mt-xs">{new Date(article.createdAt).toLocaleDateString("vi-VN")}</p>
+                  </Link>
+                )) : <p className="text-on-surface-variant">Chưa có bài viết mới.</p>}
+              </div>
             </div>
           </div>
         </section>
