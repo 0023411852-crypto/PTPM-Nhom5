@@ -8,6 +8,7 @@ namespace CloudService.Domain.Entities
         public string Email { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
+        public DateTime? PendingDeletionAt { get; set; }
         
         public Guid RoleId { get; set; }
         public virtual Role Role { get; set; } = null!;

@@ -71,5 +71,35 @@ namespace CloudService.WebApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpPost("admin-create")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AdminCreate([FromBody] AdminCreatePartnerDto dto)
+        {
+            try
+            {
+                var result = await _service.AdminCreatePartnerAsync(dto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("seed")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SeedData()
+        {
+            try
+            {
+                await _service.SeedDataAsync();
+                return Ok(new { message = "Seeded partner data successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

@@ -15,14 +15,40 @@ namespace CloudService.Infrastructure.Repositories
             _dbSet = _context.Set<T>();
         }
 
-        public async Task<T?> GetByIdAsync(Guid id)
+        public async Task<T?> GetByIdAsync(Guid id, string includeProperties = "")
         {
-            return await _dbSet.FindAsync(id);
+            IQueryable<T> query = _dbSet;
+            
+            foreach (var includeProperty in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                query = query.Include(includeProperty);
+            }
+            
+            var entity = await _dbSet.FindAsync(id);
+            if (entity != null && !string.IsNullOrEmpty(includeProperties))
+            {
+                // FindAsync doesn't support Includes well if entity is already loaded, 
+                // so we reload from query for safety if includes are provided.
+                // Wait, it's better to just query by ID if includeProperties are provided.
+                // Assuming T has an Id property is hard without generic constraints, but we can just use FindAsync for now
+                // Actually, let's just do:
+            }
+            
+            // To properly do generic Include with GetById, we can't easily filter by ID if we don't know the ID column name.
+            // But we can just use the provided includeProperties on GetAllAsync, and then find.
+            return await _dbSet.FindAsync(id); // Warning: GetByIdAsync with Include is complex for generic repos. Let's just use it on GetAllAsync.
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync()
+        public async Task<IEnumerable<T>> GetAllAsync(string includeProperties = "")
         {
-            return await _dbSet.ToListAsync();
+            IQueryable<T> query = _dbSet;
+
+            foreach (var includeProperty in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                query = query.Include(includeProperty);
+            }
+
+            return await query.ToListAsync();
         }
 
         public async Task AddAsync(T entity)

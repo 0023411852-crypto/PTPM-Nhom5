@@ -20,6 +20,13 @@ namespace CloudService.Infrastructure.Data
         public DbSet<AffiliateApplication> AffiliateApplications { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<UserSession> UserSessions { get; set; }
+        public DbSet<SiteSetting> SiteSettings { get; set; }
+        public DbSet<SupportTicket> SupportTickets { get; set; }
+        public DbSet<TicketReply> TicketReplies { get; set; }
+        public DbSet<CustomerService> CustomerServices { get; set; }
+        public DbSet<StaticPage> StaticPages { get; set; }
+        public DbSet<MediaFile> MediaFiles { get; set; }
+        public DbSet<PartnerRequest> PartnerRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -116,6 +123,40 @@ namespace CloudService.Infrastructure.Data
                       .WithMany()
                       .HasForeignKey(e => e.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<SupportTicket>(entity =>
+            {
+                entity.HasOne(e => e.Customer)
+                      .WithMany()
+                      .HasForeignKey(e => e.CustomerId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<TicketReply>(entity =>
+            {
+                entity.HasOne(e => e.Ticket)
+                      .WithMany(t => t.Replies)
+                      .HasForeignKey(e => e.TicketId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                      
+                entity.HasOne(e => e.User)
+                      .WithMany()
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<CustomerService>(entity =>
+            {
+                entity.HasOne(e => e.Order)
+                      .WithMany()
+                      .HasForeignKey(e => e.OrderId)
+                      .OnDelete(DeleteBehavior.Restrict);
+                      
+                entity.HasOne(e => e.Customer)
+                      .WithMany()
+                      .HasForeignKey(e => e.CustomerId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

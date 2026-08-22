@@ -17,5 +17,7 @@ namespace CloudService.Application.DTOs.ServicePlans
         public string Specifications { get; set; } = "{}";
 
         public bool IsActive { get; set; } = true;
+
+        public List<CreatePlanPriceDto> Prices { get; set; } = new List<CreatePlanPriceDto>();
     }
 }

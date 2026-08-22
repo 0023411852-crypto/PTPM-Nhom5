@@ -21,6 +21,16 @@ namespace CloudService.Application
             services.AddScoped<INewsArticleService, NewsArticleService>();
             services.AddScoped<IAffiliateApplicationService, AffiliateApplicationService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ICustomerServiceAppService, CustomerServiceAppService>();
+            services.AddScoped<ISupportTicketService, SupportTicketService>();
+            services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<IEmailService, ConsoleEmailService>();
+            services.AddScoped<ISiteSettingService, SiteSettingService>();
+            services.AddScoped<IStaticPageService, StaticPageService>();
+            services.AddScoped<IPromotionService, PromotionService>();
+            services.AddScoped<IMediaService, MediaService>();
+            services.AddScoped<IDashboardService, DashboardService>();
+            services.AddScoped<IPartnerRequestService, PartnerRequestService>();
             
             // Event Dispatcher & Handlers
             services.AddScoped<IEventDispatcher, EventDispatcher>();

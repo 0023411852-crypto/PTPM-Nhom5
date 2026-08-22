@@ -20,13 +20,17 @@ namespace CloudService.Application.Mappings
                 .ForMember(dest => dest.Slug, opt => opt.MapFrom(src => GenerateSlug(src.Name)));
 
             CreateMap<ServicePlan, ServicePlanDto>();
+            CreateMap<PlanPrice, PlanPriceDto>();
             CreateMap<CreateServicePlanDto, ServicePlan>();
-            CreateMap<UpdateServicePlanDto, ServicePlan>();
+            CreateMap<UpdateServicePlanDto, ServicePlan>()
+                .ForMember(dest => dest.Prices, opt => opt.Ignore());
+            CreateMap<CreatePlanPriceDto, PlanPrice>();
 
             CreateMap<OrderRequest, OrderDto>();
             CreateMap<CreateOrderDto, OrderRequest>();
 
-            CreateMap<NewsArticle, NewsArticleDto>();
+            CreateMap<NewsArticle, NewsArticleDto>()
+                .ForMember(dest => dest.AuthorName, opt => opt.MapFrom(src => src.Author != null ? src.Author.FullName : string.Empty));
             CreateMap<CreateNewsArticleDto, NewsArticle>();
             CreateMap<UpdateNewsArticleDto, NewsArticle>();
 
@@ -35,6 +39,22 @@ namespace CloudService.Application.Mappings
             CreateMap<UpdateAffiliateApplicationDto, AffiliateApplication>();
 
             CreateMap<AppUser, UserDto>();
+            
+            CreateMap<CustomerService, CloudService.Application.DTOs.CustomerServices.CustomerServiceDto>();
+            CreateMap<SupportTicket, CloudService.Application.DTOs.SupportTickets.SupportTicketDto>();
+            CreateMap<TicketReply, CloudService.Application.DTOs.SupportTickets.TicketReplyDto>();
+            CreateMap<SiteSetting, CloudService.Application.DTOs.SiteSettingDto>();
+            
+            CreateMap<StaticPage, CloudService.Application.DTOs.StaticPages.StaticPageDto>()
+                .ForMember(dest => dest.AuthorName, opt => opt.MapFrom(src => src.Author != null ? src.Author.FullName : string.Empty));
+            CreateMap<CloudService.Application.DTOs.StaticPages.CreateStaticPageDto, StaticPage>();
+            CreateMap<CloudService.Application.DTOs.StaticPages.UpdateStaticPageDto, StaticPage>();
+
+            CreateMap<Promotion, CloudService.Application.DTOs.Promotions.PromotionDto>();
+            CreateMap<CloudService.Application.DTOs.Promotions.CreatePromotionDto, Promotion>();
+            CreateMap<CloudService.Application.DTOs.Promotions.UpdatePromotionDto, Promotion>();
+
+            CreateMap<MediaFile, CloudService.Application.DTOs.Media.MediaFileDto>().ReverseMap();
         }
 
         private string GenerateSlug(string phrase)

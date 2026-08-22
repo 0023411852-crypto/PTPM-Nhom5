@@ -50,7 +50,7 @@ namespace CloudService.Application.Services
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
-                throw new UnauthorizedException("Invalid credentials");
+                throw new UnauthorizedException("Email hoặc mật khẩu không chính xác.");
             }
 
             if (!user.IsActive)
@@ -95,7 +95,7 @@ namespace CloudService.Application.Services
             
             if (allUsers.Any(u => u.Email == request.Email))
             {
-                throw new ConflictException("Email already exists");
+                throw new ConflictException("Email đã tồn tại trong hệ thống");
             }
 
             var roleRepo = _unitOfWork.Repository<Role>();
@@ -157,7 +157,7 @@ namespace CloudService.Application.Services
             var session = sessions.FirstOrDefault(s => s.RefreshTokenHash == hashedToken && !s.IsRevoked);
 
             if (session == null)
-                throw new UnauthorizedException("Invalid session or refresh token.");
+                throw new UnauthorizedException("Phiên đăng nhập hoặc token không hợp lệ.");
 
             var now = DateTime.UtcNow;
 
@@ -168,7 +168,7 @@ namespace CloudService.Application.Services
                 session.RevokedReason = "ABSOLUTE_TIMEOUT";
                 repo.Update(session);
                 await _unitOfWork.SaveChangesAsync();
-                throw new UnauthorizedException("Session absolutely expired. Please login again.");
+                throw new UnauthorizedException("Phiên đăng nhập đã hết hạn tuyệt đối. Vui lòng đăng nhập lại.");
             }
 
             if ((now - session.LastActiveTimestamp).TotalMinutes > 15)
@@ -178,7 +178,7 @@ namespace CloudService.Application.Services
                 session.RevokedReason = "IDLE_TIMEOUT";
                 repo.Update(session);
                 await _unitOfWork.SaveChangesAsync();
-                throw new UnauthorizedException("Session expired due to idle timeout.");
+                throw new UnauthorizedException("Phiên đăng nhập đã hết hạn do không hoạt động.");
             }
 
             var userRepo = _unitOfWork.Repository<AppUser>();
@@ -186,7 +186,7 @@ namespace CloudService.Application.Services
             
             if (user == null || !user.IsActive)
             {
-                throw new UnauthorizedException("User is disabled or not found.");
+                throw new UnauthorizedException("Người dùng bị vô hiệu hóa hoặc không tìm thấy.");
             }
             
             var roleRepo = _unitOfWork.Repository<Role>();

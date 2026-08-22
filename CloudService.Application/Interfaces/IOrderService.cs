@@ -9,5 +9,8 @@ namespace CloudService.Application.Interfaces
         Task<PagedResponse<OrderDto>> GetAllOrdersAsync(PaginationFilter filter);
         Task<OrderDto> CreateOrderAsync(Guid userId, CreateOrderDto dto);
         Task<bool> UpdateOrderStatusAsync(Guid orderId, string status);
+        Task<bool> ApproveOrderAsync(Guid orderId, ApproveOrderDto dto);
+        Task<OrderDto> AdminCreateOrderAsync(AdminCreateOrderDto dto);
+        Task<bool> DeleteOrderAsync(Guid orderId);
     }
 }

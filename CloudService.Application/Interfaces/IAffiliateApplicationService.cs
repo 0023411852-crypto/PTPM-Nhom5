@@ -9,5 +9,7 @@ namespace CloudService.Application.Interfaces
         Task<AffiliateApplicationDto?> GetByUserIdAsync(Guid userId);
         Task<AffiliateApplicationDto> CreateAsync(Guid userId, CreateAffiliateApplicationDto dto);
         Task<AffiliateApplicationDto> UpdateStatusAsync(Guid id, UpdateAffiliateApplicationDto dto);
+        Task<AffiliateApplicationDto> AdminCreatePartnerAsync(AdminCreatePartnerDto dto);
+        Task SeedDataAsync();
     }
 }

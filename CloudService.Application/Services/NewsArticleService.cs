@@ -21,7 +21,7 @@ namespace CloudService.Application.Services
         public async Task<PagedResponse<NewsArticleDto>> GetAllAsync(PaginationFilter filter, bool onlyPublished = false)
         {
             var repo = _unitOfWork.Repository<NewsArticle>();
-            var allData = await repo.GetAllAsync();
+            var allData = await repo.GetAllAsync("Author");
             
             if (onlyPublished)
             {

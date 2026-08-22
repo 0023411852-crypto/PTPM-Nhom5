@@ -49,7 +49,7 @@ namespace CloudService.Application.Services
         public async Task<UserDto?> GetUserByIdAsync(Guid id)
         {
             var user = await _unitOfWork.Repository<AppUser>().GetByIdAsync(id);
-            if (user == null) throw new NotFoundException("User not found");
+            if (user == null) throw new NotFoundException("Không tìm thấy người dùng");
 
             var dto = _mapper.Map<UserDto>(user);
             var role = await _unitOfWork.Repository<Role>().GetByIdAsync(user.RoleId);
@@ -62,7 +62,7 @@ namespace CloudService.Application.Services
         {
             var repo = _unitOfWork.Repository<AppUser>();
             var user = await repo.GetByIdAsync(userId);
-            if (user == null) throw new NotFoundException("User not found");
+            if (user == null) throw new NotFoundException("Không tìm thấy người dùng");
 
             user.FullName = dto.FullName;
             repo.Update(user);
@@ -74,11 +74,11 @@ namespace CloudService.Application.Services
         {
             var repo = _unitOfWork.Repository<AppUser>();
             var user = await repo.GetByIdAsync(userId);
-            if (user == null) throw new NotFoundException("User not found");
+            if (user == null) throw new NotFoundException("Không tìm thấy người dùng");
 
             if (!BCrypt.Net.BCrypt.Verify(dto.OldPassword, user.PasswordHash))
             {
-                throw new UnauthorizedException("Current password is incorrect");
+                throw new UnauthorizedException("Mật khẩu hiện tại không chính xác");
             }
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
@@ -97,15 +97,16 @@ namespace CloudService.Application.Services
         {
             if (adminId == targetUserId)
             {
-                throw new ValidationException("You cannot lock your own account.");
+                throw new ValidationException("Bạn không thể khoá tài khoản của chính mình.");
             }
 
             var repo = _unitOfWork.Repository<AppUser>();
             var user = await repo.GetByIdAsync(targetUserId);
-            if (user == null) throw new NotFoundException("User not found");
+            if (user == null) throw new NotFoundException("Không tìm thấy người dùng");
 
             user.IsActive = dto.IsActive;
             repo.Update(user);
+            await _unitOfWork.SaveChangesAsync();
             
             if (!dto.IsActive)
             {
@@ -119,6 +120,132 @@ namespace CloudService.Application.Services
             return true;
         }
 
+        public async Task<bool> ScheduleDeleteUserAsync(Guid adminId, Guid targetUserId)
+        {
+            if (adminId == targetUserId)
+            {
+                throw new ValidationException("Bạn không thể xoá tài khoản của chính mình.");
+            }
 
+            var repo = _unitOfWork.Repository<AppUser>();
+            var user = await repo.GetByIdAsync(targetUserId);
+            if (user == null) throw new NotFoundException("Không tìm thấy người dùng");
+
+            user.PendingDeletionAt = DateTime.UtcNow;
+            user.IsActive = false; // Khoá tài khoản luôn khi chờ xoá
+            repo.Update(user);
+            await _unitOfWork.SaveChangesAsync();
+            
+            return true;
+        }
+
+        public async Task<bool> CancelDeleteUserAsync(Guid adminId, Guid targetUserId)
+        {
+            var repo = _unitOfWork.Repository<AppUser>();
+            var user = await repo.GetByIdAsync(targetUserId);
+            if (user == null) throw new NotFoundException("Không tìm thấy người dùng");
+
+            user.PendingDeletionAt = null;
+            user.IsActive = true; 
+            repo.Update(user);
+            await _unitOfWork.SaveChangesAsync();
+            
+            return true;
+        }
+
+
+        public async Task<bool> AssignRoleAsync(Guid adminId, Guid targetUserId, string roleName)
+        {
+            if (adminId == targetUserId)
+            {
+                throw new ValidationException("Bạn không thể thay đổi vai trò của chính mình.");
+            }
+
+            var repo = _unitOfWork.Repository<AppUser>();
+            var user = await repo.GetByIdAsync(targetUserId);
+            if (user == null) throw new NotFoundException("Không tìm thấy người dùng");
+
+            var roleRepo = _unitOfWork.Repository<Role>();
+            var allRoles = await roleRepo.GetAllAsync();
+            var targetRole = allRoles.FirstOrDefault(r => r.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
+            
+            if (targetRole == null) throw new NotFoundException("Không tìm thấy vai trò");
+
+            user.RoleId = targetRole.Id;
+            repo.Update(user);
+            await _unitOfWork.SaveChangesAsync();
+            
+            return true;
+        }
+        public async Task<UserDto> CreateUserAsync(Guid adminId, CreateUserDto dto)
+        {
+            var userRepo = _unitOfWork.Repository<AppUser>();
+            var allUsers = await userRepo.GetAllAsync();
+            
+            if (allUsers.Any(u => u.Email == dto.Email))
+            {
+                throw new ConflictException("Email đã tồn tại trong hệ thống");
+            }
+
+            var roleRepo = _unitOfWork.Repository<Role>();
+            var roles = await roleRepo.GetAllAsync();
+            var targetRole = roles.FirstOrDefault(r => r.Name.Equals(dto.RoleName, StringComparison.OrdinalIgnoreCase));
+
+            if (targetRole == null)
+            {
+                targetRole = roles.FirstOrDefault(r => r.Name == "Customer");
+            }
+
+            var newUser = new AppUser
+            {
+                Email = dto.Email,
+                FullName = dto.FullName,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                RoleId = targetRole!.Id,
+                IsActive = true
+            };
+
+            await userRepo.AddAsync(newUser);
+            await _unitOfWork.SaveChangesAsync();
+
+            var resultDto = _mapper.Map<UserDto>(newUser);
+            resultDto.RoleName = targetRole.Name;
+
+            return resultDto;
+        }
+
+        public async Task<IEnumerable<object>> GetMyActivitiesAsync(Guid userId)
+        {
+            var repo = _unitOfWork.Repository<AuditLog>();
+            var allLogs = await repo.GetAllAsync();
+            var myLogs = allLogs.Where(x => x.UserId == userId)
+                                .OrderByDescending(x => x.Timestamp)
+                                .Take(5)
+                                .Select(x => new {
+                                    x.Id,
+                                    x.Action,
+                                    x.Details,
+                                    x.Timestamp
+                                })
+                                .ToList();
+            return myLogs;
+        }
+
+        public async Task<IEnumerable<object>> GetUserActivitiesAdminAsync(Guid targetUserId)
+        {
+            var repo = _unitOfWork.Repository<AuditLog>();
+            var allLogs = await repo.GetAllAsync();
+            var logs = allLogs.Where(x => x.UserId == targetUserId)
+                                .OrderByDescending(x => x.Timestamp)
+                                .Take(20) // Show up to 20 for Admin
+                                .Select(x => new {
+                                    x.Id,
+                                    x.Action,
+                                    x.Details,
+                                    x.Timestamp
+                                })
+                                .ToList();
+            return logs;
+        }
     }
 }

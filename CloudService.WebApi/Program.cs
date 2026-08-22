@@ -13,6 +13,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // Add FluentValidation
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
@@ -71,6 +82,10 @@ builder.Services.AddAuthentication(options =>
 // Đăng ký các dịch vụ
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
+
+// Đăng ký Background Service
+builder.Services.AddHostedService<CloudService.WebApi.BackgroundServices.UserCleanupBackgroundService>();
+
 var app = builder.Build();
 
 app.UseMiddleware<CloudService.WebApi.Middlewares.ExceptionMiddleware>();
@@ -83,6 +98,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
+
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

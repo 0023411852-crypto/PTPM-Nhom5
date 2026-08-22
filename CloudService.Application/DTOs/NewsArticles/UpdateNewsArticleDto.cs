@@ -11,6 +11,8 @@ namespace CloudService.Application.DTOs.NewsArticles
         [Required]
         public string Content { get; set; } = string.Empty;
 
+        public string ThumbnailUrl { get; set; } = string.Empty;
+
         public bool IsPublished { get; set; }
     }
 }

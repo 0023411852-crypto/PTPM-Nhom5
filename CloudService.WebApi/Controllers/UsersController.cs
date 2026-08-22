@@ -58,6 +58,16 @@ namespace CloudService.WebApi.Controllers
             }
         }
 
+        [HttpGet("me/activities")]
+        public async Task<IActionResult> GetMyActivities()
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdStr, out var userId)) return Unauthorized();
+
+            var result = await _userService.GetMyActivitiesAsync(userId);
+            return Ok(result);
+        }
+
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllUsers([FromQuery] PaginationFilter filter)
@@ -75,6 +85,14 @@ namespace CloudService.WebApi.Controllers
             return Ok(result);
         }
 
+        [HttpGet("{id}/activities")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetUserActivities(Guid id)
+        {
+            var result = await _userService.GetUserActivitiesAdminAsync(id);
+            return Ok(result);
+        }
+
         [HttpPatch("{id}/status")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateUserStatusDto dto)
@@ -87,6 +105,86 @@ namespace CloudService.WebApi.Controllers
                 var success = await _userService.UpdateUserStatusAsync(adminId, id, dto);
                 if (!success) return NotFound();
                 return Ok(new { message = "Cập nhật trạng thái thành công." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPut("{id}/role")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AssignRole(Guid id, [FromBody] string roleName)
+        {
+            var adminIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(adminIdStr, out var adminId)) return Unauthorized();
+
+            try
+            {
+                var success = await _userService.AssignRoleAsync(adminId, id, roleName);
+                if (!success) return NotFound();
+                return Ok(new { message = "Cấp quyền thành công." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
+        {
+            var adminIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(adminIdStr, out var adminId)) return Unauthorized();
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var result = await _userService.CreateUserAsync(adminId, dto);
+                return CreatedAtAction(nameof(GetUserById), new { id = result.Id }, result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ScheduleDelete(Guid id)
+        {
+            var adminIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(adminIdStr, out var adminId)) return Unauthorized();
+
+            try
+            {
+                var success = await _userService.ScheduleDeleteUserAsync(adminId, id);
+                if (!success) return NotFound();
+                return Ok(new { message = "Đã lên lịch xóa tài khoản sau 3 ngày." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("{id}/cancel-delete")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CancelDelete(Guid id)
+        {
+            var adminIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(adminIdStr, out var adminId)) return Unauthorized();
+
+            try
+            {
+                var success = await _userService.CancelDeleteUserAsync(adminId, id);
+                if (!success) return NotFound();
+                return Ok(new { message = "Đã hủy yêu cầu xóa tài khoản." });
             }
             catch (Exception ex)
             {

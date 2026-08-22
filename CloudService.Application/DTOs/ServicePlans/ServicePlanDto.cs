@@ -12,5 +12,6 @@ namespace CloudService.Application.DTOs.ServicePlans
         public string? QRCodeBase64 { get; set; }
         public DateTime CreatedAt { get; set; }
         public ServiceCategoryDto Category { get; set; } = null!;
+        public List<PlanPriceDto> Prices { get; set; } = new List<PlanPriceDto>();
     }
 }

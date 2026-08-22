@@ -10,7 +10,9 @@ namespace CloudService.Application.EventHandlers
         IEventHandler<UserLoggedInEvent>,
         IEventHandler<UserLoggedOutEvent>,
         IEventHandler<PasswordChangedEvent>,
-        IEventHandler<UserLockedEvent>
+        IEventHandler<UserLockedEvent>,
+        IEventHandler<OrderPlacedEvent>,
+        IEventHandler<SupportTicketCreatedEvent>
     {
         private readonly IUnitOfWork _unitOfWork;
 
@@ -42,6 +44,16 @@ namespace CloudService.Application.EventHandlers
         public async Task HandleAsync(UserLockedEvent domainEvent)
         {
             await LogAsync(domainEvent.AdminId, "ADMIN_LOCK", "AppUser", domainEvent.TargetUserId.ToString(), domainEvent);
+        }
+
+        public async Task HandleAsync(OrderPlacedEvent domainEvent)
+        {
+            await LogAsync(domainEvent.UserId, "ORDER_PLACED", "OrderRequest", domainEvent.OrderId.ToString(), domainEvent);
+        }
+
+        public async Task HandleAsync(SupportTicketCreatedEvent domainEvent)
+        {
+            await LogAsync(domainEvent.UserId, "TICKET_CREATED", "SupportTicket", domainEvent.TicketId.ToString(), domainEvent);
         }
 
         private async Task LogAsync(Guid userId, string action, string entityName, string entityId, object details)
