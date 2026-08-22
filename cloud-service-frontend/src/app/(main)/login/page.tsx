@@ -44,6 +44,7 @@ export default function LoginPage() {
                 localStorage.setItem("refreshToken", data.refreshToken);
                 localStorage.setItem("role", data.role);
                 localStorage.setItem("fullName", data.fullName);
+                window.dispatchEvent(new Event("authChanged"));
 
                 if (remember) {
                     localStorage.setItem('rememberedEmail', email);

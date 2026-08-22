@@ -12,6 +12,7 @@ export default function ClientPortalPage() {
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
     const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
     // Services state
@@ -71,6 +72,42 @@ export default function ClientPortalPage() {
             }
         } catch (e) {
             console.error("Lỗi khi tải thông tin cá nhân", e);
+        }
+    };
+
+    const handleAvatarUpload = async (file: File) => {
+        if (!token) return;
+
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Chỉ hỗ trợ ảnh JPG, PNG, GIF hoặc WEBP.');
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Ảnh quá lớn. Vui lòng chọn file dưới 5MB.');
+            return;
+        }
+
+        setIsUploadingAvatar(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const response = await fetch('http://localhost:5154/api/Upload', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData,
+            });
+            const data = await response.json();
+            if (!response.ok || !data.url) {
+                throw new Error(data.message || 'Tải ảnh thất bại.');
+            }
+
+            const fullUrl = data.url.startsWith('http') ? data.url : `http://localhost:5154${data.url}`;
+            setAvatarUrl(fullUrl);
+        } catch (error) {
+            alert(error instanceof Error ? error.message : 'Tải ảnh thất bại.');
+        } finally {
+            setIsUploadingAvatar(false);
         }
     };
 
@@ -475,17 +512,23 @@ export default function ClientPortalPage() {
                                 <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">Thông tin cơ bản</h2>
                                 <form onSubmit={handleUpdateProfile} className="space-y-md">
                                     <div>
-                                        <label className="block text-sm font-medium text-on-surface-variant mb-1">Ảnh đại diện (URL)</label>
-                                        <input 
-                                            type="text" 
-                                            value={avatarUrl}
-                                            onChange={(e) => setAvatarUrl(e.target.value)}
-                                            className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface focus:border-primary outline-none" 
-                                            placeholder="https://example.com/avatar.png"
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-1">Ảnh đại diện</label>
+                                        <input
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/gif,image/webp"
+                                            disabled={isUploadingAvatar || isUpdatingProfile}
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) void handleAvatarUpload(file);
+                                                e.currentTarget.value = '';
+                                            }}
+                                            className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface focus:border-primary outline-none file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1 file:text-white"
                                         />
+                                        <p className="text-xs text-secondary mt-1">JPG, PNG, GIF hoặc WEBP, tối đa 5MB.</p>
+                                        {isUploadingAvatar && <p className="text-sm text-primary mt-2">Đang tải ảnh lên...</p>}
                                         {avatarUrl && (
                                             <div className="mt-2">
-                                                <img src={avatarUrl} alt="Avatar Preview" className="w-16 h-16 rounded-full object-cover border border-outline-variant" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                                <img src={avatarUrl} alt="Avatar Preview" className="w-16 h-16 rounded-full object-cover border border-outline-variant" />
                                             </div>
                                         )}
                                     </div>

@@ -14,8 +14,6 @@ interface CartItem {
 
 export default function CheckoutPage() {
     const [cart, setCart] = useState<CartItem[]>([]);
-    const [promoCode, setPromoCode] = useState('');
-    const [discount, setDiscount] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
@@ -27,8 +25,12 @@ export default function CheckoutPage() {
         const storedToken = localStorage.getItem("token");
         if (storedToken) setToken(storedToken);
 
-        const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-        setCart(storedCart);
+        try {
+            const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
+            setCart(Array.isArray(storedCart) ? storedCart : []);
+        } catch {
+            setCart([]);
+        }
     }, []);
 
     const removeFromCart = (index: number) => {
@@ -41,20 +43,13 @@ export default function CheckoutPage() {
 
     const subtotal = cart.reduce((acc, item) => {
         const months = item.cycle === 'yearly' ? 12 : 1;
-        return acc + (item.price * months * item.qty);
+        const price = Number(item.price) || 0;
+        const quantity = Math.max(1, Number(item.qty) || 1);
+        return acc + (price * months * quantity);
     }, 0);
 
-    const handleApplyPromo = () => {
-        if (promoCode.toUpperCase() === 'WELCOME20') {
-            setDiscount(subtotal * 0.2); // 20% off
-            alert("Áp dụng mã thành công: Giảm 20%!");
-        } else {
-            setDiscount(0);
-            alert("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
-        }
-    };
-
-    const total = subtotal - discount;
+    const vatAmount = Math.round(subtotal * 0.1);
+    const totalWithVat = subtotal + vatAmount;
 
     const fetchQRCode = async (orderId: string, amount: number) => {
         try {
@@ -81,6 +76,11 @@ export default function CheckoutPage() {
 
         if (cart.length === 0) {
             setErrorMsg("Giỏ hàng của bạn đang trống.");
+            return;
+        }
+
+        if (subtotal <= 0) {
+            setErrorMsg("Giỏ hàng chưa có giá hợp lệ. Vui lòng thêm lại sản phẩm từ bảng giá.");
             return;
         }
 
@@ -120,7 +120,8 @@ export default function CheckoutPage() {
 
             if (firstOrderId) {
                 // Fetch 1 mã QR dùng chung tổng tiền
-                await fetchQRCode(firstOrderId, total * 1.1); // Cộng VAT
+                // Patch BE tiếp theo sẽ bỏ qua amount do client gửi và lấy tổng từ database.
+                await fetchQRCode(firstOrderId, totalWithVat);
                 setIsSuccess(true);
                 // Clear cart
                 setCart([]);
@@ -177,7 +178,7 @@ export default function CheckoutPage() {
                                 <p className="text-[14px] text-on-surface-variant">Số TK: <strong className="text-on-surface">0123456789</strong></p>
                                 <p className="text-[14px] text-on-surface-variant">Chủ TK: <strong className="text-on-surface">CONG TY CLOUDNOVA</strong></p>
                                 <p className="text-[14px] text-on-surface-variant">Nội dung: <strong className="text-on-surface break-all">{qrCodeData.paymentString}</strong></p>
-                                <p className="text-[14px] text-error mt-2">Tổng tiền (đã gồm VAT): <strong className="text-error">{formatCurrency(total * 1.1)}</strong></p>
+                                <p className="text-[14px] text-error mt-2">Tổng tiền (đã gồm VAT): <strong className="text-error">{formatCurrency(totalWithVat)}</strong></p>
                             </div>
                         </div>
                     )}
@@ -234,7 +235,7 @@ export default function CheckoutPage() {
                                                 </div>
                                                 <div className="flex flex-col items-end gap-2">
                                                     <div className="font-headline-sm text-headline-sm text-on-background">
-                                                        {formatCurrency(item.price * months * item.qty)}
+                                                        {formatCurrency((Number(item.price) || 0) * months * Math.max(1, Number(item.qty) || 1))}
                                                     </div>
                                                     <button onClick={() => removeFromCart(index)} className="text-error font-body-sm flex items-center gap-1 hover:underline">
                                                         <span className="material-symbols-outlined text-[16px]">delete</span>
@@ -272,41 +273,24 @@ export default function CheckoutPage() {
                                         <span>Phí cài đặt ban đầu</span>
                                         <span className="font-medium text-on-background">Miễn phí</span>
                                     </div>
-                                    {discount > 0 && (
-                                        <div className="flex justify-between items-center text-error">
-                                            <span>Giảm giá</span>
-                                            <span className="font-medium">-{formatCurrency(discount)}</span>
-                                        </div>
-                                    )}
+
                                 </div>
 
                                 <div className="border-t border-outline-variant pt-md mb-lg">
                                     <div className="flex justify-between items-center mb-xs">
                                         <span className="font-headline-sm text-headline-sm text-on-surface">Tổng cộng</span>
-                                        <span className="font-display-sm text-display-sm text-primary">{formatCurrency(total)}</span>
+                                        <span className="font-display-sm text-display-sm text-primary">{formatCurrency(subtotal)}</span>
                                     </div>
                                     <p className="font-body-sm text-body-sm text-on-surface-variant text-right">Chưa bao gồm 10% VAT</p>
                                 </div>
                                 
                                 <div className="border-t border-outline-variant pt-md mb-lg">
                                     <div className="flex justify-between items-center mb-xs">
-                                        <span className="font-headline-sm text-headline-sm text-on-surface">Thanh toán (Gồm VAT)</span>
-                                        <span className="font-display-sm text-display-sm text-error">{formatCurrency(total * 1.1)}</span>
+                                        <span className="font-headline-sm text-headline-sm text-on-surface">Tổng thanh toán</span>
+                                        <span className="font-display-sm text-display-sm text-error">{formatCurrency(totalWithVat)}</span>
                                     </div>
                                 </div>
 
-                                <form className="flex gap-sm mb-xl" onSubmit={(e) => { e.preventDefault(); handleApplyPromo(); }}>
-                                    <input 
-                                        type="text" 
-                                        placeholder="Mã giảm giá (WELCOME20)" 
-                                        value={promoCode}
-                                        onChange={(e) => setPromoCode(e.target.value)}
-                                        className="flex-grow h-11 px-4 rounded-lg border border-outline-variant bg-surface text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow uppercase"
-                                    />
-                                    <button type="submit" className="h-11 px-4 bg-surface-container text-on-surface font-medium rounded-lg hover:bg-surface-variant transition-colors border border-outline-variant">
-                                        Áp dụng
-                                    </button>
-                                </form>
 
                                 <button 
                                     onClick={handleSubmit} 
