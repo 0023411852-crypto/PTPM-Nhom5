@@ -51,6 +51,32 @@ export default function AdminOrdersPage() {
         }
     };
 
+    const handleExportOrders = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch("http://localhost:5154/api/Orders/export", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (!res.ok) {
+                alert("Không thể xuất danh sách đơn hàng.");
+                return;
+            }
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `orders-${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error(e);
+            alert("Lỗi kết nối khi xuất danh sách đơn hàng.");
+        }
+    };
+
     const fetchUsersAndPlans = async () => {
         try {
             const token = localStorage.getItem("token");
@@ -223,13 +249,22 @@ export default function AdminOrdersPage() {
         <div>
             <div className="flex justify-between items-center mb-xl">
                 <h1 className="font-display-sm text-display-sm text-on-surface">Quản lý Đơn hàng</h1>
-                <button 
-                    onClick={openCreateModal}
-                    className="px-md py-sm bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors shadow-sm flex items-center gap-2"
-                >
-                    <span className="material-symbols-outlined text-[18px]" data-icon="add">add</span>
-                    Thêm đơn hàng
-                </button>
+                <div className="flex gap-sm">
+                    <button
+                        onClick={handleExportOrders}
+                        className="px-md py-sm bg-surface-container border border-outline-variant text-on-surface rounded-lg font-medium hover:bg-surface-variant transition-colors shadow-sm flex items-center gap-2"
+                    >
+                        <span className="material-symbols-outlined text-[18px]" data-icon="download">download</span>
+                        Xuất CSV
+                    </button>
+                    <button
+                        onClick={openCreateModal}
+                        className="px-md py-sm bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors shadow-sm flex items-center gap-2"
+                    >
+                        <span className="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+                        Thêm đơn hàng
+                    </button>
+                </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-md mb-lg">

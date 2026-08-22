@@ -7,6 +7,7 @@ namespace CloudService.Application.Interfaces
     {
         Task<PagedResponse<OrderDto>> GetUserOrdersAsync(Guid userId, PaginationFilter filter);
         Task<PagedResponse<OrderDto>> GetAllOrdersAsync(PaginationFilter filter);
+        Task<byte[]> ExportAllOrdersCsvAsync();
         Task<OrderDto> CreateOrderAsync(Guid userId, CreateOrderDto dto);
         Task<decimal?> GetPaymentAmountAsync(Guid orderId, Guid requesterId, bool isAdmin);
         Task<bool> UpdateOrderStatusAsync(Guid orderId, string status);

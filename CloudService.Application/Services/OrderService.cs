@@ -1,4 +1,5 @@
 using AutoMapper;
+using System.Text;
 using CloudService.Application.Common;
 using CloudService.Application.DTOs.Orders;
 using CloudService.Application.Interfaces;
@@ -53,6 +54,40 @@ namespace CloudService.Application.Services
 
             var dtos = _mapper.Map<List<OrderDto>>(pagedData);
             return new PagedResponse<OrderDto>(dtos, allData.Count(), filter.PageNumber, filter.PageSize);
+        }
+
+        public async Task<byte[]> ExportAllOrdersCsvAsync()
+        {
+            var repo = _unitOfWork.Repository<OrderRequest>();
+            var orders = (await repo.GetAllAsync())
+                .OrderByDescending(x => x.OrderDate)
+                .ToList();
+
+            var builder = new StringBuilder();
+            builder.Append('\uFEFF');
+            builder.AppendLine("Id,UserId,ServicePlanId,PlanPriceId,TotalAmount,Status,OrderDate");
+            foreach (var order in orders)
+            {
+                builder.AppendLine(string.Join(",", new[]
+                {
+                    EscapeCsv(order.Id.ToString()),
+                    EscapeCsv(order.UserId.ToString()),
+                    EscapeCsv(order.ServicePlanId.ToString()),
+                    EscapeCsv(order.PlanPriceId.ToString()),
+                    EscapeCsv(order.TotalAmount.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                    EscapeCsv(order.Status.ToString()),
+                    EscapeCsv(order.OrderDate.ToString("O"))
+                }));
+            }
+
+            return Encoding.UTF8.GetBytes(builder.ToString());
+        }
+
+        private static string EscapeCsv(string value)
+        {
+            if (value.Contains(',') || value.Contains('"') || value.Contains('\n') || value.Contains('\r'))
+                return $"\"{value.Replace("\"", "\"\"")}\"";
+            return value;
         }
 
         public async Task<OrderDto> CreateOrderAsync(Guid userId, CreateOrderDto dto)

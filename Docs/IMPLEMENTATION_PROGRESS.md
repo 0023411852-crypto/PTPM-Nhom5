@@ -59,7 +59,8 @@ Chỉ bổ sung giao diện quản lý danh mục tại Admin, gồm danh sách 
 - Batch 3 setup fee bảng giá: **Đã hoàn tất và đã push** (`537e51c`).
 - Batch 4 validation thời hạn khuyến mãi: **Đã hoàn tất và đã push** (`d59650e`).
 - Batch 5 Affiliate/PartnerRequests: **Đã hoàn tất và đã push** (`c5c1a16`).
-- Batch 6 thống kê báo cáo: **Đã sửa công thức, kiểm tra diff pass; chưa build được vì sandbox thiếu .NET SDK**.
+- Batch 6 thống kê báo cáo: **Đã hoàn tất và đã push** (`88e4a55`).
+- Batch 7 export danh sách đơn hàng: **Đã triển khai, TypeScript/diff pass; chưa build được vì sandbox thiếu .NET SDK**.
 - Các batch khác: Chưa bắt đầu.
 
 ## Batch 1 — Giao diện CRUD danh mục dịch vụ
@@ -172,3 +173,23 @@ Không sửa backend, entity, DTO, database hoặc migration vì API và logic a
 ### Giới hạn và nghiệm thu
 
 Không thay đổi endpoint, DTO, database, migration hoặc giao diện. `git diff --check` đã pass. Không chạy được `dotnet build` trong sandbox vì máy không có .NET SDK; cần chạy lệnh build trên máy local có SDK. Nút `Xuất báo cáo` hiện vẫn là placeholder và được giữ lại cho batch Excel riêng, không giả vờ đã hoàn thành.
+
+## Batch 7 — Xuất danh sách đơn hàng tương thích Excel
+
+### Phân tích trước khi sửa
+
+Ma trận yêu cầu có chức năng xuất danh sách yêu cầu đặt dịch vụ. `OrdersController` đã có `GET /api/Orders/all` cho Admin nhưng chưa có endpoint download; nút xuất báo cáo trong trang thống kê chỉ là placeholder. Không có package `EPPlus`, `ClosedXML` hoặc thư viện Spreadsheet nào trong repository. Để giữ batch nhỏ và không thêm dependency chưa thể build trong sandbox, batch này triển khai file CSV UTF-8 có BOM, mở trực tiếp bằng Excel, với dữ liệu đơn hàng không nhạy cảm.
+
+### File đã sửa
+
+| File | Nội dung |
+|---|---|
+| `CloudService.Application/Interfaces/IOrderService.cs` | Thêm contract `ExportAllOrdersCsvAsync` |
+| `CloudService.Application/Services/OrderService.cs` | Xuất toàn bộ đơn hàng theo ngày giảm dần; escape CSV và dùng invariant decimal format |
+| `CloudService.WebApi/Controllers/OrdersController.cs` | Thêm `GET /api/Orders/export`, chỉ role `Admin`, trả file CSV UTF-8 |
+| `cloud-service-frontend/src/app/admin/orders/page.tsx` | Thêm nút `Xuất CSV`, gửi Authorization và tải file blob |
+| `Docs/IMPLEMENTATION_PROGRESS.md` | Cập nhật nhật ký Batch 7 |
+
+### Giới hạn và nghiệm thu
+
+Batch này không sửa entity, database, migration hoặc luồng tạo/duyệt đơn. File chứa ID đơn, ID khách hàng, ID gói, ID bảng giá, tổng tiền, trạng thái và ngày đặt; không chứa mật khẩu, thông tin cấp VPS hoặc dữ liệu nhạy cảm. `npx tsc --noEmit` và `git diff --check` đã pass. `dotnet build` chưa chạy được vì sandbox không có .NET SDK; cần chạy trên máy local. Đây là CSV tương thích Excel, chưa phải định dạng `.xlsx` dùng EPPlus/ClosedXML.

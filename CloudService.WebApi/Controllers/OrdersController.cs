@@ -58,6 +58,14 @@ namespace CloudService.WebApi.Controllers
             return Ok(result);
         }
 
+        [HttpGet("export")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ExportAllOrders()
+        {
+            var content = await _orderService.ExportAllOrdersCsvAsync();
+            return File(content, "text/csv; charset=utf-8", $"orders-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv");
+        }
+
         [HttpPatch("{id}/status")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] string status)
