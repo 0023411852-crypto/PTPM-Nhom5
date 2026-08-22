@@ -91,6 +91,10 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
+// Cấu hình Health Check cho API và DB
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<CloudService.Infrastructure.Data.ApplicationDbContext>();
+
 // Đăng ký Background Service
 builder.Services.AddHostedService<CloudService.WebApi.BackgroundServices.UserCleanupBackgroundService>();
 
@@ -125,5 +129,6 @@ app.UseAuthorization();
 app.UseMiddleware<CloudService.WebApi.Middlewares.SessionActivityMiddleware>();
 
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.Run();
