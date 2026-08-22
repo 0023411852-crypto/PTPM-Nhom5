@@ -51,3 +51,17 @@ jobs:
     - name: Build Next.js app
       working-directory: ./cloud-service-frontend
       run: npm run build
+
+  docker-build:
+    name: Validate Docker images
+    needs: [build-and-test-backend, build-frontend]
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Validate Compose configuration
+      run: docker compose config
+
+    - name: Build Docker images
+      run: docker compose build

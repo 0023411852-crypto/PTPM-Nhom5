@@ -1,0 +1,95 @@
+name: Docker Deploy
+
+on:
+  push:
+    branches: ["main", "master", "Linh-dev-1"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/0023411852-crypto/ptpm-nhom5
+
+jobs:
+  publish-images:
+    name: Build and publish Docker images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./CloudService.WebApi/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-api:${{ github.sha }}
+            ${{ env.IMAGE_PREFIX }}-api:latest
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./cloud-service-frontend
+          file: ./cloud-service-frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-frontend:${{ github.sha }}
+            ${{ env.IMAGE_PREFIX }}-frontend:latest
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+  deploy-to-server:
+    name: Deploy containers to server
+    needs: publish-images
+    if: ${{ vars.DEPLOY_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout deployment compose
+        uses: actions/checkout@v4
+
+      - name: Install SSH key
+        shell: bash
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          test -n "$DEPLOY_SSH_KEY" || { echo "DEPLOY_SSH_KEY is required"; exit 1; }
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Deploy with Docker Compose
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          API_IMAGE: ${{ env.IMAGE_PREFIX }}-api:${{ github.sha }}
+          FRONTEND_IMAGE: ${{ env.IMAGE_PREFIX }}-frontend:${{ github.sha }}
+        run: |
+          test -n "$DEPLOY_HOST" || { echo "DEPLOY_HOST is required"; exit 1; }
+          test -n "$DEPLOY_USER" || { echo "DEPLOY_USER is required"; exit 1; }
+          test -n "$DEPLOY_PATH" || { echo "DEPLOY_PATH is required"; exit 1; }
+          SSH_PORT="${DEPLOY_PORT:-22}"
+          SSH="ssh -i ~/.ssh/deploy_key -p $SSH_PORT -o StrictHostKeyChecking=no"
+          SCP="scp -i ~/.ssh/deploy_key -P $SSH_PORT -o StrictHostKeyChecking=no"
+          $SSH "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH'"
+          $SCP docker-compose.production.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.yml"
+          $SSH "$DEPLOY_USER@$DEPLOY_HOST" "cd '$DEPLOY_PATH' && export API_IMAGE='$API_IMAGE' FRONTEND_IMAGE='$FRONTEND_IMAGE' && docker compose pull && docker compose up -d --remove-orphans && docker image prune -f"
