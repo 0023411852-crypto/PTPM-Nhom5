@@ -1,6 +1,6 @@
-name: CI/CD Pipeline
+name: "CI/CD Pipeline"
 
-on:
+"on":
   push:
     branches: [ "main", "master", "develop", "Linh-dev-1" ]
   pull_request:
