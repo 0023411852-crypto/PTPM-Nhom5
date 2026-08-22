@@ -6,7 +6,8 @@ using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
 using CloudService.Domain.Enums;
 using CloudService.Domain.Interfaces;
-
+using CloudService.Domain.Exceptions;
+using Microsoft.Extensions.Configuration;
 namespace CloudService.Application.Services
 {
     public class OrderService : IOrderService
@@ -178,7 +179,7 @@ namespace CloudService.Application.Services
 
         public async Task<DemoPaymentResultDto?> ConfirmDemoPaymentAsync(Guid orderId, Guid requesterId)
         {
-            if (!_configuration.GetValue<bool>("DemoPayment:Enabled"))
+            if (!bool.TryParse(_configuration["DemoPayment:Enabled"], out var isEnabled) || !isEnabled)
                 throw new UnauthorizedException("Demo Payment đang bị tắt trên hệ thống.");
 
             var orderRepo = _unitOfWork.Repository<OrderRequest>();

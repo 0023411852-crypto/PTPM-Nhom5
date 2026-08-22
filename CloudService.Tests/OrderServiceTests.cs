@@ -37,9 +37,7 @@ namespace CloudService.Tests
             _emailServiceMock = new Mock<IEmailService>();
             _eventDispatcherMock = new Mock<IEventDispatcher>();
             _configMock = new Mock<Microsoft.Extensions.Configuration.IConfiguration>();
-            var configSectionMock = new Mock<Microsoft.Extensions.Configuration.IConfigurationSection>();
-            configSectionMock.Setup(s => s.Value).Returns("true");
-            _configMock.Setup(c => c.GetSection("DemoPayment:Enabled")).Returns(configSectionMock.Object);
+            _configMock.Setup(c => c["DemoPayment:Enabled"]).Returns("true");
 
             _planRepoMock = new Mock<IGenericRepository<ServicePlan>>();
             _priceRepoMock = new Mock<IGenericRepository<PlanPrice>>();
