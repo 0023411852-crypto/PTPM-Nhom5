@@ -8,17 +8,23 @@ type Category = {
   id: string;
   name: string;
   description?: string;
+  detailTitle?: string;
+  icon?: string;
+  featuresJson?: string;
   isActive: boolean;
 };
 
 type CategoryForm = {
   name: string;
   description: string;
+  detailTitle: string;
+  icon: string;
+  featuresJson: string;
   isActive: boolean;
 };
 
 const API_BASE_URL = 'http://localhost:5154/api/ServiceCategories';
-const EMPTY_FORM: CategoryForm = { name: '', description: '', isActive: true };
+const EMPTY_FORM: CategoryForm = { name: '', description: '', detailTitle: '', icon: 'dns', featuresJson: '[]', isActive: true };
 
 export default function AdminServiceCategoriesPage() {
   const router = useRouter();
@@ -68,6 +74,9 @@ export default function AdminServiceCategoriesPage() {
     setForm({
       name: category.name,
       description: category.description ?? '',
+      detailTitle: category.detailTitle ?? '',
+      icon: category.icon ?? 'dns',
+      featuresJson: category.featuresJson ?? '[]',
       isActive: category.isActive,
     });
     setError('');
@@ -99,6 +108,9 @@ export default function AdminServiceCategoriesPage() {
         body: JSON.stringify({
           name: form.name.trim(),
           description: form.description.trim(),
+          detailTitle: form.detailTitle.trim(),
+          icon: form.icon.trim() || 'dns',
+          featuresJson: form.featuresJson.trim() || '[]',
           isActive: form.isActive,
         }),
       });
@@ -224,6 +236,18 @@ export default function AdminServiceCategoriesPage() {
           <div>
             <label htmlFor="category-description" className="mb-1 block font-body-sm text-on-surface-variant">Mô tả</label>
             <textarea id="category-description" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} className="min-h-24 w-full rounded-lg border border-outline-variant bg-surface p-sm outline-none focus:border-primary" maxLength={500} />
+          </div>
+          <div>
+            <label htmlFor="category-detail-title" className="mb-1 block font-body-sm text-on-surface-variant">Tiêu đề trang chi tiết</label>
+            <input id="category-detail-title" value={form.detailTitle} onChange={(event) => setForm({ ...form, detailTitle: event.target.value })} className="w-full rounded-lg border border-outline-variant bg-surface p-sm outline-none focus:border-primary" maxLength={200} placeholder="Ví dụ: Web Hosting ổn định, dễ quản lý" />
+          </div>
+          <div>
+            <label htmlFor="category-icon" className="mb-1 block font-body-sm text-on-surface-variant">Material icon</label>
+            <input id="category-icon" value={form.icon} onChange={(event) => setForm({ ...form, icon: event.target.value })} className="w-full rounded-lg border border-outline-variant bg-surface p-sm outline-none focus:border-primary" maxLength={50} placeholder="web, dns, mail..." />
+          </div>
+          <div>
+            <label htmlFor="category-features" className="mb-1 block font-body-sm text-on-surface-variant">Tính năng hiển thị (mỗi dòng một tính năng)</label>
+            <textarea id="category-features" value={(() => { try { return JSON.parse(form.featuresJson).join('\\n'); } catch { return form.featuresJson; } })()} onChange={(event) => setForm({ ...form, featuresJson: JSON.stringify(event.target.value.split('\\n').map(item => item.trim()).filter(Boolean)) })} className="min-h-24 w-full rounded-lg border border-outline-variant bg-surface p-sm outline-none focus:border-primary" placeholder="SSD/NVMe Storage\\nFree SSL Certificate" />
           </div>
           <label className="flex items-center gap-sm font-body-sm text-on-surface">
             <input type="checkbox" checked={form.isActive} onChange={(event) => setForm({ ...form, isActive: event.target.checked })} />

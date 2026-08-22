@@ -4,6 +4,8 @@ import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import Modal from "@/components/admin/Modal";
 
+type ServiceCategory = { slug?: string; name: string; description?: string; detailTitle?: string; icon?: string; featuresJson?: string };
+
 type ServicePlan = {
     id: string;
     name: string;
@@ -19,17 +21,25 @@ export default function VpsDetailsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
     const [contactInfo, setContactInfo] = useState({ phone: "1900 xxxx", email: "contact@cloudnova.vn" });
+    const [categoryContent, setCategoryContent] = useState<ServiceCategory | null>(null);
 
     useEffect(() => {
         Promise.all([
             fetch("http://localhost:5154/api/ServicePlans?PageNumber=1&PageSize=100"),
-            fetch("http://localhost:5154/api/SiteSettings/public")
+            fetch("http://localhost:5154/api/SiteSettings/public"),
+            fetch("http://localhost:5154/api/ServiceCategories?PageNumber=1&PageSize=100")
         ])
-            .then(async ([plansResponse, settingsResponse]) => {
+            .then(async ([plansResponse, settingsResponse, categoriesResponse]) => {
                 if (plansResponse.ok) {
                     const data = await plansResponse.json();
                     const availablePlans = Array.isArray(data?.data) ? data.data : [];
                     setPlans(availablePlans.filter((plan: ServicePlan) => plan.isActive !== false));
+                }
+                if (categoriesResponse.ok) {
+                    const result = await categoriesResponse.json();
+                    const categories = Array.isArray(result?.data) ? result.data : [];
+                    const selected = categories.find((category: ServiceCategory) => category.slug?.toLowerCase() === "vps") || categories.find((category: ServiceCategory) => `${category.name} ${category.slug || ""}`.toLowerCase().includes("cloud"));
+                    if (selected) setCategoryContent(selected);
                 }
                 if (settingsResponse.ok) {
                     const settings = await settingsResponse.json();
@@ -62,6 +72,11 @@ export default function VpsDetailsPage() {
     }), [plans]);
 
     const displayedPlans = vpsPlans.length > 0 ? vpsPlans : plans;
+    const detailTitle = categoryContent?.detailTitle || "Hạ tầng VPS mạnh mẽ cho mọi dự án";
+    const detailDescription = categoryContent?.description || "Triển khai máy chủ ảo nhanh chóng với NVMe tốc độ cao, tài nguyên linh hoạt và quyền quản trị toàn diện.";
+    const detailIcon = categoryContent?.icon || "dns";
+    const defaultFeatures = ["vCPU & RAM linh hoạt", "NVMe siêu tốc", "Root Access toàn quyền", "99.9% Uptime Guarantee"];
+    const detailFeatures = (() => { try { const parsed = JSON.parse(categoryContent?.featuresJson || "[]"); return Array.isArray(parsed) && parsed.length > 0 ? parsed : defaultFeatures; } catch { return defaultFeatures; } })();
 
     return (
         <main className="flex-grow bg-surface">
@@ -74,10 +89,8 @@ export default function VpsDetailsPage() {
                             Tất cả dịch vụ
                         </Link>
                         <p className="mb-sm font-label-caps text-label-caps uppercase tracking-wider text-primary">Cloud VPS</p>
-                        <h1 className="mb-md font-display-lg text-display-lg text-on-background">Hạ tầng VPS mạnh mẽ cho mọi dự án</h1>
-                        <p className="mb-xl max-w-[42rem] font-body-lg text-body-lg text-secondary">
-                            Triển khai máy chủ ảo nhanh chóng với NVMe tốc độ cao, tài nguyên linh hoạt và quyền quản trị toàn diện.
-                        </p>
+                        <h1 className="mb-md font-display-lg text-display-lg text-on-background">{detailTitle}</h1>
+                        <p className="mb-xl max-w-[42rem] font-body-lg text-body-lg text-secondary">{detailDescription}</p>
                         <div className="flex flex-col gap-md sm:flex-row">
                             <button onClick={() => setIsContactModalOpen(true)} className="rounded-lg bg-primary px-lg py-md font-semibold text-on-primary transition-colors hover:bg-primary/90">
                                 Tư vấn cấu hình VPS
@@ -91,7 +104,7 @@ export default function VpsDetailsPage() {
                         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
                         <div className="relative z-10 flex h-40 w-40 items-center justify-center rounded-full bg-primary/10">
                             <div className="flex h-28 w-28 items-center justify-center rounded-full bg-primary shadow-[0_0_40px_rgba(0,97,255,0.35)]">
-                                <span className="material-symbols-outlined text-6xl text-on-primary">dns</span>
+                                <span className="material-symbols-outlined text-6xl text-on-primary">{detailIcon}</span>
                             </div>
                         </div>
                     </div>
@@ -102,6 +115,9 @@ export default function VpsDetailsPage() {
                 <div className="mb-2xl text-center">
                     <h2 className="mb-sm font-headline-lg text-headline-lg text-on-background">Chọn gói VPS phù hợp</h2>
                     <p className="font-body-md text-body-md text-secondary">Thông tin được lấy trực tiếp từ các gói dịch vụ đang hoạt động trong hệ thống.</p>
+                </div>
+                <div className="mb-2xl grid grid-cols-1 gap-lg md:grid-cols-2">
+                    {detailFeatures.map((feature: string) => <div key={feature} className="flex items-center gap-sm rounded-lg border border-outline-variant bg-surface-container-lowest p-md text-on-surface"><span className="material-symbols-outlined text-primary">check_circle</span>{feature}</div>)}
                 </div>
                 {isLoading ? (
                     <div className="py-2xl text-center text-secondary">Đang tải thông tin gói VPS...</div>

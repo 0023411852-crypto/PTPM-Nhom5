@@ -35,6 +35,9 @@ BEGIN
         [Id] uniqueidentifier NOT NULL,
         [Name] nvarchar(max) NOT NULL,
         [Description] nvarchar(max) NOT NULL,
+        [DetailTitle] nvarchar(200) NOT NULL,
+        [FeaturesJson] nvarchar(max) NOT NULL,
+        [Icon] nvarchar(50) NOT NULL,
         [Slug] nvarchar(max) NOT NULL,
         [IsActive] bit NOT NULL,
         [CreatedAt] datetime2 NOT NULL,
@@ -996,6 +999,35 @@ IF NOT EXISTS (
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
     VALUES (N'20260822100000_AddRequestedServiceToPartnerRequests', N'8.0.0');
+END;
+GO
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+GO
+IF COL_LENGTH('ServiceCategories', 'DetailTitle') IS NULL
+BEGIN
+    ALTER TABLE [ServiceCategories] ADD [DetailTitle] nvarchar(200) NOT NULL CONSTRAINT [DF_ServiceCategories_DetailTitle] DEFAULT N'';
+END;
+GO
+IF COL_LENGTH('ServiceCategories', 'FeaturesJson') IS NULL
+BEGIN
+    ALTER TABLE [ServiceCategories] ADD [FeaturesJson] nvarchar(max) NOT NULL CONSTRAINT [DF_ServiceCategories_FeaturesJson] DEFAULT N'[]';
+END;
+GO
+IF COL_LENGTH('ServiceCategories', 'Icon') IS NULL
+BEGIN
+    ALTER TABLE [ServiceCategories] ADD [Icon] nvarchar(50) NOT NULL CONSTRAINT [DF_ServiceCategories_Icon] DEFAULT N'dns';
+END;
+GO
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260822103000_AddServiceCategoryDetailContent'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260822103000_AddServiceCategoryDetailContent', N'8.0.0');
 END;
 GO
 COMMIT;
