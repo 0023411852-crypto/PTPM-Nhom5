@@ -21,31 +21,33 @@ namespace CloudService.Application.Services
         public async Task<PagedResponse<NewsArticleDto>> GetAllAsync(PaginationFilter filter, bool onlyPublished = false, string search = "")
         {
             var repo = _unitOfWork.Repository<NewsArticle>();
-            var allData = await repo.GetAllAsync("Author");
+            var query = repo.GetQueryable("Author");
             
             if (onlyPublished)
             {
-                allData = allData.Where(x => x.IsPublished);
+                query = query.Where(x => x.IsPublished);
             }
 
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var normalizedSearch = search.Trim().ToLower();
-                allData = allData.Where(x =>
+                query = query.Where(x =>
                     x.Title.ToLower().Contains(normalizedSearch) ||
                     x.Content.ToLower().Contains(normalizedSearch) ||
                     x.Slug.ToLower().Contains(normalizedSearch) ||
                     x.Category.ToLower().Contains(normalizedSearch));
             }
 
-            var pagedData = allData
+            var totalRecords = query.Count();
+
+            var pagedData = query
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToList();
 
             var dtos = _mapper.Map<List<NewsArticleDto>>(pagedData);
-            return new PagedResponse<NewsArticleDto>(dtos, allData.Count(), filter.PageNumber, filter.PageSize);
+            return new PagedResponse<NewsArticleDto>(dtos, totalRecords, filter.PageNumber, filter.PageSize);
         }
 
         public async Task<NewsArticleDto?> GetByIdAsync(Guid id)

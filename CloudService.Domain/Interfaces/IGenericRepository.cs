@@ -4,6 +4,7 @@ namespace CloudService.Domain.Interfaces
     {
         Task<T?> GetByIdAsync(Guid id, string includeProperties = "");
         Task<IEnumerable<T>> GetAllAsync(string includeProperties = "");
+        IQueryable<T> GetQueryable(string includeProperties = "");
         Task AddAsync(T entity);
         void Update(T entity);
         void Delete(T entity);

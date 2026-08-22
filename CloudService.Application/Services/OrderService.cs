@@ -31,17 +31,18 @@ namespace CloudService.Application.Services
         public async Task<PagedResponse<OrderDto>> GetUserOrdersAsync(Guid userId, PaginationFilter filter)
         {
             var repo = _unitOfWork.Repository<OrderRequest>();
-            var allData = await repo.GetAllAsync(); 
-            var userOrders = allData.Where(x => x.UserId == userId).ToList();
+            var query = repo.GetQueryable().Where(x => x.UserId == userId);
 
-            var pagedData = userOrders
+            var totalRecords = query.Count();
+
+            var pagedData = query
                 .OrderByDescending(x => x.OrderDate)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToList();
 
             var dtos = _mapper.Map<List<OrderDto>>(pagedData);
-            return new PagedResponse<OrderDto>(dtos, userOrders.Count, filter.PageNumber, filter.PageSize);
+            return new PagedResponse<OrderDto>(dtos, totalRecords, filter.PageNumber, filter.PageSize);
         }
 
         public async Task<OrderDetailDto?> GetOrderDetailAsync(Guid orderId, Guid requesterId, bool isAdmin)
@@ -75,16 +76,18 @@ namespace CloudService.Application.Services
         public async Task<PagedResponse<OrderDto>> GetAllOrdersAsync(PaginationFilter filter)
         {
             var repo = _unitOfWork.Repository<OrderRequest>();
-            var allData = await repo.GetAllAsync();
+            var query = repo.GetQueryable();
+            
+            var totalRecords = query.Count();
 
-            var pagedData = allData
+            var pagedData = query
                 .OrderByDescending(x => x.OrderDate)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToList();
 
             var dtos = _mapper.Map<List<OrderDto>>(pagedData);
-            return new PagedResponse<OrderDto>(dtos, allData.Count(), filter.PageNumber, filter.PageSize);
+            return new PagedResponse<OrderDto>(dtos, totalRecords, filter.PageNumber, filter.PageSize);
         }
 
         public async Task<byte[]> ExportAllOrdersCsvAsync()

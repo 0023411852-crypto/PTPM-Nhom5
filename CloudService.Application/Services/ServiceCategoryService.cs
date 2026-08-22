@@ -21,16 +21,18 @@ namespace CloudService.Application.Services
         public async Task<PagedResponse<ServiceCategoryDto>> GetAllAsync(PaginationFilter filter)
         {
             var repo = _unitOfWork.Repository<ServiceCategory>();
-            var allData = await repo.GetAllAsync();
+            var query = repo.GetQueryable();
             
-            var pagedData = allData
+            var totalRecords = query.Count();
+
+            var pagedData = query
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToList();
 
             var dtos = _mapper.Map<List<ServiceCategoryDto>>(pagedData);
-            return new PagedResponse<ServiceCategoryDto>(dtos, allData.Count(), filter.PageNumber, filter.PageSize);
+            return new PagedResponse<ServiceCategoryDto>(dtos, totalRecords, filter.PageNumber, filter.PageSize);
         }
 
         public async Task<ServiceCategoryDto?> GetByIdAsync(Guid id)

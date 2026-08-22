@@ -123,6 +123,7 @@ if (app.Configuration.GetValue<bool>("Database:AutoMigrate"))
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<CloudService.Infrastructure.Data.ApplicationDbContext>();
     db.Database.Migrate();
+    CloudService.WebApi.DataSeeder.SeedData(db);
 }
 
 app.UseMiddleware<CloudService.WebApi.Middlewares.ExceptionMiddleware>();

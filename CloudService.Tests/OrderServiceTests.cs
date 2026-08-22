@@ -62,7 +62,7 @@ namespace CloudService.Tests
         public async Task CreateOrderAsync_ShouldThrowException_WhenPlanDoesNotExist()
         {
             var userId = Guid.NewGuid();
-            _planRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), "")).ReturnsAsync((ServicePlan)null);
+            _planRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), "")).ReturnsAsync((ServicePlan?)null);
             
             var dto = new CreateOrderDto { ServicePlanId = Guid.NewGuid(), PlanPriceId = Guid.NewGuid() };
 
