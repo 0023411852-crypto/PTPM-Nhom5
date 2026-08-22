@@ -19,7 +19,7 @@ export default function CheckoutPage() {
     const [errorMsg, setErrorMsg] = useState('');
     const [token, setToken] = useState<string | null>(null);
     const [customerNotes, setCustomerNotes] = useState('');
-    const [qrCodeData, setQrCodeData] = useState<{qrCode: string, paymentString: string} | null>(null);
+    const [qrCodeData, setQrCodeData] = useState<{qrCode: string, paymentString: string, amount: number} | null>(null);
 
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
@@ -120,7 +120,7 @@ export default function CheckoutPage() {
 
             if (firstOrderId) {
                 // Fetch 1 mã QR dùng chung tổng tiền
-                // Patch BE tiếp theo sẽ bỏ qua amount do client gửi và lấy tổng từ database.
+                // BE bỏ qua amount do client gửi và trả lại TotalAmount đã lưu trong database.
                 await fetchQRCode(firstOrderId, totalWithVat);
                 setIsSuccess(true);
                 // Clear cart
@@ -178,7 +178,7 @@ export default function CheckoutPage() {
                                 <p className="text-[14px] text-on-surface-variant">Số TK: <strong className="text-on-surface">0123456789</strong></p>
                                 <p className="text-[14px] text-on-surface-variant">Chủ TK: <strong className="text-on-surface">CONG TY CLOUDNOVA</strong></p>
                                 <p className="text-[14px] text-on-surface-variant">Nội dung: <strong className="text-on-surface break-all">{qrCodeData.paymentString}</strong></p>
-                                <p className="text-[14px] text-error mt-2">Tổng tiền (đã gồm VAT): <strong className="text-error">{formatCurrency(totalWithVat)}</strong></p>
+                                <p className="text-[14px] text-error mt-2">Tổng thanh toán: <strong className="text-error">{formatCurrency(Number(qrCodeData.amount) || totalWithVat)}</strong></p>
                             </div>
                         </div>
                     )}
