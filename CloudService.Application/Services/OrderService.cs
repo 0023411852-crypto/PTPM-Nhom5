@@ -1,4 +1,5 @@
 using AutoMapper;
+using System.Text;
 using CloudService.Application.Common;
 using CloudService.Application.DTOs.Orders;
 using CloudService.Application.Interfaces;
@@ -10,6 +11,7 @@ namespace CloudService.Application.Services
 {
     public class OrderService : IOrderService
     {
+        private const decimal VatRate = 0.10m;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
@@ -39,6 +41,34 @@ namespace CloudService.Application.Services
             return new PagedResponse<OrderDto>(dtos, userOrders.Count, filter.PageNumber, filter.PageSize);
         }
 
+        public async Task<OrderDetailDto?> GetOrderDetailAsync(Guid orderId, Guid requesterId, bool isAdmin)
+        {
+            var repo = _unitOfWork.Repository<OrderRequest>();
+            var orders = await repo.GetAllAsync(includeProperties: "ServicePlan,ServicePlan.Category,PlanPrice,Promotion");
+            var order = orders.FirstOrDefault(item => item.Id == orderId);
+            if (order == null || (!isAdmin && order.UserId != requesterId)) return null;
+
+            return new OrderDetailDto
+            {
+                Id = order.Id,
+                UserId = order.UserId,
+                ServicePlanName = order.ServicePlan?.Name ?? string.Empty,
+                ServicePlanDescription = order.ServicePlan?.Description ?? string.Empty,
+                ServicePlanSpecifications = order.ServicePlan?.Specifications ?? "{}",
+                CategoryName = order.ServicePlan?.Category?.Name ?? string.Empty,
+                BillingCycle = order.PlanPrice?.BillingCycle ?? 0,
+                Price = order.PlanPrice?.Price ?? 0,
+                SetupFee = order.PlanPrice?.SetupFee ?? 0,
+                TotalAmount = order.TotalAmount,
+                Status = order.Status,
+                OrderDate = order.OrderDate,
+                CustomerNotes = order.CustomerNotes,
+                AdminNotes = isAdmin ? order.AdminNotes : null,
+                PromotionCode = order.Promotion?.Code,
+                DiscountPercentage = order.Promotion?.DiscountPercentage
+            };
+        }
+
         public async Task<PagedResponse<OrderDto>> GetAllOrdersAsync(PaginationFilter filter)
         {
             var repo = _unitOfWork.Repository<OrderRequest>();
@@ -54,6 +84,40 @@ namespace CloudService.Application.Services
             return new PagedResponse<OrderDto>(dtos, allData.Count(), filter.PageNumber, filter.PageSize);
         }
 
+        public async Task<byte[]> ExportAllOrdersCsvAsync()
+        {
+            var repo = _unitOfWork.Repository<OrderRequest>();
+            var orders = (await repo.GetAllAsync())
+                .OrderByDescending(x => x.OrderDate)
+                .ToList();
+
+            var builder = new StringBuilder();
+            builder.Append('\uFEFF');
+            builder.AppendLine("Id,UserId,ServicePlanId,PlanPriceId,TotalAmount,Status,OrderDate");
+            foreach (var order in orders)
+            {
+                builder.AppendLine(string.Join(",", new[]
+                {
+                    EscapeCsv(order.Id.ToString()),
+                    EscapeCsv(order.UserId.ToString()),
+                    EscapeCsv(order.ServicePlanId.ToString()),
+                    EscapeCsv(order.PlanPriceId.ToString()),
+                    EscapeCsv(order.TotalAmount.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                    EscapeCsv(order.Status.ToString()),
+                    EscapeCsv(order.OrderDate.ToString("O"))
+                }));
+            }
+
+            return Encoding.UTF8.GetBytes(builder.ToString());
+        }
+
+        private static string EscapeCsv(string value)
+        {
+            if (value.Contains(',') || value.Contains('"') || value.Contains('\n') || value.Contains('\r'))
+                return $"\"{value.Replace("\"", "\"\"")}\"";
+            return value;
+        }
+
         public async Task<OrderDto> CreateOrderAsync(Guid userId, CreateOrderDto dto)
         {
             var planRepo = _unitOfWork.Repository<ServicePlan>();
@@ -63,15 +127,18 @@ namespace CloudService.Application.Services
             var priceRepo = _unitOfWork.Repository<PlanPrice>();
             var planPrice = await priceRepo.GetByIdAsync(dto.PlanPriceId);
             if (planPrice == null) throw new Exception("Plan Price not found");
+            if (planPrice.ServicePlanId != dto.ServicePlanId)
+                throw new Exception("Plan Price does not belong to the selected Service Plan");
 
             var order = new OrderRequest
             {
                 UserId = userId,
                 ServicePlanId = dto.ServicePlanId,
                 PlanPriceId = dto.PlanPriceId,
-                PromotionId = dto.PromotionId,
+                // PromotionId được giữ trong DTO để tương thích nhưng không được áp dụng.
+                PromotionId = null,
                 CustomerNotes = dto.CustomerNotes,
-                TotalAmount = planPrice.Price + planPrice.SetupFee,
+                TotalAmount = CalculateTotal(planPrice),
                 Status = OrderStatus.Pending,
                 OrderDate = DateTime.UtcNow
             };
@@ -92,97 +159,77 @@ namespace CloudService.Application.Services
             return _mapper.Map<OrderDto>(order);
         }
 
-        public async Task<bool> UpdateOrderStatusAsync(Guid orderId, string status)
+        public async Task<decimal?> GetPaymentAmountAsync(Guid orderId, Guid requesterId, bool isAdmin)
         {
-            var repo = _unitOfWork.Repository<OrderRequest>();
-            var order = await repo.GetByIdAsync(orderId);
-            if (order == null) return false;
+            var order = await _unitOfWork.Repository<OrderRequest>().GetByIdAsync(orderId);
+            if (order == null || (!isAdmin && order.UserId != requesterId))
+                return null;
 
-            if (Enum.TryParse<OrderStatus>(status, true, out var parsedStatus))
-            {
-                order.Status = parsedStatus;
-                repo.Update(order);
-                await _unitOfWork.SaveChangesAsync();
-                return true;
-            }
-            return false;
+            return order.TotalAmount;
         }
-        public async Task<bool> ApproveOrderAsync(Guid orderId, ApproveOrderDto dto)
+
+        private static decimal CalculateTotal(PlanPrice planPrice)
+        {
+            var subtotal = planPrice.Price + planPrice.SetupFee;
+            return Math.Round(subtotal * (1 + VatRate), 2, MidpointRounding.AwayFromZero);
+        }
+
+        public async Task<DemoPaymentResultDto?> ConfirmDemoPaymentAsync(Guid orderId, Guid requesterId)
         {
             var orderRepo = _unitOfWork.Repository<OrderRequest>();
-            var order = await orderRepo.GetByIdAsync(orderId);
-            
-            if (order == null || order.Status == OrderStatus.Completed) 
-                return false;
+            var orders = await orderRepo.GetAllAsync(includeProperties: "ServicePlan");
+            var order = orders.FirstOrDefault(x => x.Id == orderId && x.UserId == requesterId);
+            if (order == null || order.Status == OrderStatus.Cancelled)
+                return null;
+
+            var serviceRepo = _unitOfWork.Repository<CustomerService>();
+            var existingService = (await serviceRepo.GetAllAsync())
+                .FirstOrDefault(x => x.OrderId == order.Id);
+
+            if (existingService != null)
+            {
+                return new DemoPaymentResultDto
+                {
+                    OrderId = order.Id,
+                    Status = order.Status.ToString(),
+                    AlreadyProcessed = true,
+                    ServiceName = existingService.ServiceName,
+                    VpsIP = existingService.VpsIP,
+                    VpsUser = existingService.VpsUser,
+                    VpsPassword = existingService.VpsPassword,
+                    ExpiryDate = existingService.ExpiryDate
+                };
+            }
 
             order.Status = OrderStatus.Completed;
             orderRepo.Update(order);
 
-            // Fetch plan to get ServiceName
-            var planRepo = _unitOfWork.Repository<ServicePlan>();
-            var plan = await planRepo.GetByIdAsync(order.ServicePlanId);
-
-            var customerServiceRepo = _unitOfWork.Repository<CustomerService>();
             var newService = new CustomerService
             {
                 OrderId = order.Id,
                 CustomerId = order.UserId,
-                ServiceName = plan?.Name ?? "Custom VPS",
-                VpsIP = dto.VpsIP,
-                VpsUser = dto.VpsUser,
-                VpsPassword = dto.VpsPassword,
-                ExpiryDate = DateTime.UtcNow.AddMonths(1), // Should ideally read from PlanPrice BillingCycle
+                ServiceName = order.ServicePlan?.Name ?? "Demo VPS",
+                VpsIP = "203.0.113.10",
+                VpsUser = "demo-user",
+                VpsPassword = $"Demo-{order.Id.ToString("N")[..8]}",
+                ExpiryDate = DateTime.UtcNow.AddMonths(1),
                 Status = "Active"
             };
 
-            await customerServiceRepo.AddAsync(newService);
+            await serviceRepo.AddAsync(newService);
             await _unitOfWork.SaveChangesAsync();
 
-            // Gửi email thông báo cấp VPS
-            var user = await _unitOfWork.Repository<AppUser>().GetByIdAsync(order.UserId);
-            if (user != null)
+            return new DemoPaymentResultDto
             {
-                await _emailService.SendEmailAsync(user.Email, "VPS của bạn đã sẵn sàng", 
-                    $"Chào {user.FullName},\n\nDịch vụ VPS của bạn đã được cấp phát thành công.\nThông tin kết nối:\n- IP: {dto.VpsIP}\n- User: {dto.VpsUser}\n- Password: {dto.VpsPassword}\n\nCảm ơn bạn đã sử dụng dịch vụ!");
-            }
-
-            return true;
-        }
-
-        public async Task<OrderDto> AdminCreateOrderAsync(AdminCreateOrderDto dto)
-        {
-            var planRepo = _unitOfWork.Repository<ServicePlan>();
-            var plan = await planRepo.GetByIdAsync(dto.ServicePlanId);
-            if (plan == null) throw new Exception("Service Plan not found");
-
-            var priceRepo = _unitOfWork.Repository<PlanPrice>();
-            var planPrice = await priceRepo.GetByIdAsync(dto.PlanPriceId);
-            if (planPrice == null) throw new Exception("Plan Price not found");
-
-            var userRepo = _unitOfWork.Repository<AppUser>();
-            var user = await userRepo.GetByIdAsync(dto.UserId);
-            if (user == null) throw new Exception("User not found");
-
-            if (!Enum.TryParse<OrderStatus>(dto.Status, true, out var parsedStatus))
-            {
-                parsedStatus = OrderStatus.Completed;
-            }
-
-            var order = new OrderRequest
-            {
-                UserId = dto.UserId,
-                ServicePlanId = dto.ServicePlanId,
-                PlanPriceId = dto.PlanPriceId,
-                AdminNotes = dto.AdminNotes,
-                TotalAmount = planPrice.Price + planPrice.SetupFee,
-                Status = parsedStatus,
-                OrderDate = DateTime.UtcNow
+                OrderId = order.Id,
+                Status = order.Status.ToString(),
+                AlreadyProcessed = false,
+                ServiceName = newService.ServiceName,
+                VpsIP = newService.VpsIP,
+                VpsUser = newService.VpsUser,
+                VpsPassword = newService.VpsPassword,
+                ExpiryDate = newService.ExpiryDate
             };
-
-            await _unitOfWork.Repository<OrderRequest>().AddAsync(order);
-            await _unitOfWork.SaveChangesAsync();
-
-            return _mapper.Map<OrderDto>(order);
         }
 
         public async Task<bool> DeleteOrderAsync(Guid orderId)

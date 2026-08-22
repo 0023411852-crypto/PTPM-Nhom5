@@ -14,21 +14,36 @@ interface CartItem {
 
 export default function CheckoutPage() {
     const [cart, setCart] = useState<CartItem[]>([]);
-    const [promoCode, setPromoCode] = useState('');
-    const [discount, setDiscount] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
     const [token, setToken] = useState<string | null>(null);
     const [customerNotes, setCustomerNotes] = useState('');
-    const [qrCodeData, setQrCodeData] = useState<{qrCode: string, paymentString: string} | null>(null);
+    const [qrCodeData, setQrCodeData] = useState<{qrCode: string, paymentString: string, amount: number} | null>(null);
+    const [demoOrderIds, setDemoOrderIds] = useState<string[]>([]);
+    const [isDemoConfirming, setIsDemoConfirming] = useState(false);
+    const [demoPayment, setDemoPayment] = useState<{
+        orderId: string;
+        status: string;
+        alreadyProcessed: boolean;
+        demoMode: boolean;
+        serviceName: string;
+        vpsIP: string;
+        vpsUser: string;
+        vpsPassword: string;
+        expiryDate: string;
+    } | null>(null);
 
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
         if (storedToken) setToken(storedToken);
 
-        const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-        setCart(storedCart);
+        try {
+            const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
+            setCart(Array.isArray(storedCart) ? storedCart : []);
+        } catch {
+            setCart([]);
+        }
     }, []);
 
     const removeFromCart = (index: number) => {
@@ -41,24 +56,17 @@ export default function CheckoutPage() {
 
     const subtotal = cart.reduce((acc, item) => {
         const months = item.cycle === 'yearly' ? 12 : 1;
-        return acc + (item.price * months * item.qty);
+        const price = Number(item.price) || 0;
+        const quantity = Math.max(1, Number(item.qty) || 1);
+        return acc + (price * months * quantity);
     }, 0);
 
-    const handleApplyPromo = () => {
-        if (promoCode.toUpperCase() === 'WELCOME20') {
-            setDiscount(subtotal * 0.2); // 20% off
-            alert("Áp dụng mã thành công: Giảm 20%!");
-        } else {
-            setDiscount(0);
-            alert("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
-        }
-    };
-
-    const total = subtotal - discount;
+    const vatAmount = Math.round(subtotal * 0.1);
+    const totalWithVat = subtotal + vatAmount;
 
     const fetchQRCode = async (orderId: string, amount: number) => {
         try {
-            const res = await fetch(`http://localhost:5154/api/Orders/${orderId}/payment-qr?amount=${amount}`, {
+            const res = await fetch(`/api/Orders/${orderId}/payment-qr?amount=${amount}`, {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
@@ -75,12 +83,41 @@ export default function CheckoutPage() {
         }
     };
 
+    const handleConfirmDemoPayment = async () => {
+        if (demoOrderIds.length === 0 || !token || isDemoConfirming) return;
+        setIsDemoConfirming(true);
+        setErrorMsg('');
+        try {
+            const responses = await Promise.all(demoOrderIds.map(orderId =>
+                fetch(`/api/Orders/${orderId}/demo-payment`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` }
+                }).then(async res => ({ res, data: await res.json().catch(() => ({})) }))
+            ));
+            const failed = responses.find(({ res }) => !res.ok);
+            if (failed) {
+                setErrorMsg(failed.data.message || 'Không thể xác nhận thanh toán demo.');
+                return;
+            }
+            setDemoPayment(responses[0].data);
+        } catch {
+            setErrorMsg('Lỗi kết nối khi xác nhận thanh toán demo.');
+        } finally {
+            setIsDemoConfirming(false);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMsg('');
 
         if (cart.length === 0) {
             setErrorMsg("Giỏ hàng của bạn đang trống.");
+            return;
+        }
+
+        if (subtotal <= 0) {
+            setErrorMsg("Giỏ hàng chưa có giá hợp lệ. Vui lòng thêm lại sản phẩm từ bảng giá.");
             return;
         }
 
@@ -93,11 +130,12 @@ export default function CheckoutPage() {
         
         try {
             let firstOrderId = "";
+            const createdOrderIds: string[] = [];
             // Gửi từng đơn hàng trong giỏ
             for (let i = 0; i < cart.length; i++) {
                 const item = cart[i];
                 for (let q = 0; q < item.qty; q++) {
-                    const res = await fetch("http://localhost:5154/api/Orders", {
+                    const res = await fetch("/api/Orders", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
@@ -114,13 +152,17 @@ export default function CheckoutPage() {
                     if (res.ok) {
                         const data = await res.json();
                         if (firstOrderId === "") firstOrderId = data.id;
+                        createdOrderIds.push(data.id);
                     }
                 }
             }
 
             if (firstOrderId) {
                 // Fetch 1 mã QR dùng chung tổng tiền
-                await fetchQRCode(firstOrderId, total * 1.1); // Cộng VAT
+                // BE bỏ qua amount do client gửi và trả lại TotalAmount đã lưu trong database.
+                await fetchQRCode(firstOrderId, totalWithVat);
+                setDemoOrderIds(createdOrderIds);
+                setDemoPayment(null);
                 setIsSuccess(true);
                 // Clear cart
                 setCart([]);
@@ -164,9 +206,9 @@ export default function CheckoutPage() {
                     <div className="w-20 h-20 bg-primary-container text-primary rounded-full flex items-center justify-center mx-auto mb-lg">
                         <span className="material-symbols-outlined text-[40px]">check_circle</span>
                     </div>
-                    <h1 className="font-display-sm text-display-sm text-on-surface mb-sm">Đặt hàng thành công!</h1>
+                    <h1 className="font-display-sm text-display-sm text-on-surface mb-sm">Đơn hàng đã được tạo!</h1>
                     <p className="font-body-lg text-body-lg text-on-surface-variant mb-xl">
-                        Vui lòng quét mã QR dưới đây để thanh toán tổng đơn hàng. Chúng tôi sẽ duyệt toàn bộ dịch vụ ngay khi nhận được thanh toán.
+                        Vui lòng thanh toán để hoàn tất. Đây là luồng thanh toán <strong>DEMO</strong>, bạn có thể quét mã QR minh họa hoặc bấm xác nhận bên dưới.
                     </p>
                     
                     {qrCodeData && (
@@ -177,8 +219,30 @@ export default function CheckoutPage() {
                                 <p className="text-[14px] text-on-surface-variant">Số TK: <strong className="text-on-surface">0123456789</strong></p>
                                 <p className="text-[14px] text-on-surface-variant">Chủ TK: <strong className="text-on-surface">CONG TY CLOUDNOVA</strong></p>
                                 <p className="text-[14px] text-on-surface-variant">Nội dung: <strong className="text-on-surface break-all">{qrCodeData.paymentString}</strong></p>
-                                <p className="text-[14px] text-error mt-2">Tổng tiền (đã gồm VAT): <strong className="text-error">{formatCurrency(total * 1.1)}</strong></p>
+                                <p className="text-[14px] text-error mt-2">Tổng thanh toán: <strong className="text-error">{formatCurrency(Number(qrCodeData.amount) || totalWithVat)}</strong></p>
                             </div>
+                        </div>
+                    )}
+
+                    {!demoPayment ? (
+                        <div className="mb-lg">
+                            <button
+                                onClick={handleConfirmDemoPayment}
+                                disabled={isDemoConfirming || demoOrderIds.length === 0}
+                                className="w-full max-w-[420px] px-lg py-md bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors disabled:opacity-60"
+                            >
+                                {isDemoConfirming ? 'Đang xác nhận Demo Payment...' : 'Tôi đã thanh toán (DEMO)'}
+                            </button>
+                            <p className="text-xs text-on-surface-variant mt-sm">Nút này chỉ mô phỏng callback thanh toán, không giao dịch tiền thật.</p>
+                        </div>
+                    ) : (
+                        <div className="text-left bg-primary-container/30 border border-primary rounded-xl p-lg mb-lg">
+                            <p className="font-medium text-primary mb-sm">Thanh toán Demo thành công</p>
+                            <p className="text-sm text-on-surface">Dịch vụ: {demoPayment.serviceName}</p>
+                            <p className="text-sm text-on-surface">IP: {demoPayment.vpsIP}</p>
+                            <p className="text-sm text-on-surface">Tài khoản: {demoPayment.vpsUser}</p>
+                            <p className="text-sm text-on-surface">Mật khẩu: {demoPayment.vpsPassword}</p>
+                            <p className="text-sm text-on-surface-variant mt-sm">Hết hạn: {new Date(demoPayment.expiryDate).toLocaleDateString('vi-VN')}</p>
                         </div>
                     )}
                     <div>
@@ -234,7 +298,7 @@ export default function CheckoutPage() {
                                                 </div>
                                                 <div className="flex flex-col items-end gap-2">
                                                     <div className="font-headline-sm text-headline-sm text-on-background">
-                                                        {formatCurrency(item.price * months * item.qty)}
+                                                        {formatCurrency((Number(item.price) || 0) * months * Math.max(1, Number(item.qty) || 1))}
                                                     </div>
                                                     <button onClick={() => removeFromCart(index)} className="text-error font-body-sm flex items-center gap-1 hover:underline">
                                                         <span className="material-symbols-outlined text-[16px]">delete</span>
@@ -272,41 +336,24 @@ export default function CheckoutPage() {
                                         <span>Phí cài đặt ban đầu</span>
                                         <span className="font-medium text-on-background">Miễn phí</span>
                                     </div>
-                                    {discount > 0 && (
-                                        <div className="flex justify-between items-center text-error">
-                                            <span>Giảm giá</span>
-                                            <span className="font-medium">-{formatCurrency(discount)}</span>
-                                        </div>
-                                    )}
+
                                 </div>
 
                                 <div className="border-t border-outline-variant pt-md mb-lg">
                                     <div className="flex justify-between items-center mb-xs">
                                         <span className="font-headline-sm text-headline-sm text-on-surface">Tổng cộng</span>
-                                        <span className="font-display-sm text-display-sm text-primary">{formatCurrency(total)}</span>
+                                        <span className="font-display-sm text-display-sm text-primary">{formatCurrency(subtotal)}</span>
                                     </div>
                                     <p className="font-body-sm text-body-sm text-on-surface-variant text-right">Chưa bao gồm 10% VAT</p>
                                 </div>
                                 
                                 <div className="border-t border-outline-variant pt-md mb-lg">
                                     <div className="flex justify-between items-center mb-xs">
-                                        <span className="font-headline-sm text-headline-sm text-on-surface">Thanh toán (Gồm VAT)</span>
-                                        <span className="font-display-sm text-display-sm text-error">{formatCurrency(total * 1.1)}</span>
+                                        <span className="font-headline-sm text-headline-sm text-on-surface">Tổng thanh toán</span>
+                                        <span className="font-display-sm text-display-sm text-error">{formatCurrency(totalWithVat)}</span>
                                     </div>
                                 </div>
 
-                                <form className="flex gap-sm mb-xl" onSubmit={(e) => { e.preventDefault(); handleApplyPromo(); }}>
-                                    <input 
-                                        type="text" 
-                                        placeholder="Mã giảm giá (WELCOME20)" 
-                                        value={promoCode}
-                                        onChange={(e) => setPromoCode(e.target.value)}
-                                        className="flex-grow h-11 px-4 rounded-lg border border-outline-variant bg-surface text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow uppercase"
-                                    />
-                                    <button type="submit" className="h-11 px-4 bg-surface-container text-on-surface font-medium rounded-lg hover:bg-surface-variant transition-colors border border-outline-variant">
-                                        Áp dụng
-                                    </button>
-                                </form>
 
                                 <button 
                                     onClick={handleSubmit} 

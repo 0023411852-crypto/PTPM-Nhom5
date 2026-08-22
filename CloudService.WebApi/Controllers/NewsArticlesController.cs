@@ -19,9 +19,9 @@ namespace CloudService.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter, [FromQuery] bool onlyPublished = true)
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter, [FromQuery] bool onlyPublished = true, [FromQuery] string search = "")
         {
-            var result = await _service.GetAllAsync(filter, onlyPublished);
+            var result = await _service.GetAllAsync(filter, onlyPublished, search);
             return Ok(result);
         }
 

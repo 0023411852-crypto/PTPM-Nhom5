@@ -77,10 +77,18 @@ namespace CloudService.Application.Services
                 var allPlans = await planRepo.GetAllAsync();
                 var selectedPlans = allPlans.Where(p => dto.ServicePlanIds.Contains(p.Id)).ToList();
                 
-                entity.ServicePlans.Clear();
-                foreach(var plan in selectedPlans)
+                // Xóa chỉ những plan không còn trong danh sách mới
+                var plansToRemove = entity.ServicePlans
+                    .Where(p => !dto.ServicePlanIds.Contains(p.Id))
+                    .ToList();
+                foreach (var plan in plansToRemove)
+                    entity.ServicePlans.Remove(plan);
+
+                // Thêm chỉ những plan chưa có trong collection
+                foreach (var plan in selectedPlans)
                 {
-                    entity.ServicePlans.Add(plan);
+                    if (!entity.ServicePlans.Any(p => p.Id == plan.Id))
+                        entity.ServicePlans.Add(plan);
                 }
             }
 

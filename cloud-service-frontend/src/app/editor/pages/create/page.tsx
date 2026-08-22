@@ -21,7 +21,7 @@ function StaticPageForm() {
         if (editId) {
             const fetchPage = async () => {
                 try {
-                    const res = await fetch(`http://localhost:5154/api/StaticPages/${editId}`);
+                    const res = await fetch(`/api/StaticPages/${editId}`);
                     if (res.ok) {
                         const data = await res.json();
                         setTitle(data.title);
@@ -46,8 +46,8 @@ function StaticPageForm() {
         setIsSaving(true);
         try {
             const url = editId 
-                ? `http://localhost:5154/api/StaticPages/${editId}` 
-                : 'http://localhost:5154/api/StaticPages';
+                ? `/api/StaticPages/${editId}`
+                : '/api/StaticPages';
             const method = editId ? 'PUT' : 'POST';
 
             const res = await fetch(url, {

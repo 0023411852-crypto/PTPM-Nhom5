@@ -8,6 +8,7 @@ using FluentValidation.AspNetCore;
 using CloudService.Application.Validators;
 using System.Text;
 using CloudService.WebApi.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -89,6 +90,14 @@ builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddHostedService<CloudService.WebApi.BackgroundServices.UserCleanupBackgroundService>();
 
 var app = builder.Build();
+
+// Chỉ tự động apply migration khi được bật rõ ràng, phù hợp cho Docker/demo.
+if (app.Configuration.GetValue<bool>("Database:AutoMigrate"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<CloudService.Infrastructure.Data.ApplicationDbContext>();
+    db.Database.Migrate();
+}
 
 app.UseMiddleware<CloudService.WebApi.Middlewares.ExceptionMiddleware>();
 

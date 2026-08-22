@@ -46,7 +46,7 @@ export default function AdminProfilePage() {
 
     const fetchActivities = async (token: string) => {
         try {
-            const res = await fetch('http://localhost:5154/api/Users/me/activities', {
+            const res = await fetch('/api/Users/me/activities', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -88,7 +88,7 @@ export default function AdminProfilePage() {
         if (!token) return;
 
         try {
-            const res = await fetch('http://localhost:5154/api/Users/me/password', {
+            const res = await fetch('/api/Users/me/password', {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -118,6 +118,8 @@ export default function AdminProfilePage() {
         if (file) {
             const imageUrl = URL.createObjectURL(file);
             setUser(prev => ({ ...prev, avatar: imageUrl }));
+            localStorage.setItem('avatar', imageUrl);
+            window.dispatchEvent(new Event('profileUpdated'));
         }
     };
 

@@ -23,6 +23,7 @@ export default function AdminPartnerRequestsPage() {
         fullName: '',
         email: '',
         websiteUrl: '',
+        requestedService: '',
         promotionMethod: '',
         promotionDetails: ''
     });
@@ -35,7 +36,7 @@ export default function AdminPartnerRequestsPage() {
         setLoading(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:5154/api/PartnerRequests?pageNumber=${pageNumber}&pageSize=${pageSize}&search=${encodeURIComponent(searchKeyword)}&status=${encodeURIComponent(statusFilter)}`, {
+            const res = await fetch(`/api/PartnerRequests?pageNumber=${pageNumber}&pageSize=${pageSize}&search=${encodeURIComponent(searchKeyword)}&status=${encodeURIComponent(statusFilter)}`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (res.ok) {
@@ -68,7 +69,7 @@ export default function AdminPartnerRequestsPage() {
             if (actionType === 'Approve') targetStatus = 'Approved';
             if (actionType === 'Reject') targetStatus = 'Rejected';
 
-            const res = await fetch(`http://localhost:5154/api/PartnerRequests/${selectedRequest.id}/status`, {
+            const res = await fetch(`/api/PartnerRequests/${selectedRequest.id}/status`, {
                 method: "PATCH",
                 headers: { 
                     "Content-Type": "application/json",
@@ -100,7 +101,7 @@ export default function AdminPartnerRequestsPage() {
         setIsSubmitting(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:5154/api/PartnerRequests`, {
+            const res = await fetch(`/api/PartnerRequests`, {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json",
@@ -111,7 +112,7 @@ export default function AdminPartnerRequestsPage() {
 
             if (res.ok) {
                 setIsAddModalOpen(false);
-                setAddForm({ fullName: '', email: '', websiteUrl: '', promotionMethod: '', promotionDetails: '' });
+                setAddForm({ fullName: '', email: '', websiteUrl: '', requestedService: '', promotionMethod: '', promotionDetails: '' });
                 fetchRequests();
             } else {
                 const err = await res.json();
@@ -202,6 +203,7 @@ export default function AdminPartnerRequestsPage() {
                             <tr className="bg-surface-container-low border-b border-outline-variant">
                                 <th className="p-4 font-semibold text-on-surface">Người đăng ký</th>
                                 <th className="p-4 font-semibold text-on-surface">Trang web</th>
+                                <th className="p-4 font-semibold text-on-surface">Dịch vụ đăng ký</th>
                                 <th className="p-4 font-semibold text-on-surface">Hình thức</th>
                                 <th className="p-4 font-semibold text-on-surface">Ngày gửi</th>
                                 <th className="p-4 font-semibold text-on-surface">Trạng thái</th>
@@ -222,6 +224,9 @@ export default function AdminPartnerRequestsPage() {
                                                 Truy cập
                                             </a>
                                         ) : '-'}
+                                    </td>
+                                    <td className="p-4 text-sm font-medium text-primary">
+                                        {req.requestedService || 'Chưa xác định'}
                                     </td>
                                     <td className="p-4">
                                         <div className="text-sm font-medium">{getPromotionMethod(req.promotionMethod)}</div>
@@ -269,7 +274,7 @@ export default function AdminPartnerRequestsPage() {
                             ))}
                             {requests.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} className="p-8 text-center text-secondary">Chưa có yêu cầu đăng ký đối tác nào.</td>
+                                    <td colSpan={7} className="p-8 text-center text-secondary">Chưa có yêu cầu đăng ký đối tác nào.</td>
                                 </tr>
                             )}
                         </tbody>
@@ -371,6 +376,10 @@ export default function AdminPartnerRequestsPage() {
                     <div>
                         <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Website (Nếu có)</label>
                         <input type="url" value={addForm.websiteUrl} onChange={e => setAddForm({...addForm, websiteUrl: e.target.value})} className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary outline-none" />
+                    </div>
+                    <div>
+                        <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Dịch vụ muốn đăng ký</label>
+                        <input type="text" required value={addForm.requestedService} onChange={e => setAddForm({...addForm, requestedService: e.target.value})} placeholder="Ví dụ: Cloud VPS" className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary outline-none" />
                     </div>
                     <div>
                         <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Hình thức quảng bá</label>
