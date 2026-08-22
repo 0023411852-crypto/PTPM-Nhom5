@@ -21,6 +21,20 @@ interface Review {
     content: string;
 }
 
+interface ServicePlanQr {
+    id: string;
+    name: string;
+    description: string;
+    isActive: boolean;
+    qrCodeBase64?: string | null;
+    category?: { name?: string } | null;
+}
+
+function resolveQrImage(value?: string | null) {
+    if (!value) return null;
+    return value.startsWith('data:image/') ? value : `data:image/png;base64,${value}`;
+}
+
 export default function TopCustomersPage() {
     const [vipCustomers, setVipCustomers] = useState<VipCustomer[]>([]);
     const [reviews, setReviews] = useState<Review[]>([]);
@@ -29,10 +43,25 @@ export default function TopCustomersPage() {
     const [loadingVip, setLoadingVip] = useState(true);
     const [loadingReviews, setLoadingReviews] = useState(false);
     const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+    const [servicePlans, setServicePlans] = useState<ServicePlanQr[]>([]);
+    const [loadingPlans, setLoadingPlans] = useState(true);
+    const [reviewRating, setReviewRating] = useState(5);
+    const [reviewContent, setReviewContent] = useState('');
+    const [reviewSubmitting, setReviewSubmitting] = useState(false);
+    const [reviewMessage, setReviewMessage] = useState('');
+    const [reviewError, setReviewError] = useState('');
+
+    useEffect(() => {
+        fetch('/api/ServicePlans?PageNumber=1&PageSize=50')
+            .then(res => res.ok ? res.json() : Promise.reject(new Error('Không thể tải gói dịch vụ')))
+            .then(data => setServicePlans((data.data || []).filter((plan: ServicePlanQr) => plan.isActive)))
+            .catch(err => console.error("Failed to fetch service plans:", err))
+            .finally(() => setLoadingPlans(false));
+    }, []);
 
     useEffect(() => {
         // Fetch VIP Customers
-        fetch('http://localhost:5154/api/Users/vip?limit=3')
+        fetch('/api/Users/vip?limit=3')
             .then(res => res.json())
             .then(data => {
                 setVipCustomers(data);
@@ -46,7 +75,7 @@ export default function TopCustomersPage() {
 
     const fetchReviews = (pageToFetch: number) => {
         setLoadingReviews(true);
-        fetch(`http://localhost:5154/api/Users/reviews?page=${pageToFetch}&pageSize=3`)
+        fetch(`/api/Users/reviews?page=${pageToFetch}&pageSize=3`)
             .then(res => res.json())
             .then(data => {
                 setReviews(data.items);
@@ -67,6 +96,54 @@ export default function TopCustomersPage() {
         if (!loadingReviews && newPage >= 1 && newPage <= totalPages) {
             setPage(newPage);
             fetchReviews(newPage);
+        }
+    };
+
+    const handleReviewSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setReviewMessage('');
+        setReviewError('');
+
+        const content = reviewContent.trim();
+        if (!content) {
+            setReviewError('Vui lòng nhập nội dung đánh giá.');
+            return;
+        }
+        if (content.length > 1000) {
+            setReviewError('Nội dung đánh giá không được vượt quá 1000 ký tự.');
+            return;
+        }
+
+        const token = window.localStorage.getItem('token');
+        if (!token) {
+            setReviewError('Vui lòng đăng nhập để gửi đánh giá.');
+            return;
+        }
+
+        setReviewSubmitting(true);
+        try {
+            const response = await fetch('/api/Users/reviews', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ rating: reviewRating, content }),
+            });
+            const data = await response.json().catch(() => null);
+            if (!response.ok) {
+                throw new Error(data?.message || data || 'Không thể gửi đánh giá.');
+            }
+
+            setReviewContent('');
+            setReviewRating(5);
+            setReviewMessage('Cảm ơn bạn! Đánh giá của bạn đã được ghi nhận.');
+            fetchReviews(1);
+            setPage(1);
+        } catch (error) {
+            setReviewError(error instanceof Error ? error.message : 'Không thể gửi đánh giá.');
+        } finally {
+            setReviewSubmitting(false);
         }
     };
 
@@ -161,6 +238,88 @@ export default function TopCustomersPage() {
                     </div>
                 </section>
                 
+                {/* Service Plans and QR Section */}
+                <section className="mb-16">
+                    <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-10">
+                        <div className="md:flex-1">
+                            <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Dịch vụ nổi bật</p>
+                            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mt-2">Mã QR theo từng gói dịch vụ</h2>
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 md:w-80 md:text-right">Quét mã để xem nhanh thông tin gói và mức giá hiện có.</p>
+                    </div>
+                    {loadingPlans ? (
+                        <p className="text-gray-500 dark:text-gray-400">Đang tải gói dịch vụ...</p>
+                    ) : servicePlans.length === 0 ? (
+                        <p className="text-gray-500 dark:text-gray-400">Chưa có gói dịch vụ khả dụng.</p>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {servicePlans.map(plan => (
+                                <article key={plan.id} className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm flex gap-4 items-center">
+                                    <div className="w-28 h-28 shrink-0 rounded-lg bg-white border border-gray-200 flex items-center justify-center p-2">
+                                        {plan.qrCodeBase64 ? (
+                                            <img src={resolveQrImage(plan.qrCodeBase64) || ''} alt={`Mã QR gói ${plan.name}`} className="w-full h-full object-contain" />
+                                        ) : (
+                                            <span className="text-center text-xs text-gray-500">Chưa có mã QR</span>
+                                        )}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">{plan.category?.name || 'Cloud'}</p>
+                                        <h3 className="font-bold text-gray-900 dark:text-white mt-1">{plan.name}</h3>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 mt-1">{plan.description}</p>
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    )}
+                </section>
+                {/* Customer Review Form */}
+                <section className="mb-16 rounded-2xl border border-indigo-100 bg-white/80 p-6 shadow-sm dark:border-indigo-900 dark:bg-gray-800/80 md:p-8">
+                    <div className="mb-6">
+                        <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Chia sẻ trải nghiệm</p>
+                        <h2 className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">Đánh giá dịch vụ CloudNova</h2>
+                        <p className="mt-2 text-gray-600 dark:text-gray-300">Đăng nhập để gửi đánh giá và chia sẻ trải nghiệm của bạn với cộng đồng.</p>
+                    </div>
+                    <form onSubmit={handleReviewSubmit} className="space-y-5">
+                        <div>
+                            <label className="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">Mức độ hài lòng</label>
+                            <div className="flex items-center gap-1" role="radiogroup" aria-label="Chọn số sao">
+                                {[1, 2, 3, 4, 5].map(star => (
+                                    <button
+                                        key={star}
+                                        type="button"
+                                        onClick={() => setReviewRating(star)}
+                                        aria-label={`${star} sao`}
+                                        aria-pressed={reviewRating === star}
+                                        className="rounded p-1 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    >
+                                        <span className={`material-symbols-outlined text-3xl ${star <= reviewRating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`} style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                                    </button>
+                                ))}
+                                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">{reviewRating}/5</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label htmlFor="customer-review-content" className="mb-2 block text-sm font-semibold text-gray-800 dark:text-gray-200">Nội dung đánh giá</label>
+                            <textarea
+                                id="customer-review-content"
+                                value={reviewContent}
+                                onChange={event => setReviewContent(event.target.value)}
+                                maxLength={1000}
+                                rows={4}
+                                required
+                                placeholder="Hãy chia sẻ trải nghiệm của bạn..."
+                                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:focus:ring-indigo-900"
+                            />
+                            <p className="mt-1 text-right text-xs text-gray-500 dark:text-gray-400">{reviewContent.length}/1000</p>
+                        </div>
+                        {reviewError && <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">{reviewError}</p>}
+                        {reviewMessage && <p className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-300">{reviewMessage}</p>}
+                        <button type="submit" disabled={reviewSubmitting} className="rounded-lg bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-wait disabled:opacity-60">
+                            {reviewSubmitting ? 'Đang gửi...' : 'Gửi đánh giá'}
+                        </button>
+                    </form>
+                </section>
+
                 {/* Testimonials Section */}
                 <section>
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-10 text-center">Đánh Giá Từ Khách Hàng</h2>

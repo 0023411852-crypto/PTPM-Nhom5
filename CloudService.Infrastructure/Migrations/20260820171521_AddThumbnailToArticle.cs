@@ -10,12 +10,12 @@ namespace CloudService.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // migrationBuilder.AddColumn<string>(
-            //     name: "ThumbnailUrl",
-            //     table: "NewsArticles",
-            //     type: "nvarchar(max)",
-            //     nullable: false,
-            //     defaultValue: "");
+            migrationBuilder.AddColumn<string>(
+                name: "ThumbnailUrl",
+                table: "NewsArticles",
+                type: "nvarchar(max)",
+                nullable: true,
+                defaultValue: null);
         }
 
         /// <inheritdoc />

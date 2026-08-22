@@ -273,9 +273,9 @@ namespace CloudService.WebApi.Controllers
 
             var orders = new List<CloudService.Domain.Entities.OrderRequest>
             {
-                new CloudService.Domain.Entities.OrderRequest { UserId = users[0].Id, ServicePlanId = planMax.Id, PlanPriceId = priceMax.Id, TotalAmount = 150000000, Status = CloudService.Domain.Enums.OrderStatus.Completed },
-                new CloudService.Domain.Entities.OrderRequest { UserId = users[1].Id, ServicePlanId = planGPU.Id, PlanPriceId = priceGPU.Id, TotalAmount = 120000000, Status = CloudService.Domain.Enums.OrderStatus.Completed },
-                new CloudService.Domain.Entities.OrderRequest { UserId = users[2].Id, ServicePlanId = planPro.Id, PlanPriceId = pricePro.Id, TotalAmount = 95000000, Status = CloudService.Domain.Enums.OrderStatus.Completed }
+                new CloudService.Domain.Entities.OrderRequest { UserId = users[0].Id, ServicePlanId = planMax.Id, PlanPriceId = priceMax!.Id, TotalAmount = 150000000, Status = CloudService.Domain.Enums.OrderStatus.Completed },
+                new CloudService.Domain.Entities.OrderRequest { UserId = users[1].Id, ServicePlanId = planGPU.Id, PlanPriceId = priceGPU!.Id, TotalAmount = 120000000, Status = CloudService.Domain.Enums.OrderStatus.Completed },
+                new CloudService.Domain.Entities.OrderRequest { UserId = users[2].Id, ServicePlanId = planPro.Id, PlanPriceId = pricePro!.Id, TotalAmount = 95000000, Status = CloudService.Domain.Enums.OrderStatus.Completed }
             };
             _context.OrderRequests.AddRange(orders);
             await _context.SaveChangesAsync();

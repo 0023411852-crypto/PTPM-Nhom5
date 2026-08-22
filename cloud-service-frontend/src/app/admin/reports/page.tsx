@@ -43,7 +43,7 @@ export default function AdminReportsPage() {
             setLoading(true);
             try {
                 const token = localStorage.getItem("token");
-                const res = await fetch(`http://localhost:5154/api/Admin/revenue-report?period=${encodeURIComponent(period)}`, {
+                const res = await fetch(`/api/Admin/revenue-report?period=${encodeURIComponent(period)}`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
                 if (res.ok) {

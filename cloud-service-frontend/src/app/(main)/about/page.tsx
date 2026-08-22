@@ -14,7 +14,7 @@ export default function AboutPage() {
 <h1 className="font-display-lg text-display-lg text-on-surface md:pr-xl">Chúng tôi xây dựng hạ tầng cho những ý tưởng lớn.</h1>
 <p className="font-body-lg text-body-lg text-on-surface-variant max-w-[42rem]">CloudNova cung cấp nền tảng Cloud giúp cá nhân, startup và doanh nghiệp triển khai sản phẩm nhanh hơn, an toàn hơn và dễ dàng mở rộng hơn.</p>
 <div className="pt-sm flex gap-md">
-<button className="bg-primary text-on-primary px-lg py-md rounded-lg font-body-md text-body-md hover:opacity-90 transition-opacity">Khám phá dịch vụ</button>
+<Link href="/services" className="bg-primary text-on-primary px-lg py-md rounded-lg font-body-md text-body-md hover:opacity-90 transition-opacity">Khám phá dịch vụ</Link>
 </div>
 </div>
 <div className="w-full md:w-1/2 rounded-2xl overflow-hidden border border-outline-variant relative h-[400px]">
@@ -172,8 +172,8 @@ export default function AboutPage() {
 <div className="relative z-10">
 <h2 className="font-display-lg text-display-lg mb-lg">Hãy xây dựng sản phẩm tiếp theo cùng CloudNova.</h2>
 <div className="flex flex-col sm:flex-row justify-center gap-md">
-<button className="bg-on-primary-container text-primary-container px-lg py-md rounded-lg font-body-md text-body-md font-medium hover:opacity-90 transition-opacity">Khám phá dịch vụ</button>
-<button className="bg-transparent border border-on-primary-container text-on-primary-container px-lg py-md rounded-lg font-body-md text-body-md font-medium hover:bg-on-primary-container/10 transition-colors">Liên hệ với chúng tôi</button>
+<Link href="/services" className="bg-on-primary-container text-primary-container px-lg py-md rounded-lg font-body-md text-body-md font-medium hover:opacity-90 transition-opacity">Khám phá dịch vụ</Link>
+<a href="mailto:contact@cloudnova.vn" className="bg-transparent border border-on-primary-container text-on-primary-container px-lg py-md rounded-lg font-body-md text-body-md font-medium hover:bg-on-primary-container/10 transition-colors">Liên hệ với chúng tôi</a>
 </div>
 </div>
 </div>

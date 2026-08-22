@@ -14,11 +14,13 @@ namespace CloudService.WebApi.Controllers
     {
         private readonly IOrderService _orderService;
         private readonly IQRCodeService _qrCodeService;
+        private readonly IConfiguration _configuration;
 
-        public OrdersController(IOrderService orderService, IQRCodeService qrCodeService)
+        public OrdersController(IOrderService orderService, IQRCodeService qrCodeService, IConfiguration configuration)
         {
             _orderService = orderService;
             _qrCodeService = qrCodeService;
+            _configuration = configuration;
         }
 
         [HttpGet("my-orders")]
@@ -29,6 +31,20 @@ namespace CloudService.WebApi.Controllers
                 return Unauthorized();
 
             var result = await _orderService.GetUserOrdersAsync(userId, filter);
+            return Ok(result);
+        }
+
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetOrderDetail(Guid id)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdStr, out var userId))
+                return Unauthorized();
+
+            var result = await _orderService.GetOrderDetailAsync(id, userId, User.IsInRole("Admin"));
+            if (result == null)
+                return NotFound(new { message = "Không tìm thấy đơn hàng hoặc bạn không có quyền xem." });
+
             return Ok(result);
         }
 
@@ -58,46 +74,48 @@ namespace CloudService.WebApi.Controllers
             return Ok(result);
         }
 
-        [HttpPatch("{id}/status")]
+        [HttpGet("export")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] string status)
+        public async Task<IActionResult> ExportAllOrders()
         {
-            var result = await _orderService.UpdateOrderStatusAsync(id, status);
-            if (!result) return NotFound();
-            return Ok(new { message = "Status updated successfully" });
+            var content = await _orderService.ExportAllOrdersCsvAsync();
+            return File(content, "text/csv; charset=utf-8", $"orders-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv");
         }
 
-        [HttpPost("{id}/approve")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ApproveOrder(Guid id, [FromBody] ApproveOrderDto dto)
+        [HttpPost("{id:guid}/demo-payment")]
+        public async Task<IActionResult> ConfirmDemoPayment(Guid id)
         {
-            var result = await _orderService.ApproveOrderAsync(id, dto);
-            if (!result) return BadRequest(new { message = "Could not approve order" });
-            return Ok(new { message = "Order approved successfully" });
+            if (!_configuration.GetValue<bool>("DemoPayment:Enabled"))
+                return NotFound(new { message = "Demo Payment đang bị tắt." });
+
+            var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdValue, out var userId))
+                return Unauthorized();
+
+            var result = await _orderService.ConfirmDemoPaymentAsync(id, userId);
+            if (result == null)
+                return NotFound(new { message = "Không tìm thấy đơn hàng hoặc đơn không hợp lệ." });
+
+            return Ok(result);
         }
 
-        [HttpGet("{id}/payment-qr")]
-        public IActionResult GetPaymentQR(Guid id, [FromQuery] decimal amount)
+        [HttpGet("{id:guid}/payment-qr")]
+        public async Task<IActionResult> GetPaymentQR(Guid id, [FromQuery] decimal? amount = null)
         {
-            // Format: BankTransfer|OrderId|Amount
-            var paymentString = $"BANK|0123456789|{amount}|{id}";
+            var requesterIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(requesterIdValue, out var requesterId))
+                return Unauthorized();
+
+            // amount chỉ giữ để tương thích với FE cũ; không được dùng làm nguồn sự thật.
+            var serverAmount = await _orderService.GetPaymentAmountAsync(id, requesterId, User.IsInRole("Admin"));
+            if (serverAmount == null)
+                return NotFound(new { message = "Không tìm thấy đơn hàng." });
+            if (serverAmount <= 0)
+                return BadRequest(new { message = "Tổng tiền đơn hàng không hợp lệ." });
+
+            var paymentString = $"BANK|0123456789|{serverAmount.Value:0.##}|{id}";
             var base64Qr = _qrCodeService.GenerateQRCodeBase64(paymentString);
-            return Ok(new { qrCode = base64Qr, paymentString });
-        }
-
-        [HttpPost("admin-create")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AdminCreateOrder([FromBody] AdminCreateOrderDto dto)
-        {
-            try
-            {
-                var result = await _orderService.AdminCreateOrderAsync(dto);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            return Ok(new { qrCode = base64Qr, paymentString, amount = serverAmount.Value });
         }
 
         [HttpPost("seed")]

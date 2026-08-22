@@ -8,8 +8,32 @@ import AdminGuard from '@/components/AdminGuard';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [userProfile, setUserProfile] = useState({
+        fullName: 'Admin User',
+        email: 'admin@cloudnova.com',
+        avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBOCaM618_L8wvckuuCRwIbLO4YBhcpgXtfvuSOxdu3Lsy6-cIP571uAixRrdTAnwZla5y-64mDh2ur749axxvDTLvvbHHd2FupknF4oOJhxp0iVlQsV6O1iAzH4e1kNCD-M6nfkm93BzVXXobmtOFA3hiKlGjViAYgJbRTZ2wVQGEBGbZowvIO3VrwudODWirTKqJlb_89NXVGiHHRru0N8Srz3HfOhwttucCEBk0xz3Eol2w3VQ'
+    });
+    
     const router = useRouter();
     const pathname = usePathname();
+
+    const loadProfileData = () => {
+        const name = localStorage.getItem('fullName');
+        const email = localStorage.getItem('email');
+        const avatar = localStorage.getItem('avatar');
+        
+        setUserProfile(prev => ({
+            fullName: name || prev.fullName,
+            email: email || prev.email,
+            avatar: avatar || prev.avatar
+        }));
+    };
+
+    useEffect(() => {
+        loadProfileData();
+        window.addEventListener('profileUpdated', loadProfileData);
+        return () => window.removeEventListener('profileUpdated', loadProfileData);
+    }, []);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -32,6 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             links: [
                 { name: 'Quản lý người dùng', href: '/admin/users', icon: 'group' },
                 { name: 'Quản lý Đối tác', href: '/admin/partner-requests', icon: 'handshake' },
+                { name: 'Quản lý Danh mục', href: '/admin/categories', icon: 'category' },
                 { name: 'Quản lý Máy chủ/VPS', href: '/admin/services', icon: 'dns' },
                 { name: 'Đơn hàng & Thanh toán', href: '/admin/orders', icon: 'receipt_long' },
                 { name: 'Báo cáo doanh thu', href: '/admin/reports', icon: 'payments' },
@@ -66,7 +91,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 </h3>
                                 <div className="flex flex-col gap-1">
                                     {group.links.map((link) => {
-                                        const isActive = link.href === '/admin' ? pathname === '/admin' : pathname.startsWith(link.href);
+                                        const isActive = link.href === '/admin' 
+                                            ? pathname === '/admin' 
+                                            : (pathname === link.href || pathname.startsWith(link.href + '/'));
                                         return (
                                             <Link 
                                                 key={link.name}
@@ -90,11 +117,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <div className="flex items-center justify-between gap-2 p-sm rounded-lg hover:bg-primary-fixed-variant/10 transition-colors group">
                             <Link href="/admin/profile" className="flex items-center gap-sm flex-1 min-w-0 cursor-pointer">
                                 <div className="w-8 h-8 rounded-full bg-surface-container overflow-hidden shrink-0">
-                                    <img className="w-full h-full object-cover" alt="Admin Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOCaM618_L8wvckuuCRwIbLO4YBhcpgXtfvuSOxdu3Lsy6-cIP571uAixRrdTAnwZla5y-64mDh2ur749axxvDTLvvbHHd2FupknF4oOJhxp0iVlQsV6O1iAzH4e1kNCD-M6nfkm93BzVXXobmtOFA3hiKlGjViAYgJbRTZ2wVQGEBGbZowvIO3VrwudODWirTKqJlb_89NXVGiHHRru0N8Srz3HfOhwttucCEBk0xz3Eol2w3VQ"/>
+                                    <img className="w-full h-full object-cover" alt="Admin Profile" src={userProfile.avatar}/>
                                 </div>
                                 <div className="overflow-hidden">
-                                    <p className="font-body-sm text-body-sm font-medium truncate text-on-secondary group-hover:text-primary-fixed transition-colors">Admin User</p>
-                                    <p className="font-body-sm text-body-sm text-on-secondary/70 text-[12px] truncate">admin@cloudnova.com</p>
+                                    <p className="font-body-sm text-body-sm font-medium truncate text-on-secondary group-hover:text-primary-fixed transition-colors">{userProfile.fullName}</p>
+                                    <p className="font-body-sm text-body-sm text-on-secondary/70 text-[12px] truncate">{userProfile.email}</p>
                                 </div>
                             </Link>
                             <button 

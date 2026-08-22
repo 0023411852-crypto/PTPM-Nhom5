@@ -45,14 +45,14 @@ function EditorForm() {
         formData.append('file', file);
 
         try {
-            const res = await fetch('http://localhost:5154/api/Upload', {
+            const res = await fetch('/api/Upload', {
                 method: 'POST',
                 body: formData,
             });
 
             if (res.ok) {
                 const data = await res.json();
-                setThumbnailUrl('http://localhost:5154' + data.url);
+                setThumbnailUrl('' + data.url);
             } else {
                 alert('Tải ảnh thất bại. Vui lòng thử lại.');
             }
@@ -64,40 +64,51 @@ function EditorForm() {
         }
     };
 
-    const handleSave = (status: 'Bản nháp' | 'Đã xuất bản') => {
+    const handleSave = async (status: 'Bản nháp' | 'Đã xuất bản') => {
         if (!title.trim()) {
             alert('Vui lòng nhập tiêu đề bài viết!');
             return;
         }
 
-        const stored = localStorage.getItem('editor_articles');
-        let articles: Article[] = stored ? JSON.parse(stored) : [];
+        const token = localStorage.getItem('token');
+        const isPublished = status === 'Đã xuất bản';
 
-        if (editId) {
-            // Update
-            articles = articles.map(a => 
-                a.id === editId 
-                    ? { ...a, title, content, category, status, thumbnailUrl } 
-                    : a
-            );
-        } else {
-            // Create
-            const newArticle: Article = {
-                id: Date.now().toString(),
-                title,
-                content,
-                category,
-                thumbnailUrl,
-                authorName: 'Admin', // Giả lập user hiện tại
-                viewCount: 0,
-                isPublished: status === 'Đã xuất bản',
-                createdAt: new Date().toISOString()
-            };
-            articles = [newArticle, ...articles];
+        // Tạo slug từ title
+        const slug = title
+            .toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/\s+/g, '-');
+
+        const body = { title, content, category, thumbnailUrl, isPublished, slug };
+
+        try {
+            let res: Response;
+            if (editId) {
+                res = await fetch(`/api/NewsArticles/${editId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(body)
+                });
+            } else {
+                res = await fetch(`/api/NewsArticles`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(body)
+                });
+            }
+
+            if (res.ok) {
+                router.push(`${basePath}/articles`);
+            } else {
+                const err = await res.json().catch(() => ({}));
+                alert('Lỗi: ' + (err.message || err.title || 'Không thể lưu bài viết'));
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Có lỗi xảy ra khi lưu bài viết.');
         }
-
-        localStorage.setItem('editor_articles', JSON.stringify(articles));
-        router.push(`${basePath}/articles`);
     };
 
     if (!isLoaded) return null;

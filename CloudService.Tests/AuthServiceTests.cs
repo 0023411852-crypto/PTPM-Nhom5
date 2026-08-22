@@ -55,24 +55,24 @@ namespace CloudService.Tests
             // Arrange
             var request = new RegisterRequest { Email = "test@example.com", Password = "123", FullName = "Test" };
             var existingUsers = new List<AppUser> { new AppUser { Email = "test@example.com" } };
-            _userRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(existingUsers.AsQueryable());
+            _userRepoMock.Setup(r => r.GetAllAsync("")).ReturnsAsync(existingUsers.AsQueryable());
 
             // Act
             Func<Task> act = async () => await _authService.RegisterAsync(request);
 
             // Assert
-            await act.Should().ThrowAsync<ConflictException>().WithMessage("Email already exists");
+            await act.Should().ThrowAsync<ConflictException>().WithMessage("Email đã tồn tại trong hệ thống");
         }
 
         [Fact]
         public async Task LoginAsync_ShouldThrowUnauthorized_WhenUserNotFound()
         {
             var request = new LoginRequest { Email = "notfound@example.com", Password = "123" };
-            _userRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<AppUser>().AsQueryable());
+            _userRepoMock.Setup(r => r.GetAllAsync("")).ReturnsAsync(new List<AppUser>().AsQueryable());
 
             Func<Task> act = async () => await _authService.LoginAsync(request);
 
-            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Invalid credentials");
+            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Email hoặc mật khẩu không chính xác.");
         }
 
         [Fact]
@@ -84,11 +84,11 @@ namespace CloudService.Tests
                 Email = "test@example.com", 
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("correctpassword") 
             };
-            _userRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<AppUser> { existingUser }.AsQueryable());
+            _userRepoMock.Setup(r => r.GetAllAsync("")).ReturnsAsync(new List<AppUser> { existingUser }.AsQueryable());
 
             Func<Task> act = async () => await _authService.LoginAsync(request);
 
-            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Invalid credentials");
+            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Email hoặc mật khẩu không chính xác.");
         }
 
         [Fact]
@@ -101,7 +101,7 @@ namespace CloudService.Tests
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("123"),
                 IsActive = false
             };
-            _userRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<AppUser> { existingUser }.AsQueryable());
+            _userRepoMock.Setup(r => r.GetAllAsync("")).ReturnsAsync(new List<AppUser> { existingUser }.AsQueryable());
 
             Func<Task> act = async () => await _authService.LoginAsync(request);
 
@@ -113,7 +113,7 @@ namespace CloudService.Tests
         {
             var hashedToken = "hashed_token_here"; // Mock hash
             var session = new UserSession { RefreshTokenHash = hashedToken, IsRevoked = false };
-            _sessionRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<UserSession> { session }.AsQueryable());
+            _sessionRepoMock.Setup(r => r.GetAllAsync("")).ReturnsAsync(new List<UserSession> { session }.AsQueryable());
             
             // To make this test perfect, we would need to mock the hashing function or inject a hasher.
             // Since HashToken is private and uses SHA256, we can't easily mock it without refactoring.
@@ -124,11 +124,11 @@ namespace CloudService.Tests
         public async Task RefreshTokenAsync_ShouldThrowUnauthorized_WhenSessionNotFound()
         {
             var request = new RefreshTokenRequest { RefreshToken = "sometoken" };
-            _sessionRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<UserSession>().AsQueryable());
+            _sessionRepoMock.Setup(r => r.GetAllAsync("")).ReturnsAsync(new List<UserSession>().AsQueryable());
 
             Func<Task> act = async () => await _authService.RefreshTokenAsync(request);
 
-            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Invalid session or refresh token.");
+            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Phiên đăng nhập hoặc token không hợp lệ.");
         }
 
         [Fact]
@@ -138,11 +138,11 @@ namespace CloudService.Tests
             // Since we can't easily mock the private hash function without refactoring, 
             // we will simulate the behavior where no matching non-revoked session is found.
             var session = new UserSession { RefreshTokenHash = "mismatch", IsRevoked = true };
-            _sessionRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<UserSession> { session }.AsQueryable());
+            _sessionRepoMock.Setup(r => r.GetAllAsync("")).ReturnsAsync(new List<UserSession> { session }.AsQueryable());
 
             Func<Task> act = async () => await _authService.RefreshTokenAsync(request);
 
-            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Invalid session or refresh token.");
+            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Phiên đăng nhập hoặc token không hợp lệ.");
         }
     }
 }

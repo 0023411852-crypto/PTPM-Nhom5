@@ -3,6 +3,32 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+type OrderDetail = {
+    id: string;
+    servicePlanName: string;
+    servicePlanDescription: string;
+    servicePlanSpecifications: string;
+    categoryName: string;
+    billingCycle: number;
+    price: number;
+    setupFee: number;
+    totalAmount: number;
+    status: string;
+    orderDate: string;
+    customerNotes?: string | null;
+    promotionCode?: string | null;
+    discountPercentage?: number | null;
+};
+
+function parseOrderSpecifications(value: string) {
+    try {
+        const parsed = JSON.parse(value || '{}');
+        return Object.entries(parsed).filter(([, item]) => item !== null && item !== undefined && item !== '');
+    } catch {
+        return [];
+    }
+}
+
 export default function ClientPortalPage() {
     const [activeTab, setActiveTab] = useState<'services' | 'orders' | 'support' | 'profile'>('services');
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -12,6 +38,7 @@ export default function ClientPortalPage() {
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
     const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
     // Services state
@@ -21,6 +48,9 @@ export default function ClientPortalPage() {
     // Orders state
     const [orders, setOrders] = useState<any[]>([]);
     const [loadingOrders, setLoadingOrders] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState<OrderDetail | null>(null);
+    const [loadingOrderDetail, setLoadingOrderDetail] = useState(false);
+    const [orderDetailError, setOrderDetailError] = useState('');
 
     // Tickets state
     const [tickets, setTickets] = useState<any[]>([]);
@@ -57,7 +87,7 @@ export default function ClientPortalPage() {
 
     const fetchProfile = async (tokenStr: string) => {
         try {
-            const res = await fetch("http://localhost:5154/api/Users/me", {
+            const res = await fetch("/api/Users/me", {
                 headers: { "Authorization": `Bearer ${tokenStr}` }
             });
             if (res.ok) {
@@ -74,12 +104,48 @@ export default function ClientPortalPage() {
         }
     };
 
+    const handleAvatarUpload = async (file: File) => {
+        if (!token) return;
+
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Chỉ hỗ trợ ảnh JPG, PNG, GIF hoặc WEBP.');
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Ảnh quá lớn. Vui lòng chọn file dưới 5MB.');
+            return;
+        }
+
+        setIsUploadingAvatar(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const response = await fetch('/api/Upload', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData,
+            });
+            const data = await response.json();
+            if (!response.ok || !data.url) {
+                throw new Error(data.message || 'Tải ảnh thất bại.');
+            }
+
+            const fullUrl = data.url.startsWith('http') ? data.url : `${data.url}`;
+            setAvatarUrl(fullUrl);
+        } catch (error) {
+            alert(error instanceof Error ? error.message : 'Tải ảnh thất bại.');
+        } finally {
+            setIsUploadingAvatar(false);
+        }
+    };
+
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!token) return;
         setIsUpdatingProfile(true);
         try {
-            const res = await fetch("http://localhost:5154/api/Users/me/profile", {
+            const res = await fetch("/api/Users/me/profile", {
                 method: "PUT",
                 headers: { 
                     "Content-Type": "application/json",
@@ -105,7 +171,7 @@ export default function ClientPortalPage() {
     const fetchOrders = async (tokenStr: string) => {
         setLoadingOrders(true);
         try {
-            const res = await fetch("http://localhost:5154/api/Orders/my-orders?PageNumber=1&PageSize=50", {
+            const res = await fetch("/api/Orders/my-orders?PageNumber=1&PageSize=50", {
                 headers: { "Authorization": `Bearer ${tokenStr}` }
             });
             const data = await res.json();
@@ -117,10 +183,28 @@ export default function ClientPortalPage() {
         }
     };
 
+    const handleViewOrderDetail = async (orderId: string) => {
+        if (!token) return;
+        setLoadingOrderDetail(true);
+        setOrderDetailError('');
+        try {
+            const res = await fetch(`/api/Orders/${orderId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json().catch(() => null);
+            if (!res.ok) throw new Error(data?.message || 'Không thể tải chi tiết đơn hàng.');
+            setSelectedOrder(data);
+        } catch (error) {
+            setOrderDetailError(error instanceof Error ? error.message : 'Không thể tải chi tiết đơn hàng.');
+        } finally {
+            setLoadingOrderDetail(false);
+        }
+    };
+
     const fetchServices = async (tokenStr: string) => {
         setLoadingServices(true);
         try {
-            const res = await fetch("http://localhost:5154/api/CustomerServices/my-services?PageNumber=1&PageSize=50", {
+            const res = await fetch("/api/CustomerServices/my-services?PageNumber=1&PageSize=50", {
                 headers: { "Authorization": `Bearer ${tokenStr}` }
             });
             const data = await res.json();
@@ -135,7 +219,7 @@ export default function ClientPortalPage() {
     const fetchTickets = async (tokenStr: string) => {
         setLoadingTickets(true);
         try {
-            const res = await fetch("http://localhost:5154/api/SupportTickets/my-tickets?PageNumber=1&PageSize=50", {
+            const res = await fetch("/api/SupportTickets/my-tickets?PageNumber=1&PageSize=50", {
                 headers: { "Authorization": `Bearer ${tokenStr}` }
             });
             const data = await res.json();
@@ -152,7 +236,7 @@ export default function ClientPortalPage() {
         if (!token) return;
 
         try {
-            const res = await fetch("http://localhost:5154/api/SupportTickets", {
+            const res = await fetch("/api/SupportTickets", {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json",
@@ -182,7 +266,7 @@ export default function ClientPortalPage() {
         if (!token) return;
 
         try {
-            const res = await fetch('http://localhost:5154/api/Users/me/password', {
+            const res = await fetch('/api/Users/me/password', {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -211,7 +295,7 @@ export default function ClientPortalPage() {
         
         setSubmittingReview(true);
         try {
-            const res = await fetch('http://localhost:5154/api/Users/reviews', {
+            const res = await fetch('/api/Users/reviews', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -310,7 +394,7 @@ export default function ClientPortalPage() {
                                         <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-md">
                                             <span className="material-symbols-outlined text-[32px] text-secondary">cloud_off</span>
                                         </div>
-                                        <p className="text-on-surface-variant mb-md">Bạn chưa có dịch vụ nào đang hoạt động hoặc đơn hàng đang chờ duyệt.</p>
+                                        <p className="text-on-surface-variant mb-md">Bạn chưa có dịch vụ nào đang hoạt động. Hãy mua một gói dịch vụ để bắt đầu.</p>
                                         <Link href="/pricing" className="inline-block px-lg py-sm bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors">Mua ngay VPS</Link>
                                     </div>
                                 ) : (
@@ -339,9 +423,15 @@ export default function ClientPortalPage() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <button onClick={() => window.open(`http://${svc.vpsIP}`, '_blank')} className="px-md py-sm bg-surface-container text-primary font-medium rounded-lg hover:bg-surface-variant transition-colors whitespace-nowrap">
-                                                    Truy cập Control Panel
-                                                </button>
+                                                {svc.vpsIP === '203.0.113.10' ? (
+                                                    <span className="px-md py-sm bg-warning/10 text-warning font-medium rounded-lg whitespace-nowrap">
+                                                        VPS demo
+                                                    </span>
+                                                ) : (
+                                                    <button onClick={() => window.open(`http://${svc.vpsIP}`, '_blank')} className="px-md py-sm bg-surface-container text-primary font-medium rounded-lg hover:bg-surface-variant transition-colors whitespace-nowrap">
+                                                        Truy cập Control Panel
+                                                    </button>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
@@ -379,6 +469,14 @@ export default function ClientPortalPage() {
                                                     {order.customerNotes && <p className="text-[13px] text-error mt-1 italic">{order.customerNotes}</p>}
                                                 </div>
                                                 <div className="flex flex-col gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleViewOrderDetail(order.id)}
+                                                        disabled={loadingOrderDetail}
+                                                        className="px-md py-sm border border-primary text-primary font-medium rounded-lg hover:bg-primary-container transition-colors text-center whitespace-nowrap disabled:opacity-60"
+                                                    >
+                                                        {loadingOrderDetail ? 'Đang tải...' : 'Xem chi tiết'}
+                                                    </button>
                                                     {order.status === 'Pending' && (
                                                         <Link href={`/checkout?orderId=${order.id}`} className="px-md py-sm bg-primary text-on-primary font-medium rounded-lg hover:bg-primary-container transition-colors text-center whitespace-nowrap">
                                                             Thanh toán ngay
@@ -475,17 +573,23 @@ export default function ClientPortalPage() {
                                 <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">Thông tin cơ bản</h2>
                                 <form onSubmit={handleUpdateProfile} className="space-y-md">
                                     <div>
-                                        <label className="block text-sm font-medium text-on-surface-variant mb-1">Ảnh đại diện (URL)</label>
-                                        <input 
-                                            type="text" 
-                                            value={avatarUrl}
-                                            onChange={(e) => setAvatarUrl(e.target.value)}
-                                            className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface focus:border-primary outline-none" 
-                                            placeholder="https://example.com/avatar.png"
+                                        <label className="block text-sm font-medium text-on-surface-variant mb-1">Ảnh đại diện</label>
+                                        <input
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/gif,image/webp"
+                                            disabled={isUploadingAvatar || isUpdatingProfile}
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) void handleAvatarUpload(file);
+                                                e.currentTarget.value = '';
+                                            }}
+                                            className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface focus:border-primary outline-none file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1 file:text-white"
                                         />
+                                        <p className="text-xs text-secondary mt-1">JPG, PNG, GIF hoặc WEBP, tối đa 5MB.</p>
+                                        {isUploadingAvatar && <p className="text-sm text-primary mt-2">Đang tải ảnh lên...</p>}
                                         {avatarUrl && (
                                             <div className="mt-2">
-                                                <img src={avatarUrl} alt="Avatar Preview" className="w-16 h-16 rounded-full object-cover border border-outline-variant" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                                <img src={avatarUrl} alt="Avatar Preview" className="w-16 h-16 rounded-full object-cover border border-outline-variant" />
                                             </div>
                                         )}
                                     </div>
@@ -593,6 +697,41 @@ export default function ClientPortalPage() {
                     </div>
                 </div>
             </div>
+
+            {selectedOrder && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-md backdrop-blur-sm">
+                    <div className="flex max-h-[90vh] w-[95%] md:w-full min-w-[300px] max-w-2xl flex-col overflow-hidden rounded-2xl bg-surface shadow-xl">
+                        <div className="flex items-center justify-between border-b border-outline-variant p-xl">
+                            <div>
+                                <p className="font-label-caps text-label-caps uppercase tracking-wider text-primary">Chi tiết đơn hàng</p>
+                                <h2 className="font-headline-sm text-headline-sm text-on-surface">#{selectedOrder.id.substring(0, 8)}</h2>
+                            </div>
+                            <button type="button" onClick={() => { setSelectedOrder(null); setOrderDetailError(''); }} className="text-on-surface-variant hover:text-on-surface"><span className="material-symbols-outlined text-[24px]">close</span></button>
+                        </div>
+                        <div className="space-y-lg overflow-y-auto p-xl">
+                            {orderDetailError && <p className="rounded-lg bg-error-container/20 p-md text-error">{orderDetailError}</p>}
+                            <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg">
+                                <div className="mb-sm flex items-center justify-between gap-md"><h3 className="font-headline-sm text-headline-sm text-on-surface">{selectedOrder.servicePlanName || 'Gói dịch vụ'}</h3><span className="rounded-full bg-primary-container px-sm py-xs text-sm font-semibold text-primary">{selectedOrder.categoryName || 'Dịch vụ'}</span></div>
+                                <p className="text-sm text-on-surface-variant">{selectedOrder.servicePlanDescription || 'Không có mô tả.'}</p>
+                            </div>
+                            <div className="grid grid-cols-1 gap-md sm:grid-cols-2">
+                                {parseOrderSpecifications(selectedOrder.servicePlanSpecifications).map(([key, value]) => <div key={key} className="rounded-lg border border-outline-variant p-md"><p className="text-xs uppercase tracking-wide text-on-surface-variant">{key}</p><p className="mt-1 font-semibold text-on-surface">{String(value)}</p></div>)}
+                                <div className="rounded-lg border border-outline-variant p-md"><p className="text-xs uppercase tracking-wide text-on-surface-variant">Chu kỳ thanh toán</p><p className="mt-1 font-semibold text-on-surface">{selectedOrder.billingCycle ? `${selectedOrder.billingCycle} tháng` : '—'}</p></div>
+                                <div className="rounded-lg border border-outline-variant p-md"><p className="text-xs uppercase tracking-wide text-on-surface-variant">Trạng thái</p><p className="mt-1 font-semibold text-primary">{selectedOrder.status}</p></div>
+                            </div>
+                            <div className="space-y-sm rounded-xl border border-outline-variant p-lg text-sm">
+                                <div className="flex justify-between gap-md"><span className="text-on-surface-variant">Ngày đặt</span><strong>{new Date(selectedOrder.orderDate).toLocaleString('vi-VN')}</strong></div>
+                                <div className="flex justify-between gap-md"><span className="text-on-surface-variant">Giá gói</span><strong>{selectedOrder.price.toLocaleString('vi-VN')}đ</strong></div>
+                                <div className="flex justify-between gap-md"><span className="text-on-surface-variant">Phí khởi tạo</span><strong>{selectedOrder.setupFee.toLocaleString('vi-VN')}đ</strong></div>
+                                {selectedOrder.promotionCode && <div className="flex justify-between gap-md"><span className="text-on-surface-variant">Mã khuyến mãi</span><strong>{selectedOrder.promotionCode}{selectedOrder.discountPercentage ? ` (-${selectedOrder.discountPercentage}%)` : ''}</strong></div>}
+                                <div className="flex justify-between gap-md border-t border-outline-variant pt-sm text-base"><span className="font-semibold">Tổng tiền</span><strong className="text-primary">{selectedOrder.totalAmount.toLocaleString('vi-VN')}đ</strong></div>
+                            </div>
+                            {selectedOrder.customerNotes && <div className="rounded-lg bg-surface-container-low p-md text-sm"><strong>Ghi chú của bạn:</strong> {selectedOrder.customerNotes}</div>}
+                        </div>
+                        <div className="border-t border-outline-variant p-xl"><button type="button" onClick={() => setSelectedOrder(null)} className="w-full rounded-lg bg-primary px-lg py-sm font-medium text-on-primary">Đóng</button></div>
+                    </div>
+                </div>
+            )}
 
             {/* Review Modal */}
             {reviewOrderId && (

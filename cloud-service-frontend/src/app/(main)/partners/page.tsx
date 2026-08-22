@@ -8,6 +8,8 @@ export default function PartnersPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [promotionMethod, setPromotionMethod] = useState('');
+    const [requestedService, setRequestedService] = useState('');
+    const [servicePlans, setServicePlans] = useState<{ id: string; name: string; isActive: boolean }[]>([]);
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [websiteUrl, setWebsiteUrl] = useState('');
@@ -16,7 +18,7 @@ export default function PartnersPage() {
     const [promotionDetails, setPromotionDetails] = useState('');
 
     useEffect(() => {
-        fetch('http://localhost:5154/api/SiteSettings/public')
+        fetch('/api/SiteSettings/public')
             .then(res => res.json())
             .then(data => {
                 if (Array.isArray(data)) {
@@ -32,17 +34,28 @@ export default function PartnersPage() {
             .catch(console.error);
     }, []);
 
+    useEffect(() => {
+        fetch('/api/ServicePlans?PageNumber=1&PageSize=100')
+            .then(res => res.ok ? res.json() : Promise.reject(new Error('Không thể tải danh sách dịch vụ.')))
+            .then(data => {
+                const plans = Array.isArray(data?.data) ? data.data : [];
+                setServicePlans(plans.filter((plan: { isActive?: boolean }) => plan.isActive !== false));
+            })
+            .catch(console.error);
+    }, []);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            const res = await fetch('http://localhost:5154/api/PartnerRequests', {
+            const res = await fetch('/api/PartnerRequests', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     fullName,
                     email,
                     websiteUrl,
+                    requestedService,
                     promotionMethod,
                     promotionDetails
                 })
@@ -54,6 +67,7 @@ export default function PartnersPage() {
                 setFullName('');
                 setEmail('');
                 setWebsiteUrl('');
+                setRequestedService('');
                 setPromotionMethod('');
                 setPromotionDetails('');
             } else {
@@ -198,7 +212,9 @@ export default function PartnersPage() {
                                     <span>Hỗ trợ qua ticket (SLA 24h)</span>
                                 </li>
                             </ul>
-                            <button className="w-full bg-transparent border border-primary text-primary font-semibold py-2 rounded-lg hover:bg-primary/5 transition-colors mt-auto">
+                            <button 
+                                onClick={() => { setRequestedService('Silver Partner'); setIsModalOpen(true); }}
+                                className="w-full bg-transparent border border-primary text-primary font-semibold py-2 rounded-lg hover:bg-primary/5 transition-colors mt-auto">
                                 Bắt đầu ngay
                             </button>
                         </div>
@@ -231,7 +247,9 @@ export default function PartnersPage() {
                                     <span>Hỗ trợ qua Phone/Chat (SLA 4h)</span>
                                 </li>
                             </ul>
-                            <button className="w-full bg-primary text-on-primary font-semibold py-2 rounded-lg hover:bg-primary/90 transition-colors mt-auto">
+                            <button 
+                                onClick={() => { setRequestedService('Gold Partner'); setIsModalOpen(true); }}
+                                className="w-full bg-primary text-on-primary font-semibold py-2 rounded-lg hover:bg-primary/90 transition-colors mt-auto">
                                 Đăng ký Gold
                             </button>
                         </div>
@@ -323,6 +341,20 @@ export default function PartnersPage() {
                     <div>
                         <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Website (Nếu có)</label>
                         <input type="url" value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="https://" />
+                    </div>
+                    <div>
+                        <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Cấp độ Đối tác mong muốn</label>
+                        <select
+                            required
+                            value={requestedService}
+                            onChange={e => setRequestedService(e.target.value)}
+                            className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                        >
+                            <option value="">Chọn cấp độ đối tác...</option>
+                            <option value="Silver Partner">Đối tác Silver (Chiết khấu 10%)</option>
+                            <option value="Gold Partner">Đối tác Gold (Chiết khấu 20%)</option>
+                            <option value="Tư vấn tổng thể">Chưa xác định - Cần tư vấn thêm</option>
+                        </select>
                     </div>
                     <div>
                         <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Hình thức quảng bá (Promotion Method)</label>

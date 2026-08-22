@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 
 async function getStaticPage(slug: string) {
     try {
-        const res = await fetch(`http://localhost:5154/api/StaticPages/slug/${slug}`, {
+        const res = await fetch(`/api/StaticPages/slug/${slug}`, {
             next: { revalidate: 60 } // Cache for 60 seconds
         });
 
@@ -16,8 +16,9 @@ async function getStaticPage(slug: string) {
     }
 }
 
-export default async function StaticPageRender({ params }: { params: { slug: string } }) {
-    const page = await getStaticPage(params.slug);
+export default async function StaticPageRender({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params;
+    const page = await getStaticPage(slug);
 
     if (!page) {
         notFound();

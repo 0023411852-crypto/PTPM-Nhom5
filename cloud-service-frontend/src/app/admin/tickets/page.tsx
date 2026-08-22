@@ -16,7 +16,7 @@ export default function AdminTicketsPage() {
     const fetchTickets = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch("http://localhost:5154/api/SupportTickets/all?PageNumber=1&PageSize=50", {
+            const res = await fetch("/api/SupportTickets/all?PageNumber=1&PageSize=50", {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             const data = await res.json();
@@ -31,7 +31,7 @@ export default function AdminTicketsPage() {
     const handleSelectTicket = async (id: string) => {
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:5154/api/SupportTickets/${id}`, {
+            const res = await fetch(`/api/SupportTickets/${id}`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             const data = await res.json();
@@ -51,7 +51,7 @@ export default function AdminTicketsPage() {
         setIsReplying(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:5154/api/SupportTickets/${selectedTicket.id}/reply`, {
+            const res = await fetch(`/api/SupportTickets/${selectedTicket.id}/reply`, {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json",
@@ -77,7 +77,7 @@ export default function AdminTicketsPage() {
         if (confirm("Bạn có chắc muốn đóng yêu cầu này?")) {
             try {
                 const token = localStorage.getItem("token");
-                const res = await fetch(`http://localhost:5154/api/SupportTickets/${selectedTicket.id}/close`, {
+                const res = await fetch(`/api/SupportTickets/${selectedTicket.id}/close`, {
                     method: "PATCH",
                     headers: { "Authorization": `Bearer ${token}` }
                 });

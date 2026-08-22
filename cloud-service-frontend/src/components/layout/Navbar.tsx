@@ -14,26 +14,43 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   React.useEffect(() => {
-    // Chỉ chạy trên client
-    setToken(localStorage.getItem("token"));
-    setFullName(localStorage.getItem("fullName") || "User");
-    
-    // Lấy số lượng giỏ hàng
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    setCartCount(cart.length);
-
-    // Cập nhật giỏ hàng khi có sự kiện (cần tạo custom event khi add to cart)
-    const handleCartUpdate = () => {
-      const updatedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-      setCartCount(updatedCart.length);
+    const syncAuthState = () => {
+      setToken(localStorage.getItem("token"));
+      setFullName(localStorage.getItem("fullName") || "User");
     };
 
-    window.addEventListener('cartUpdated', handleCartUpdate);
-    return () => window.removeEventListener('cartUpdated', handleCartUpdate);
+    const syncCartState = () => {
+      try {
+        const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+        setCartCount(Array.isArray(cart) ? cart.length : 0);
+      } catch {
+        setCartCount(0);
+      }
+    };
+
+    syncAuthState();
+    syncCartState();
+
+    window.addEventListener("authChanged", syncAuthState);
+    window.addEventListener("profileUpdated", syncAuthState);
+    window.addEventListener("storage", syncAuthState);
+    document.addEventListener("visibilitychange", syncAuthState);
+    window.addEventListener("cartUpdated", syncCartState);
+
+    return () => {
+      window.removeEventListener("authChanged", syncAuthState);
+      window.removeEventListener("profileUpdated", syncAuthState);
+      window.removeEventListener("storage", syncAuthState);
+      document.removeEventListener("visibilitychange", syncAuthState);
+      window.removeEventListener("cartUpdated", syncCartState);
+    };
   }, []);
 
   const handleLogout = () => {
-    localStorage.clear();
+    ["token", "refreshToken", "role", "fullName", "avatarUrl"].forEach((key) => {
+      localStorage.removeItem(key);
+    });
+    window.dispatchEvent(new Event("authChanged"));
     setToken(null);
     router.push("/login");
   };

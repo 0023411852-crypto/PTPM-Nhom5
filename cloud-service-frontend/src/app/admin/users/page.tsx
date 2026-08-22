@@ -30,7 +30,7 @@ export default function AdminUsersPage() {
         setLoading(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:5154/api/Users?pageNumber=${pageNumber}&pageSize=${pageSize}`, {
+            const res = await fetch(`/api/Users?pageNumber=${pageNumber}&pageSize=${pageSize}`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (res.ok) {
@@ -50,7 +50,7 @@ export default function AdminUsersPage() {
 
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:5154/api/Users/${userId}/status`, {
+            const res = await fetch(`/api/Users/${userId}/status`, {
                 method: "PATCH",
                 headers: { 
                     "Content-Type": "application/json",
@@ -75,7 +75,7 @@ export default function AdminUsersPage() {
 
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:5154/api/Users/${userId}`, {
+            const res = await fetch(`/api/Users/${userId}`, {
                 method: "DELETE",
                 headers: { "Authorization": `Bearer ${token}` }
             });
@@ -96,7 +96,7 @@ export default function AdminUsersPage() {
 
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:5154/api/Users/${userId}/cancel-delete`, {
+            const res = await fetch(`/api/Users/${userId}/cancel-delete`, {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${token}` }
             });
@@ -117,7 +117,7 @@ export default function AdminUsersPage() {
 
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:5154/api/Users/${userId}/role`, {
+            const res = await fetch(`/api/Users/${userId}/role`, {
                 method: "PUT",
                 headers: { 
                     "Content-Type": "application/json",
@@ -142,7 +142,7 @@ export default function AdminUsersPage() {
         setIsSubmitting(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:5154/api/Users`, {
+            const res = await fetch(`/api/Users`, {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json",
@@ -175,7 +175,7 @@ export default function AdminUsersPage() {
 
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:5154/api/Users/${userId}/activities`, {
+            const res = await fetch(`/api/Users/${userId}/activities`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (res.ok) {

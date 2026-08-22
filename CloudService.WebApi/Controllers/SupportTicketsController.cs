@@ -67,7 +67,7 @@ namespace CloudService.WebApi.Controllers
                 var result = await _service.ReplyToTicketAsync(userId, id, dto, isAdmin);
                 return Ok(result);
             }
-            catch (UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException)
             {
                 return Forbid();
             }

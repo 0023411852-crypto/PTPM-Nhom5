@@ -110,7 +110,7 @@ export default function ServicesPage() {
 <li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Root Access toàn quyền</li>
 <li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> 99.9% Uptime Guarantee</li>
 </ul>
-<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="/pricing">Khám phá VPS <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
+<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="/services/vps">Khám phá VPS <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
 </div>
 )}
 
@@ -129,7 +129,7 @@ export default function ServicesPage() {
 <li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Auto Backup daily</li>
 <li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Integrated Email</li>
 </ul>
-<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="/pricing">Khám phá Hosting <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
+<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="/services/hosting">Khám phá Hosting <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
 </div>
 )}
 
@@ -148,7 +148,7 @@ export default function ServicesPage() {
 <li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Free WHOIS Protection</li>
 <li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Auto Renewal options</li>
 </ul>
-<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="#">Đăng ký Domain <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
+<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="/services/domain">Đăng ký Domain <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
 </div>
 )}
 
@@ -167,7 +167,7 @@ export default function ServicesPage() {
 <li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Large storage quotas</li>
 <li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Modern Webmail UI</li>
 </ul>
-<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="#">Khám phá Email <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
+<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="/services/email">Khám phá Email <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
 </div>
 )}
 
@@ -187,7 +187,7 @@ export default function ServicesPage() {
 <li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Domain Validation (DV)</li>
 <li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> High Browser Trust</li>
 </ul>
-<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="#">Xem SSL <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
+<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="/services/ssl">Xem SSL <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
 </div>
 
 <div className="glass-card rounded-[12px] p-lg flex flex-col hover:border-primary hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all group animate-fade-in">
@@ -204,7 +204,7 @@ export default function ServicesPage() {
 <li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Real-time Monitoring</li>
 <li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Custom Rulesets</li>
 </ul>
-<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="#">Khám phá Security <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
+<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="/services/security">Khám phá Security <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
 </div>
 </>
 )}

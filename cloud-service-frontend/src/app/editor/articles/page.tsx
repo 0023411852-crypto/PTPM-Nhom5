@@ -38,7 +38,7 @@ export default function EditorArticlesPage() {
         try {
             const token = localStorage.getItem('token');
             // Lấy tất cả bài viết
-            const res = await fetch(`http://localhost:5154/api/NewsArticles?PageNumber=1&PageSize=100&onlyPublished=false`, {
+            const res = await fetch(`/api/NewsArticles?PageNumber=1&PageSize=100&onlyPublished=false`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -59,7 +59,7 @@ export default function EditorArticlesPage() {
         if (articleToDelete) {
             try {
                 const token = localStorage.getItem('token');
-                const res = await fetch(`http://localhost:5154/api/NewsArticles/${articleToDelete}`, {
+                const res = await fetch(`/api/NewsArticles/${articleToDelete}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`

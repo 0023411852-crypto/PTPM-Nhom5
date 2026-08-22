@@ -78,11 +78,13 @@ namespace CloudService.Application.Services
             var currentUsers = users.Where(u => u.CreatedAt >= currentStart && u.CreatedAt <= now).ToList();
             var previousUsers = users.Where(u => u.CreatedAt >= previousStart && u.CreatedAt <= previousEnd).ToList();
 
-            var currentRevenue = currentOrders.Where(o => o.Status == CloudService.Domain.Enums.OrderStatus.Completed).Sum(o => o.TotalAmount);
-            var previousRevenue = previousOrders.Where(o => o.Status == CloudService.Domain.Enums.OrderStatus.Completed).Sum(o => o.TotalAmount);
+            var currentCompletedOrders = currentOrders.Where(o => o.Status == CloudService.Domain.Enums.OrderStatus.Completed).ToList();
+            var previousCompletedOrders = previousOrders.Where(o => o.Status == CloudService.Domain.Enums.OrderStatus.Completed).ToList();
+            var currentRevenue = currentCompletedOrders.Sum(o => o.TotalAmount);
+            var previousRevenue = previousCompletedOrders.Sum(o => o.TotalAmount);
 
-            var currentTrans = currentOrders.Count();
-            var previousTrans = previousOrders.Count();
+            var currentTrans = currentCompletedOrders.Count;
+            var previousTrans = previousCompletedOrders.Count;
 
             var currentAov = currentTrans > 0 ? currentRevenue / currentTrans : 0;
             var previousAov = previousTrans > 0 ? previousRevenue / previousTrans : 0;
@@ -140,7 +142,7 @@ namespace CloudService.Application.Services
 
             // Service Breakdown
             var categoryColors = new[] { "bg-primary", "bg-tertiary-container", "bg-error-container", "bg-warning" };
-            var completedOrders = currentOrders.Where(o => o.Status == CloudService.Domain.Enums.OrderStatus.Completed).ToList();
+            var completedOrders = currentCompletedOrders;
             if (completedOrders.Any())
             {
                 var grouped = completedOrders

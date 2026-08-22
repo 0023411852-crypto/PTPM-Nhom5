@@ -158,6 +158,11 @@ namespace CloudService.Infrastructure.Data
                       .HasForeignKey(e => e.CustomerId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
+
+            modelBuilder.Entity<CustomerReview>(entity =>
+            {
+                entity.Property(e => e.Rating).HasPrecision(3, 1);
+            });
         }
     }
 }

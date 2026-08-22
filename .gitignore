@@ -58,3 +58,7 @@ nunit-*.xml
 
 # Roslyn cache directories
 *.ide/
+
+# Antigravity Temp Directories
+.dotnet_temp/
+.dotnet_temp2/

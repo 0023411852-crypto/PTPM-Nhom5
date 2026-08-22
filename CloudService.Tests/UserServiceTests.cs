@@ -40,7 +40,7 @@ namespace CloudService.Tests
         public async Task GetUserByIdAsync_ShouldThrowNotFound_WhenUserDoesNotExist()
         {
             var userId = Guid.NewGuid();
-            _userRepoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync((AppUser?)null);
+            _userRepoMock.Setup(r => r.GetByIdAsync(userId, "")).ReturnsAsync((AppUser?)null);
 
             Func<Task> act = async () => await _userService.GetUserByIdAsync(userId);
 
@@ -52,13 +52,13 @@ namespace CloudService.Tests
         {
             var userId = Guid.NewGuid();
             var user = new AppUser { Id = userId, PasswordHash = BCrypt.Net.BCrypt.HashPassword("correct") };
-            _userRepoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(user);
+            _userRepoMock.Setup(r => r.GetByIdAsync(userId, "")).ReturnsAsync(user);
 
             var dto = new ChangePasswordDto { OldPassword = "wrong", NewPassword = "new" };
 
             Func<Task> act = async () => await _userService.ChangePasswordAsync(userId, dto);
 
-            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Current password is incorrect");
+            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Mật khẩu hiện tại không chính xác");
         }
 
         [Fact]
@@ -66,7 +66,7 @@ namespace CloudService.Tests
         {
             var userId = Guid.NewGuid();
             var user = new AppUser { Id = userId, PasswordHash = BCrypt.Net.BCrypt.HashPassword("correct") };
-            _userRepoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(user);
+            _userRepoMock.Setup(r => r.GetByIdAsync(userId, "")).ReturnsAsync(user);
 
             var dto = new ChangePasswordDto { OldPassword = "correct", NewPassword = "new" };
 
@@ -84,7 +84,7 @@ namespace CloudService.Tests
 
             Func<Task> act = async () => await _userService.UpdateUserStatusAsync(adminId, adminId, dto);
 
-            await act.Should().ThrowAsync<ValidationException>().WithMessage("You cannot lock your own account.");
+            await act.Should().ThrowAsync<ValidationException>().WithMessage("Bạn không thể khoá tài khoản của chính mình.");
         }
 
         [Fact]
@@ -93,7 +93,7 @@ namespace CloudService.Tests
             var adminId = Guid.NewGuid();
             var targetUserId = Guid.NewGuid();
             var user = new AppUser { Id = targetUserId, IsActive = true };
-            _userRepoMock.Setup(r => r.GetByIdAsync(targetUserId)).ReturnsAsync(user);
+            _userRepoMock.Setup(r => r.GetByIdAsync(targetUserId, "")).ReturnsAsync(user);
 
             var dto = new UpdateUserStatusDto { IsActive = false };
 
@@ -106,7 +106,7 @@ namespace CloudService.Tests
         public async Task UpdateProfileAsync_ShouldThrowNotFound_WhenUserDoesNotExist()
         {
             var userId = Guid.NewGuid();
-            _userRepoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync((AppUser?)null);
+            _userRepoMock.Setup(r => r.GetByIdAsync(userId, "")).ReturnsAsync((AppUser?)null);
             var dto = new UpdateProfileDto { FullName = "New Name" };
 
             Func<Task> act = async () => await _userService.UpdateProfileAsync(userId, dto);
@@ -119,13 +119,27 @@ namespace CloudService.Tests
         {
             var userId = Guid.NewGuid();
             var user = new AppUser { Id = userId, FullName = "Old Name" };
-            _userRepoMock.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(user);
+            _userRepoMock.Setup(r => r.GetByIdAsync(userId, "")).ReturnsAsync(user);
             var dto = new UpdateProfileDto { FullName = "New Name" };
 
             var result = await _userService.UpdateProfileAsync(userId, dto);
 
             result.Should().BeTrue();
             user.FullName.Should().Be("New Name");
+        }
+
+        [Fact]
+        public async Task UpdateProfileAsync_ShouldUpdateAvatar_WhenAvatarIsProvided()
+        {
+            var userId = Guid.NewGuid();
+            var user = new AppUser { Id = userId, FullName = "Test User", Email = "test@example.com", AvatarUrl = "old-avatar" };
+            _userRepoMock.Setup(r => r.GetByIdAsync(userId, "")).ReturnsAsync(user);
+            var dto = new UpdateProfileDto { FullName = "Test User", Email = "test@example.com", AvatarUrl = "new-avatar" };
+
+            var result = await _userService.UpdateProfileAsync(userId, dto);
+
+            result.Should().BeTrue();
+            user.AvatarUrl.Should().Be("new-avatar");
         }
     }
 }
