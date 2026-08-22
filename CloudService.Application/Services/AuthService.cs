@@ -149,6 +149,8 @@ namespace CloudService.Application.Services
             if (now > session.ExpiresAt)
             {
                 session.IsRevoked = true;
+                session.RevokedAt = now;
+                session.RevokedReason = "ABSOLUTE_TIMEOUT";
                 repo.Update(session);
                 await _unitOfWork.SaveChangesAsync();
                 throw new Exception("Session absolutely expired. Please login again.");
@@ -157,6 +159,8 @@ namespace CloudService.Application.Services
             if ((now - session.LastActiveTimestamp).TotalMinutes > 15)
             {
                 session.IsRevoked = true;
+                session.RevokedAt = now;
+                session.RevokedReason = "IDLE_TIMEOUT";
                 repo.Update(session);
                 await _unitOfWork.SaveChangesAsync();
                 throw new Exception("Session expired due to idle timeout.");
@@ -204,6 +208,8 @@ namespace CloudService.Application.Services
             if (session != null)
             {
                 session.IsRevoked = true;
+                session.RevokedAt = DateTime.UtcNow;
+                session.RevokedReason = "USER_LOGOUT";
                 repo.Update(session);
                 await _unitOfWork.SaveChangesAsync();
             }

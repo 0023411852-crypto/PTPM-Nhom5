@@ -26,15 +26,15 @@
 - [x] Tạo DbContext, FluentAPI, Repository, UoW.
 - [x] Tạo Database.
 
-# Giai đoạn 3: Session Management & Idle Timeout (Đang tiến hành)
-- [/] **1. Cập nhật Database & Entity**
-  - [ ] Tạo entity `UserSession`.
-  - [ ] Cập nhật `ApplicationDbContext`.
-  - [ ] Add Migration & Update Database.
-- [ ] **2. Tầng Application (Auth & User)**
-  - [ ] Cập nhật DTOs cho Login (thêm Refresh Token).
-  - [ ] Cập nhật `AuthService`: Login, RefreshToken, Logout.
-  - [ ] Cập nhật `UserService`: Khóa tài khoản/Đổi mật khẩu revoke session.
-- [ ] **3. Middleware & API**
-  - [ ] Tạo `SessionActivityMiddleware`.
-  - [ ] Đăng ký Middleware vào `Program.cs`.
+# Giai đoạn 3: Session Management & Idle Timeout (Đã hoàn thành)
+- [x] **1. Cập nhật Database & Entity**
+  - [x] Tạo entity `UserSession`.
+  - [x] Cập nhật `ApplicationDbContext`.
+  - [x] Add Migration & Update Database.
+- [x] **2. Tầng Application (Auth & User)**
+  - [x] Cập nhật DTOs cho Login (thêm Refresh Token).
+  - [x] Cập nhật `AuthService`: Login, RefreshToken, Logout.
+  - [x] Cập nhật `UserService`: Khóa tài khoản/Đổi mật khẩu revoke session.
+- [x] **3. Middleware & API**
+  - [x] Tạo `SessionActivityMiddleware`.
+  - [x] Đăng ký Middleware vào `Program.cs`.

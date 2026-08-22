@@ -80,7 +80,7 @@ namespace CloudService.Application.Services
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
             repo.Update(user);
             
-            await RevokeAllUserSessionsAsync(userId);
+            await RevokeAllUserSessionsAsync(userId, "PASSWORD_CHANGED");
             
             await _unitOfWork.SaveChangesAsync();
             return true;
@@ -102,14 +102,14 @@ namespace CloudService.Application.Services
             
             if (!dto.IsActive)
             {
-                await RevokeAllUserSessionsAsync(targetUserId);
+                await RevokeAllUserSessionsAsync(targetUserId, "ADMIN_LOCK");
             }
             
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
-        private async Task RevokeAllUserSessionsAsync(Guid userId)
+        private async Task RevokeAllUserSessionsAsync(Guid userId, string reason)
         {
             var repo = _unitOfWork.Repository<UserSession>();
             var allSessions = await repo.GetAllAsync();
@@ -118,6 +118,8 @@ namespace CloudService.Application.Services
             foreach(var session in activeSessions)
             {
                 session.IsRevoked = true;
+                session.RevokedAt = DateTime.UtcNow;
+                session.RevokedReason = reason;
                 repo.Update(session);
             }
         }
