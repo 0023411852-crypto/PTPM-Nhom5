@@ -66,7 +66,8 @@ Chỉ bổ sung giao diện quản lý danh mục tại Admin, gồm danh sách 
 - Batch 10 dữ liệu động trang chủ: **Đã hoàn tất và đã push** (`fae6be2`).
 - Batch 11 sửa lỗi regenerate QR: **Đã hoàn tất và đã push** (`41d956b`).
 - Batch 12 QR public trên trang Khách hàng: **Đã hoàn tất và đã push** (`f9622dd`).
-- Batch 13 QR fallback và cân đối layout public: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
+- Batch 13 QR fallback và cân đối layout public: **Đã hoàn tất và đã push** (`d2e0e1f`).
+- Batch 14 chuẩn hóa Base64 QR ở FE: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
 - Các batch khác: Chưa bắt đầu.
 
 ## Batch 1 — Giao diện CRUD danh mục dịch vụ

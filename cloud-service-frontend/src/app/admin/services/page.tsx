@@ -28,6 +28,11 @@ type ServicePlan = {
     qrCodeBase64?: string | null;
 };
 
+const resolveQrImage = (value?: string | null) => {
+    if (!value) return null;
+    return value.startsWith('data:image/') ? value : `data:image/png;base64,${value}`;
+};
+
 export default function AdminServicesPage() {
     const router = useRouter();
     const [plans, setPlans] = useState<ServicePlan[]>([]);
@@ -593,7 +598,7 @@ export default function AdminServicesPage() {
                 <div className="flex flex-col items-center gap-md py-md">
                     {qrPlan?.qrCodeBase64 ? (
                         <img
-                            src={`data:image/png;base64,${qrPlan.qrCodeBase64}`}
+                            src={resolveQrImage(qrPlan.qrCodeBase64) || ''}
                             alt={`Mã QR ${qrPlan.name}`}
                             className="h-64 w-64 rounded-lg border border-outline-variant bg-white p-2"
                         />

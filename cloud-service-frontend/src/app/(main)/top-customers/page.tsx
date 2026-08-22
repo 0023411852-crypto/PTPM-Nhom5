@@ -30,6 +30,11 @@ interface ServicePlanQr {
     category?: { name?: string } | null;
 }
 
+function resolveQrImage(value?: string | null) {
+    if (!value) return null;
+    return value.startsWith('data:image/') ? value : `data:image/png;base64,${value}`;
+}
+
 export default function TopCustomersPage() {
     const [vipCustomers, setVipCustomers] = useState<VipCustomer[]>([]);
     const [reviews, setReviews] = useState<Review[]>([]);
@@ -199,7 +204,7 @@ export default function TopCustomersPage() {
                                 <article key={plan.id} className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm flex gap-4 items-center">
                                     <div className="w-28 h-28 shrink-0 rounded-lg bg-white border border-gray-200 flex items-center justify-center p-2">
                                         {plan.qrCodeBase64 ? (
-                                            <img src={plan.qrCodeBase64} alt={`Mã QR gói ${plan.name}`} className="w-full h-full object-contain" />
+                                            <img src={resolveQrImage(plan.qrCodeBase64) || ''} alt={`Mã QR gói ${plan.name}`} className="w-full h-full object-contain" />
                                         ) : (
                                             <span className="text-center text-xs text-gray-500">Chưa có mã QR</span>
                                         )}
