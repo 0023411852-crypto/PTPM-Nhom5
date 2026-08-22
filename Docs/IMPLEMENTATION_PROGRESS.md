@@ -56,7 +56,8 @@ Chỉ bổ sung giao diện quản lý danh mục tại Admin, gồm danh sách 
 - Batch 1 CRUD danh mục: **Đã hoàn tất và đã push** (`82f198b`).
 - QR theo gói: Chưa bắt đầu.
 - Batch 2 QR theo gói: **Đã hoàn tất và đã push** (`d9249e4`).
-- Batch 3 setup fee bảng giá: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
+- Batch 3 setup fee bảng giá: **Đã hoàn tất và đã push** (`537e51c`).
+- Batch 4 validation thời hạn khuyến mãi: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
 - Các batch khác: Chưa bắt đầu.
 
 ## Batch 1 — Giao diện CRUD danh mục dịch vụ
@@ -116,3 +117,20 @@ Batch này không thay đổi create/update DTO, database schema, QR thanh toán
 ### Giới hạn và nghiệm thu
 
 Không sửa backend, entity, DbContext, migration hoặc API. Không đụng QR, promotion hay checkout. `npx tsc --noEmit` và `git diff --check` đã pass; chỉ một file frontend và file Markdown thuộc phạm vi.
+
+## Batch 4 — Validation thời hạn khuyến mãi
+
+### Phân tích trước khi sửa
+
+Backend đã có entity, DTO, service và controller CRUD promotion; form Admin đang tái sử dụng form Editor. Thiếu sót nhỏ được xác định là form cho phép gửi ngày kết thúc trước ngày bắt đầu và phần trăm giảm giá ngoài khoảng 0–100. Batch này chỉ bổ sung validation ở form hiện có, không tạo API hoặc thay đổi schema.
+
+### File đã sửa
+
+| File | Nội dung |
+|---|---|
+| `cloud-service-frontend/src/app/editor/promotions/create/page.tsx` | Kiểm tra ngày bắt đầu/kết thúc, phần trăm giảm giá và hiển thị lỗi inline trước khi gửi API |
+| `Docs/IMPLEMENTATION_PROGRESS.md` | Cập nhật nhật ký batch |
+
+### Giới hạn và nghiệm thu
+
+Không sửa controller, service, entity, DbContext, migration hoặc payload API. `npx tsc --noEmit` và `git diff --check` đã pass. Ngày kết thúc để trống vẫn hợp lệ; nếu có giá trị thì bắt buộc phải sau ngày bắt đầu.

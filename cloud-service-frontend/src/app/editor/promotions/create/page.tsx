@@ -12,6 +12,7 @@ export default function CreatePromotionPage() {
     const id = searchParams.get('id');
 
     const [isLoading, setIsLoading] = useState(false);
+    const [formError, setFormError] = useState('');
     const [formData, setFormData] = useState({
         title: '',
         badgeText: '',
@@ -74,6 +75,24 @@ export default function CreatePromotionPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setFormError('');
+
+        const start = new Date(formData.startDate);
+        const end = formData.endDate ? new Date(formData.endDate) : null;
+        const discount = Number(formData.discountPercentage);
+        if (Number.isNaN(start.getTime())) {
+            setFormError('Ngày bắt đầu không hợp lệ.');
+            return;
+        }
+        if (end && (Number.isNaN(end.getTime()) || end <= start)) {
+            setFormError('Ngày kết thúc phải sau ngày bắt đầu.');
+            return;
+        }
+        if (!Number.isFinite(discount) || discount < 0 || discount > 100) {
+            setFormError('Phần trăm giảm giá phải nằm trong khoảng từ 0 đến 100.');
+            return;
+        }
+
         setIsLoading(true);
         
         try {
@@ -123,6 +142,12 @@ export default function CreatePromotionPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-outline-variant p-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] space-y-lg">
+                {formError && (
+                    <div className="rounded-lg border border-error/30 bg-error-container/20 px-md py-sm font-body-sm text-error">
+                        {formError}
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-lg">
                     <div className="space-y-2 md:col-span-2">
                         <label className="font-body-md text-body-md font-medium text-on-surface">Tiêu đề (Title)</label>
