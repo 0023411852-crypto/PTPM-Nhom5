@@ -110,7 +110,7 @@ export default function ServicesPage() {
 <li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Root Access toàn quyền</li>
 <li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> 99.9% Uptime Guarantee</li>
 </ul>
-<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="/pricing">Khám phá VPS <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
+<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="/services/vps">Khám phá VPS <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
 </div>
 )}
 

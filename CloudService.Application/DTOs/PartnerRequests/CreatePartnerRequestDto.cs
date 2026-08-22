@@ -17,6 +17,10 @@ namespace CloudService.Application.DTOs.PartnerRequests
         public string WebsiteUrl { get; set; } = string.Empty;
 
         [Required]
+        [MaxLength(200)]
+        public string RequestedService { get; set; } = string.Empty;
+
+        [Required]
         [MaxLength(100)]
         public string PromotionMethod { get; set; } = string.Empty;
 

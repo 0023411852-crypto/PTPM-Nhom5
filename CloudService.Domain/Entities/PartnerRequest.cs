@@ -8,6 +8,7 @@ namespace CloudService.Domain.Entities
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string WebsiteUrl { get; set; } = string.Empty;
+        public string RequestedService { get; set; } = string.Empty;
         public string PromotionMethod { get; set; } = string.Empty;
         public string PromotionDetails { get; set; } = string.Empty;
         public string Status { get; set; } = "Pending"; // Pending, Approved, Rejected

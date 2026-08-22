@@ -8,6 +8,8 @@ export default function PartnersPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [promotionMethod, setPromotionMethod] = useState('');
+    const [requestedService, setRequestedService] = useState('');
+    const [servicePlans, setServicePlans] = useState<{ id: string; name: string; isActive: boolean }[]>([]);
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [websiteUrl, setWebsiteUrl] = useState('');
@@ -32,6 +34,16 @@ export default function PartnersPage() {
             .catch(console.error);
     }, []);
 
+    useEffect(() => {
+        fetch('http://localhost:5154/api/ServicePlans?PageNumber=1&PageSize=100')
+            .then(res => res.ok ? res.json() : Promise.reject(new Error('Không thể tải danh sách dịch vụ.')))
+            .then(data => {
+                const plans = Array.isArray(data?.data) ? data.data : [];
+                setServicePlans(plans.filter((plan: { isActive?: boolean }) => plan.isActive !== false));
+            })
+            .catch(console.error);
+    }, []);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -43,6 +55,7 @@ export default function PartnersPage() {
                     fullName,
                     email,
                     websiteUrl,
+                    requestedService,
                     promotionMethod,
                     promotionDetails
                 })
@@ -54,6 +67,7 @@ export default function PartnersPage() {
                 setFullName('');
                 setEmail('');
                 setWebsiteUrl('');
+                setRequestedService('');
                 setPromotionMethod('');
                 setPromotionDetails('');
             } else {
@@ -323,6 +337,24 @@ export default function PartnersPage() {
                     <div>
                         <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Website (Nếu có)</label>
                         <input type="url" value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="https://" />
+                    </div>
+                    <div>
+                        <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Dịch vụ muốn đăng ký</label>
+                        <select
+                            required
+                            value={requestedService}
+                            onChange={e => setRequestedService(e.target.value)}
+                            className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                        >
+                            <option value="">Chọn dịch vụ/gói muốn đăng ký</option>
+                            {servicePlans.map(plan => (
+                                <option key={plan.id} value={plan.name}>{plan.name}</option>
+                            ))}
+                            <option value="Tư vấn dịch vụ tổng thể">Chưa xác định - cần tư vấn tổng thể</option>
+                        </select>
+                        {servicePlans.length === 0 && (
+                            <p className="text-xs text-secondary mt-1">Danh sách gói đang được cập nhật; bạn vẫn có thể chọn tư vấn tổng thể.</p>
+                        )}
                     </div>
                     <div>
                         <label className="block font-label-caps text-label-caps text-on-surface-variant mb-1">Hình thức quảng bá (Promotion Method)</label>

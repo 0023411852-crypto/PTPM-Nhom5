@@ -794,6 +794,7 @@ BEGIN
         [FullName] nvarchar(max) NOT NULL,
         [Email] nvarchar(max) NOT NULL,
         [WebsiteUrl] nvarchar(max) NOT NULL,
+        [RequestedService] nvarchar(200) NOT NULL,
         [PromotionMethod] nvarchar(max) NOT NULL,
         [PromotionDetails] nvarchar(max) NOT NULL,
         [Status] nvarchar(max) NOT NULL,
@@ -980,3 +981,22 @@ GO
 COMMIT;
 GO
 
+
+BEGIN TRANSACTION;
+GO
+IF COL_LENGTH('PartnerRequests', 'RequestedService') IS NULL
+BEGIN
+    ALTER TABLE [PartnerRequests] ADD [RequestedService] nvarchar(200) NOT NULL CONSTRAINT [DF_PartnerRequests_RequestedService] DEFAULT N'';
+END;
+GO
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260822100000_AddRequestedServiceToPartnerRequests'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260822100000_AddRequestedServiceToPartnerRequests', N'8.0.0');
+END;
+GO
+COMMIT;
+GO

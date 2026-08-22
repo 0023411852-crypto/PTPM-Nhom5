@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 
-export default function CreatePromotionPage() {
+function CreatePromotionPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -246,5 +246,14 @@ export default function CreatePromotionPage() {
                 </div>
             </form>
         </div>
+    );
+}
+
+
+export default function CreatePromotionPage() {
+    return (
+        <Suspense fallback={<div className="p-8 text-center text-secondary">Đang tải biểu mẫu...</div>}>
+            <CreatePromotionPageContent />
+        </Suspense>
     );
 }
