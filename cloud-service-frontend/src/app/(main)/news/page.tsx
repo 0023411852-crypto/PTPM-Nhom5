@@ -44,9 +44,6 @@ export default function NewsPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [newsletterEmail, setNewsletterEmail] = useState("");
-  const [newsletterState, setNewsletterState] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [newsletterMessage, setNewsletterMessage] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -88,28 +85,6 @@ export default function NewsPage() {
       return matchesCategory && matchesSearch;
     });
   }, [articles, category, search]);
-
-  async function handleNewsletterSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setNewsletterState("loading");
-    setNewsletterMessage("");
-
-    try {
-      const response = await fetch("http://localhost:5154/api/Newsletter/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: newsletterEmail.trim() }),
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(result.message || "Không thể đăng ký email.");
-      setNewsletterState("success");
-      setNewsletterMessage(result.message || "Đăng ký nhận email thành công.");
-      setNewsletterEmail("");
-    } catch (err) {
-      setNewsletterState("error");
-      setNewsletterMessage(err instanceof Error ? err.message : "Không thể đăng ký email.");
-    }
-  }
 
   const totalPages = Math.max(1, Math.ceil(filteredArticles.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -231,28 +206,6 @@ export default function NewsPage() {
         )}
       </div>
 
-      <section className="mt-2xl border-t border-outline-variant bg-surface-container py-2xl px-gutter">
-        <div className="max-w-[48rem] mx-auto bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-md p-xl text-center">
-          <span className="material-symbols-outlined text-primary text-4xl mb-md">mail</span>
-          <h2 className="font-headline-lg text-headline-lg text-on-surface mb-sm">Nhận kiến thức Cloud mới nhất</h2>
-          <p className="font-body-md text-secondary mb-lg">Đăng ký email để nhận hướng dẫn kỹ thuật và tin tức mới từ CloudNova.</p>
-          <form className="flex flex-col sm:flex-row gap-sm max-w-[32rem] mx-auto" onSubmit={handleNewsletterSubmit}>
-            <input
-              className="flex-grow px-4 py-3 rounded-lg border border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all font-body-md text-on-surface placeholder:text-outline shadow-sm"
-              placeholder="Email của bạn"
-              required
-              type="email"
-              value={newsletterEmail}
-              onChange={(event) => setNewsletterEmail(event.target.value)}
-              disabled={newsletterState === "loading"}
-            />
-            <button className="bg-primary hover:bg-on-primary-fixed-variant text-on-primary font-body-md font-semibold px-6 py-3 rounded-lg transition-colors shadow-sm disabled:opacity-60" type="submit" disabled={newsletterState === "loading"}>
-              {newsletterState === "loading" ? "Đang gửi..." : "Đăng ký"}
-            </button>
-          </form>
-          {newsletterMessage && <p className={`text-sm mt-md ${newsletterState === "error" ? "text-error" : "text-secondary"}`}>{newsletterMessage}</p>}
-        </div>
-      </section>
     </main>
   );
 }

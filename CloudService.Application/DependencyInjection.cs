@@ -30,7 +30,6 @@ namespace CloudService.Application
             services.AddScoped<IPromotionService, PromotionService>();
             services.AddScoped<IMediaService, MediaService>();
             services.AddScoped<IDashboardService, DashboardService>();
-            services.AddScoped<INewsletterService, NewsletterService>();
             services.AddScoped<IPartnerRequestService, PartnerRequestService>();
             
             // Event Dispatcher & Handlers
