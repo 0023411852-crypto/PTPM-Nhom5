@@ -66,7 +66,9 @@ export default function AdminServicesPage() {
         ram: '',
         ssd: '',
         priceMonthly: '',
+        setupFeeMonthly: '',
         priceYearly: '',
+        setupFeeYearly: '',
         isActive: true
     });
 
@@ -109,7 +111,9 @@ export default function AdminServicesPage() {
             ram: '', 
             ssd: '', 
             priceMonthly: '', 
+            setupFeeMonthly: '',
             priceYearly: '',
+            setupFeeYearly: '',
             isActive: true 
         });
         setIsFormModalOpen(true);
@@ -118,8 +122,12 @@ export default function AdminServicesPage() {
     const handleOpenEdit = (plan: ServicePlan) => {
         setEditingPlanId(plan.id);
         const specs = parseSpecs(plan.specifications);
-        const priceMonthly = plan.prices?.find(p => p.billingCycle === '1')?.price || '';
-        const priceYearly = plan.prices?.find(p => p.billingCycle === '12')?.price || '';
+        const monthlyPrice = plan.prices?.find(p => p.billingCycle === '1');
+        const yearlyPrice = plan.prices?.find(p => p.billingCycle === '12');
+        const priceMonthly = monthlyPrice?.price || '';
+        const setupFeeMonthly = monthlyPrice?.setupFee || '';
+        const priceYearly = yearlyPrice?.price || '';
+        const setupFeeYearly = yearlyPrice?.setupFee || '';
 
         setFormData({
             name: plan.name,
@@ -129,7 +137,9 @@ export default function AdminServicesPage() {
             ram: specs['RAM'] || '',
             ssd: specs['SSD'] || '',
             priceMonthly: priceMonthly.toString(),
+            setupFeeMonthly: setupFeeMonthly.toString(),
             priceYearly: priceYearly.toString(),
+            setupFeeYearly: setupFeeYearly.toString(),
             isActive: plan.isActive
         });
         setIsFormModalOpen(true);
@@ -154,10 +164,18 @@ export default function AdminServicesPage() {
 
         const prices = [];
         if (formData.priceMonthly) {
-            prices.push({ billingCycle: "1", price: parseFloat(formData.priceMonthly) });
+            prices.push({
+                billingCycle: "1",
+                price: Number(formData.priceMonthly),
+                setupFee: Number(formData.setupFeeMonthly || 0)
+            });
         }
         if (formData.priceYearly) {
-            prices.push({ billingCycle: "12", price: parseFloat(formData.priceYearly) });
+            prices.push({
+                billingCycle: "12",
+                price: Number(formData.priceYearly),
+                setupFee: Number(formData.setupFeeYearly || 0)
+            });
         }
 
         const payload = {
@@ -480,22 +498,44 @@ export default function AdminServicesPage() {
                     <div>
                         <label className="block text-on-surface-variant mb-1">Giá (VNĐ/Tháng) *</label>
                         <input 
-                            type="number" 
+                            type="number" min="0"
                             placeholder="VD: 199000"
                             className="w-full bg-surface border border-outline-variant rounded-lg p-sm focus:border-primary outline-none"
                             value={formData.priceMonthly}
                             onChange={(e) => setFormData({...formData, priceMonthly: e.target.value})}
                         />
                     </div>
+
+                    <div>
+                        <label className="block text-on-surface-variant mb-1">Phí khởi tạo tháng (VNĐ)</label>
+                        <input
+                            type="number" min="0"
+                            placeholder="Mặc định 0"
+                            className="w-full bg-surface border border-outline-variant rounded-lg p-sm focus:border-primary outline-none"
+                            value={formData.setupFeeMonthly}
+                            onChange={(e) => setFormData({...formData, setupFeeMonthly: e.target.value})}
+                        />
+                    </div>
                     
-                    <div className="col-span-2">
-                        <label className="block text-on-surface-variant mb-1">Giá (VNĐ/Năm) (Tùy chọn, giảm 20%)</label>
+                    <div>
+                        <label className="block text-on-surface-variant mb-1">Giá (VNĐ/Năm) (Tùy chọn)</label>
                         <input 
-                            type="number" 
+                            type="number" min="0"
                             placeholder="VD: 1990000"
                             className="w-full bg-surface border border-outline-variant rounded-lg p-sm focus:border-primary outline-none"
                             value={formData.priceYearly}
                             onChange={(e) => setFormData({...formData, priceYearly: e.target.value})}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-on-surface-variant mb-1">Phí khởi tạo năm (VNĐ)</label>
+                        <input
+                            type="number" min="0"
+                            placeholder="Mặc định 0"
+                            className="w-full bg-surface border border-outline-variant rounded-lg p-sm focus:border-primary outline-none"
+                            value={formData.setupFeeYearly}
+                            onChange={(e) => setFormData({...formData, setupFeeYearly: e.target.value})}
                         />
                     </div>
                 </div>

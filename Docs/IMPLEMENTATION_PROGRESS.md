@@ -55,7 +55,8 @@ Chỉ bổ sung giao diện quản lý danh mục tại Admin, gồm danh sách 
 - Batch 0: **Hoàn tất phân tích, chưa sửa code chức năng**.
 - Batch 1 CRUD danh mục: **Đã hoàn tất và đã push** (`82f198b`).
 - QR theo gói: Chưa bắt đầu.
-- Batch 2 QR theo gói: **Đã triển khai, đang kiểm thử và chuẩn bị commit**.
+- Batch 2 QR theo gói: **Đã hoàn tất và đã push** (`d9249e4`).
+- Batch 3 setup fee bảng giá: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
 - Các batch khác: Chưa bắt đầu.
 
 ## Batch 1 — Giao diện CRUD danh mục dịch vụ
@@ -98,3 +99,20 @@ Không sửa controller, service, entity, DbContext, migration, SQL, gói dịch
 ### Giới hạn và nghiệm thu
 
 Batch này không thay đổi create/update DTO, database schema, QR thanh toán order hoặc các luồng public. QR catalog có payload gói và giá hiện tại; khi giá thay đổi, Admin bấm sinh lại để tạo mã mới. TypeScript và `git diff --check` đã pass. `dotnet build` chưa chạy được vì sandbox không có .NET SDK; cần chạy trên máy local có SDK.
+
+## Batch 3 — Hoàn thiện bảng giá và phí khởi tạo
+
+### Phân tích trước khi sửa
+
+`PlanPrice` và DTO tạo/cập nhật giá đã có trường `Price` và `SetupFee`; backend `ServicePlanService` đã map và lưu `SetupFee`. Thiếu sót chỉ nằm ở UI Admin: form không cho nhập setup fee và payload FE không gửi giá trị này, khiến phí khởi tạo bị mặc định về 0 khi tạo/sửa từ giao diện.
+
+### File đã sửa
+
+| File | Nội dung |
+|---|---|
+| `cloud-service-frontend/src/app/admin/services/page.tsx` | Thêm setup fee tháng/năm vào state, form, payload và dữ liệu edit |
+| `Docs/IMPLEMENTATION_PROGRESS.md` | Cập nhật nhật ký batch |
+
+### Giới hạn và nghiệm thu
+
+Không sửa backend, entity, DbContext, migration hoặc API. Không đụng QR, promotion hay checkout. `npx tsc --noEmit` và `git diff --check` đã pass; chỉ một file frontend và file Markdown thuộc phạm vi.
