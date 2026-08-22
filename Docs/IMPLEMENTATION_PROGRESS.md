@@ -60,7 +60,8 @@ Chỉ bổ sung giao diện quản lý danh mục tại Admin, gồm danh sách 
 - Batch 4 validation thời hạn khuyến mãi: **Đã hoàn tất và đã push** (`d59650e`).
 - Batch 5 Affiliate/PartnerRequests: **Đã hoàn tất và đã push** (`c5c1a16`).
 - Batch 6 thống kê báo cáo: **Đã hoàn tất và đã push** (`88e4a55`).
-- Batch 7 export danh sách đơn hàng: **Đã triển khai, TypeScript/diff pass; chưa build được vì sandbox thiếu .NET SDK**.
+- Batch 7 export danh sách đơn hàng: **Đã hoàn tất và đã push** (`c590d4e`).
+- Batch 8 hợp nhất route Affiliate: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
 - Các batch khác: Chưa bắt đầu.
 
 ## Batch 1 — Giao diện CRUD danh mục dịch vụ
@@ -193,3 +194,23 @@ Ma trận yêu cầu có chức năng xuất danh sách yêu cầu đặt dịch
 ### Giới hạn và nghiệm thu
 
 Batch này không sửa entity, database, migration hoặc luồng tạo/duyệt đơn. File chứa ID đơn, ID khách hàng, ID gói, ID bảng giá, tổng tiền, trạng thái và ngày đặt; không chứa mật khẩu, thông tin cấp VPS hoặc dữ liệu nhạy cảm. `npx tsc --noEmit` và `git diff --check` đã pass. `dotnet build` chưa chạy được vì sandbox không có .NET SDK; cần chạy trên máy local. Đây là CSV tương thích Excel, chưa phải định dạng `.xlsx` dùng EPPlus/ClosedXML.
+
+## Batch 8 — Hợp nhất các route Affiliate về PartnerRequests
+
+### Phân tích trước khi sửa
+
+Dự án có hai entity/backend model là `PartnerRequest` và `AffiliateApplication`. Tuy nhiên public form tại `/(main)/partners/page.tsx` gửi đăng ký tới `POST /api/PartnerRequests`, còn trang Admin `partner-requests` đã có đầy đủ GET, tìm kiếm, lọc, phân trang và cập nhật trạng thái bằng API thật. Hai route Admin `affiliates` và `partners` trước đó lại chứa các màn hình legacy khác nhau, trong đó `partners` đọc `AffiliateApplications`, khiến dữ liệu đăng ký từ public form không xuất hiện nhất quán.
+
+Không xóa entity hoặc API legacy vì chưa có migration dữ liệu và có thể còn client cũ sử dụng. Chỉ hợp nhất các route FE về màn hình `admin/partner-requests`, chọn `PartnerRequests` làm luồng hiển thị/quản trị chính theo contract của public form.
+
+### File đã sửa
+
+| File | Nội dung |
+|---|---|
+| `cloud-service-frontend/src/app/admin/affiliates/page.tsx` | Giữ route cũ nhưng dùng màn hình PartnerRequests chuẩn |
+| `cloud-service-frontend/src/app/admin/partners/page.tsx` | Loại bỏ màn hình AffiliateApplications legacy, dùng cùng màn hình PartnerRequests |
+| `Docs/IMPLEMENTATION_PROGRESS.md` | Cập nhật nhật ký Batch 8 |
+
+### Giới hạn và nghiệm thu
+
+Không xóa `AffiliateApplication`, controller, service, database hoặc migration. Không thay đổi public form. Sau batch này, đăng ký từ `/partners` và cả các route Admin Affiliate/Partners đều hiển thị trong cùng luồng PartnerRequests; approve/reject được lưu server-side. Cần chạy `npx tsc --noEmit` và `git diff --check` trước khi commit.
