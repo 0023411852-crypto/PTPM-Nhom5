@@ -80,24 +80,6 @@ namespace CloudService.WebApi.Controllers
             return File(content, "text/csv; charset=utf-8", $"orders-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv");
         }
 
-        [HttpPatch("{id}/status")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] string status)
-        {
-            var result = await _orderService.UpdateOrderStatusAsync(id, status);
-            if (!result) return NotFound();
-            return Ok(new { message = "Status updated successfully" });
-        }
-
-        [HttpPost("{id}/approve")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ApproveOrder(Guid id, [FromBody] ApproveOrderDto dto)
-        {
-            var result = await _orderService.ApproveOrderAsync(id, dto);
-            if (!result) return BadRequest(new { message = "Could not approve order" });
-            return Ok(new { message = "Order approved successfully" });
-        }
-
         [HttpGet("{id}/payment-qr")]
         public async Task<IActionResult> GetPaymentQR(Guid id, [FromQuery] decimal? amount = null)
         {
@@ -115,21 +97,6 @@ namespace CloudService.WebApi.Controllers
             var paymentString = $"BANK|0123456789|{serverAmount.Value:0.##}|{id}";
             var base64Qr = _qrCodeService.GenerateQRCodeBase64(paymentString);
             return Ok(new { qrCode = base64Qr, paymentString, amount = serverAmount.Value });
-        }
-
-        [HttpPost("admin-create")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AdminCreateOrder([FromBody] AdminCreateOrderDto dto)
-        {
-            try
-            {
-                var result = await _orderService.AdminCreateOrderAsync(dto);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
         }
 
         [HttpPost("seed")]

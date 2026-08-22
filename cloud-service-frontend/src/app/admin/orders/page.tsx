@@ -6,23 +6,6 @@ export default function AdminOrdersPage() {
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     
-    // Approving Modal state
-    const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
-    const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-    const [vpsIP, setVpsIP] = useState('');
-    const [vpsUser, setVpsUser] = useState('root');
-    const [vpsPassword, setVpsPassword] = useState('');
-
-    // Create Order Modal state
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [users, setUsers] = useState<any[]>([]);
-    const [servicePlans, setServicePlans] = useState<any[]>([]);
-    
-    // Form fields for create
-    const [selectedUserId, setSelectedUserId] = useState('');
-    const [selectedPlanId, setSelectedPlanId] = useState('');
-    const [selectedPriceId, setSelectedPriceId] = useState('');
-    const [adminNotes, setAdminNotes] = useState('');
 
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
@@ -30,7 +13,6 @@ export default function AdminOrdersPage() {
     // Detail Modal state
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<any>(null);
-    const [editStatus, setEditStatus] = useState('');
 
     useEffect(() => {
         fetchOrders();
@@ -75,111 +57,13 @@ export default function AdminOrdersPage() {
             console.error(e);
             alert("Lỗi kết nối khi xuất danh sách đơn hàng.");
         }
-    };
-
-    const fetchUsersAndPlans = async () => {
-        try {
-            const token = localStorage.getItem("token");
-            const [usersRes, plansRes] = await Promise.all([
-                fetch("http://localhost:5154/api/Users?PageNumber=1&PageSize=100", { headers: { "Authorization": `Bearer ${token}` } }),
-                fetch("http://localhost:5154/api/ServicePlans?PageNumber=1&PageSize=100", { headers: { "Authorization": `Bearer ${token}` } })
-            ]);
-            
-            if (usersRes.ok) {
-                const uData = await usersRes.json();
-                setUsers(uData.data || []);
-            }
-            if (plansRes.ok) {
-                const pData = await plansRes.json();
-                setServicePlans(pData.data || []);
-            }
-        } catch (e) {
-            console.error("Error fetching dependencies", e);
-        }
-    };
-
-    const openCreateModal = () => {
-        setSelectedUserId('');
-        setSelectedPlanId('');
-        setSelectedPriceId('');
-        setAdminNotes('');
-        setIsCreateModalOpen(true);
-        if (users.length === 0 || servicePlans.length === 0) {
-            fetchUsersAndPlans();
-        }
-    };
-
-    const handleCreateOrder = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            const token = localStorage.getItem("token");
-            const res = await fetch("http://localhost:5154/api/Orders/admin-create", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    userId: selectedUserId,
-                    servicePlanId: selectedPlanId,
-                    planPriceId: selectedPriceId,
-                    adminNotes
-                })
-            });
-
-            if (res.ok) {
-                alert("Tạo đơn hàng thành công!");
-                setIsCreateModalOpen(false);
-                fetchOrders();
-            } else {
-                const err = await res.json();
-                alert(`Lỗi: ${err.message || 'Không thể tạo đơn hàng'}`);
-            }
-        } catch (e) {
-            console.error(e);
-            alert("Lỗi kết nối.");
-        }
-    };
-
-    const openApproveModal = (orderId: string) => {
-        setSelectedOrderId(orderId);
-        setVpsIP('');
-        setVpsPassword('');
-        setIsApproveModalOpen(true);
-    };
+        };
 
     const openDetailModal = (order: any) => {
         setSelectedOrder(order);
-        setEditStatus(order.status === 2 || order.status === 'Completed' ? 'Completed' : (order.status === 0 || order.status === 'Pending' ? 'Pending' : 'Processing'));
         setIsDetailModalOpen(true);
     };
 
-    const handleUpdateStatus = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedOrder) return;
-        try {
-            const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:5154/api/Orders/${selectedOrder.id}/status`, {
-                method: "PATCH",
-                headers: { 
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}` 
-                },
-                body: JSON.stringify(editStatus)
-            });
-
-            if (res.ok) {
-                alert("Cập nhật trạng thái thành công!");
-                setIsDetailModalOpen(false);
-                fetchOrders();
-            } else {
-                alert("Lỗi cập nhật.");
-            }
-        } catch (e) {
-            console.error(e);
-            alert("Lỗi kết nối.");
-        }
-    };
 
     const handleDeleteOrder = async (orderId: string) => {
         if (!confirm("Bạn có chắc chắn muốn xóa đơn hàng này? Thao tác không thể hoàn tác!")) return;
@@ -204,36 +88,6 @@ export default function AdminOrdersPage() {
         }
     };
 
-    const handleApprove = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedOrderId) return;
-        
-        try {
-            const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:5154/api/Orders/${selectedOrderId}/approve`, {
-                method: "POST",
-                headers: { 
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}` 
-                },
-                body: JSON.stringify({ vpsIP, vpsUser, vpsPassword })
-            });
-
-            if (res.ok) {
-                alert("Duyệt đơn hàng và cấp phát VPS thành công!");
-                setIsApproveModalOpen(false);
-                fetchOrders();
-            } else {
-                alert("Lỗi duyệt đơn hàng.");
-            }
-        } catch (e) {
-            console.error(e);
-            alert("Lỗi kết nối.");
-        }
-    };
-
-    const selectedPlan = servicePlans.find(p => p.id === selectedPlanId);
-
     const filteredOrders = orders.filter(o => {
         const matchesSearch = o.id.toLowerCase().includes(searchTerm.toLowerCase()) || o.userId.toLowerCase().includes(searchTerm.toLowerCase());
         const isCompleted = o.status === 2 || o.status === 'Completed';
@@ -256,13 +110,6 @@ export default function AdminOrdersPage() {
                     >
                         <span className="material-symbols-outlined text-[18px]" data-icon="download">download</span>
                         Xuất CSV
-                    </button>
-                    <button
-                        onClick={openCreateModal}
-                        className="px-md py-sm bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors shadow-sm flex items-center gap-2"
-                    >
-                        <span className="material-symbols-outlined text-[18px]" data-icon="add">add</span>
-                        Thêm đơn hàng
                     </button>
                 </div>
             </div>
@@ -337,14 +184,6 @@ export default function AdminOrdersPage() {
                                             >
                                                 Chi tiết
                                             </button>
-                                            {isPending && (
-                                                <button 
-                                                    onClick={() => openApproveModal(order.id)}
-                                                    className="px-sm py-xs bg-primary text-on-primary rounded text-[13px] font-medium hover:bg-primary-container transition-colors"
-                                                >
-                                                    Duyệt cấp VPS
-                                                </button>
-                                            )}
                                             <button 
                                                 onClick={() => handleDeleteOrder(order.id)}
                                                 className="px-sm py-xs bg-error/10 text-error rounded text-[13px] font-medium hover:bg-error/20 transition-colors ml-auto"
@@ -360,11 +199,11 @@ export default function AdminOrdersPage() {
                 </div>
             </div>
 
-            {/* Modal Xem chi tiết & Sửa */}
+            {/* Modal Xem chi tiết */}
             {isDetailModalOpen && selectedOrder && (
                 <div className="fixed inset-0 bg-scrim/50 z-50 flex items-center justify-center p-md">
                     <div className="bg-surface rounded-2xl p-xl w-full max-w-[600px] shadow-lg border border-outline-variant">
-                        <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">Chi tiết & Cập nhật đơn hàng</h2>
+                        <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">Chi tiết đơn hàng</h2>
                         
                         <div className="grid grid-cols-2 gap-4 mb-xl text-[14px]">
                             <div>
@@ -391,143 +230,15 @@ export default function AdminOrdersPage() {
                             )}
                         </div>
 
-                        <form onSubmit={handleUpdateStatus}>
-                            <div className="mb-xl">
-                                <label className="block text-[14px] text-on-surface-variant mb-1">Cập nhật trạng thái</label>
-                                <select 
-                                    value={editStatus} onChange={e => setEditStatus(e.target.value)}
-                                    className="w-full bg-surface border border-outline-variant rounded-lg p-sm focus:border-primary outline-none font-medium"
-                                >
-                                    <option value="Pending">Chờ xử lý (Pending)</option>
-                                    <option value="Processing">Đang xử lý (Processing)</option>
-                                    <option value="Completed">Đã hoàn thành (Completed)</option>
-                                </select>
-                            </div>
-                            
-                            <div className="flex justify-end gap-sm">
-                                <button type="button" onClick={() => setIsDetailModalOpen(false)} className="px-md py-sm bg-surface-container text-on-surface rounded-lg font-medium hover:bg-surface-variant transition-colors">
-                                    Đóng
-                                </button>
-                                <button type="submit" className="px-md py-sm bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors">
-                                    Lưu thay đổi
-                                </button>
-                            </div>
-                        </form>
+                        <div className="flex justify-end">
+                            <button type="button" onClick={() => setIsDetailModalOpen(false)} className="px-md py-sm bg-surface-container text-on-surface rounded-lg font-medium hover:bg-surface-variant transition-colors">
+                                Đóng
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* Modal Tạo đơn hàng */}
-            {isCreateModalOpen && (
-                <div className="fixed inset-0 bg-scrim/50 z-50 flex items-center justify-center p-md">
-                    <div className="bg-surface rounded-2xl p-xl w-full max-w-[500px] shadow-lg border border-outline-variant">
-                        <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">Tạo Đơn hàng mới</h2>
-                        <form onSubmit={handleCreateOrder}>
-                            <div className="space-y-md mb-xl">
-                                <div>
-                                    <label className="block text-[14px] text-on-surface-variant mb-1">Khách hàng *</label>
-                                    <select 
-                                        required value={selectedUserId} onChange={e => setSelectedUserId(e.target.value)}
-                                        className="w-full bg-surface border border-outline-variant rounded-lg p-sm focus:border-primary outline-none"
-                                    >
-                                        <option value="" disabled>-- Chọn khách hàng --</option>
-                                        {users.map(u => <option key={u.id} value={u.id}>{u.email}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-[14px] text-on-surface-variant mb-1">Dịch vụ (Service Plan) *</label>
-                                    <select 
-                                        required value={selectedPlanId} 
-                                        onChange={e => { setSelectedPlanId(e.target.value); setSelectedPriceId(''); }}
-                                        className="w-full bg-surface border border-outline-variant rounded-lg p-sm focus:border-primary outline-none"
-                                    >
-                                        <option value="" disabled>-- Chọn dịch vụ --</option>
-                                        {servicePlans.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                                    </select>
-                                </div>
-                                {selectedPlan && (
-                                    <div>
-                                        <label className="block text-[14px] text-on-surface-variant mb-1">Chu kỳ thanh toán (Price) *</label>
-                                        <select 
-                                            required value={selectedPriceId} onChange={e => setSelectedPriceId(e.target.value)}
-                                            className="w-full bg-surface border border-outline-variant rounded-lg p-sm focus:border-primary outline-none"
-                                        >
-                                            <option value="" disabled>-- Chọn mức giá --</option>
-                                            {selectedPlan.prices?.map((pr: any) => (
-                                                <option key={pr.id} value={pr.id}>
-                                                    {pr.billingCycle} - {pr.price.toLocaleString('vi-VN')}đ (Phí cài đặt: {pr.setupFee.toLocaleString('vi-VN')}đ)
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                )}
-                                <div>
-                                    <label className="block text-[14px] text-on-surface-variant mb-1">Ghi chú (Tùy chọn)</label>
-                                    <textarea 
-                                        value={adminNotes} onChange={e => setAdminNotes(e.target.value)}
-                                        className="w-full bg-surface border border-outline-variant rounded-lg p-sm focus:border-primary outline-none min-h-[80px]"
-                                        placeholder="Nhập ghi chú cho đơn hàng này..."
-                                    ></textarea>
-                                </div>
-                            </div>
-                            <div className="flex justify-end gap-sm">
-                                <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-md py-sm bg-surface-container text-on-surface rounded-lg font-medium hover:bg-surface-variant transition-colors">
-                                    Hủy
-                                </button>
-                                <button type="submit" className="px-md py-sm bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors">
-                                    Lưu đơn hàng
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Modal Cấp phát VPS */}
-            {isApproveModalOpen && (
-                <div className="fixed inset-0 bg-scrim/50 z-50 flex items-center justify-center p-md">
-                    <div className="bg-surface rounded-2xl p-xl w-full max-w-[500px] shadow-lg border border-outline-variant">
-                        <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">Cấp phát VPS cho Khách</h2>
-                        <form onSubmit={handleApprove}>
-                            <div className="space-y-md mb-xl">
-                                <div>
-                                    <label className="block text-[14px] text-on-surface-variant mb-1">Địa chỉ IP *</label>
-                                    <input 
-                                        type="text" required
-                                        value={vpsIP} onChange={e => setVpsIP(e.target.value)}
-                                        className="w-full bg-surface border border-outline-variant rounded-lg p-sm focus:border-primary outline-none" 
-                                        placeholder="192.168.1.1"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[14px] text-on-surface-variant mb-1">Tài khoản (Username) *</label>
-                                    <input 
-                                        type="text" required
-                                        value={vpsUser} onChange={e => setVpsUser(e.target.value)}
-                                        className="w-full bg-surface border border-outline-variant rounded-lg p-sm focus:border-primary outline-none" 
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[14px] text-on-surface-variant mb-1">Mật khẩu (Password) *</label>
-                                    <input 
-                                        type="text" required
-                                        value={vpsPassword} onChange={e => setVpsPassword(e.target.value)}
-                                        className="w-full bg-surface border border-outline-variant rounded-lg p-sm focus:border-primary outline-none" 
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex justify-end gap-sm">
-                                <button type="button" onClick={() => setIsApproveModalOpen(false)} className="px-md py-sm bg-surface-container text-on-surface rounded-lg font-medium hover:bg-surface-variant transition-colors">
-                                    Hủy
-                                </button>
-                                <button type="submit" className="px-md py-sm bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors">
-                                    Hoàn thành & Duyệt
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
