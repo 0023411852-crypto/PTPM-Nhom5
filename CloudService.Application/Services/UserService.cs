@@ -79,6 +79,9 @@ namespace CloudService.Application.Services
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
             repo.Update(user);
+            
+            await RevokeAllUserSessionsAsync(userId);
+            
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
@@ -96,8 +99,27 @@ namespace CloudService.Application.Services
 
             user.IsActive = dto.IsActive;
             repo.Update(user);
+            
+            if (!dto.IsActive)
+            {
+                await RevokeAllUserSessionsAsync(targetUserId);
+            }
+            
             await _unitOfWork.SaveChangesAsync();
             return true;
+        }
+
+        private async Task RevokeAllUserSessionsAsync(Guid userId)
+        {
+            var repo = _unitOfWork.Repository<UserSession>();
+            var allSessions = await repo.GetAllAsync();
+            var activeSessions = allSessions.Where(s => s.UserId == userId && !s.IsRevoked).ToList();
+            
+            foreach(var session in activeSessions)
+            {
+                session.IsRevoked = true;
+                repo.Update(session);
+            }
         }
     }
 }

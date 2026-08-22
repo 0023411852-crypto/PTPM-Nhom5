@@ -42,5 +42,26 @@ namespace CloudService.WebApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+        {
+            try
+            {
+                var response = await _authService.RefreshTokenAsync(request);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody] RefreshTokenRequest request)
+        {
+            await _authService.LogoutAsync(request.RefreshToken);
+            return Ok(new { message = "Logged out successfully" });
+        }
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace CloudService.Application.Services
@@ -19,6 +20,22 @@ namespace CloudService.Application.Services
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
+        }
+
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
+
+        private string HashToken(string token)
+        {
+            using var sha256 = SHA256.Create();
+            var bytes = Encoding.UTF8.GetBytes(token);
+            var hash = sha256.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
         }
 
         public async Task<AuthResponse> LoginAsync(LoginRequest request)
@@ -36,10 +53,24 @@ namespace CloudService.Application.Services
             var role = await roleRepo.GetByIdAsync(user.RoleId);
 
             var token = GenerateJwtToken(user, role?.Name ?? "Customer");
+            var refreshToken = GenerateRefreshToken();
+            
+            var userSession = new UserSession
+            {
+                UserId = user.Id,
+                RefreshTokenHash = HashToken(refreshToken),
+                LastActiveTimestamp = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddDays(30),
+                IsRevoked = false
+            };
+            
+            await _unitOfWork.Repository<UserSession>().AddAsync(userSession);
+            await _unitOfWork.SaveChangesAsync();
 
             return new AuthResponse
             {
                 Token = token,
+                RefreshToken = refreshToken,
                 Email = user.Email,
                 FullName = user.FullName,
                 Role = role?.Name ?? "Customer"
@@ -78,14 +109,106 @@ namespace CloudService.Application.Services
             await _unitOfWork.SaveChangesAsync();
 
             var token = GenerateJwtToken(newUser, customerRole.Name);
+            var refreshToken = GenerateRefreshToken();
+            
+            var userSession = new UserSession
+            {
+                UserId = newUser.Id,
+                RefreshTokenHash = HashToken(refreshToken),
+                LastActiveTimestamp = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddDays(30),
+                IsRevoked = false
+            };
+            
+            await _unitOfWork.Repository<UserSession>().AddAsync(userSession);
+            await _unitOfWork.SaveChangesAsync();
 
             return new AuthResponse
             {
                 Token = token,
+                RefreshToken = refreshToken,
                 Email = newUser.Email,
                 FullName = newUser.FullName,
                 Role = customerRole.Name
             };
+        }
+
+        public async Task<AuthResponse> RefreshTokenAsync(RefreshTokenRequest request)
+        {
+            var hashedToken = HashToken(request.RefreshToken);
+            
+            var repo = _unitOfWork.Repository<UserSession>();
+            var sessions = await repo.GetAllAsync();
+            var session = sessions.FirstOrDefault(s => s.RefreshTokenHash == hashedToken && !s.IsRevoked);
+
+            if (session == null)
+                throw new Exception("Invalid session or refresh token.");
+
+            var now = DateTime.UtcNow;
+
+            if (now > session.ExpiresAt)
+            {
+                session.IsRevoked = true;
+                repo.Update(session);
+                await _unitOfWork.SaveChangesAsync();
+                throw new Exception("Session absolutely expired. Please login again.");
+            }
+
+            if ((now - session.LastActiveTimestamp).TotalMinutes > 15)
+            {
+                session.IsRevoked = true;
+                repo.Update(session);
+                await _unitOfWork.SaveChangesAsync();
+                throw new Exception("Session expired due to idle timeout.");
+            }
+
+            var userRepo = _unitOfWork.Repository<AppUser>();
+            var user = await userRepo.GetByIdAsync(session.UserId);
+            
+            if (user == null || !user.IsActive)
+            {
+                throw new Exception("User is disabled or not found.");
+            }
+            
+            var roleRepo = _unitOfWork.Repository<Role>();
+            var role = await roleRepo.GetByIdAsync(user.RoleId);
+
+            var newJwt = GenerateJwtToken(user, role?.Name ?? "Customer");
+            var newRefreshToken = GenerateRefreshToken();
+
+            session.RefreshTokenHash = HashToken(newRefreshToken);
+            session.LastActiveTimestamp = now;
+            
+            repo.Update(session);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new AuthResponse
+            {
+                Token = newJwt,
+                RefreshToken = newRefreshToken,
+                Email = user.Email,
+                FullName = user.FullName,
+                Role = role?.Name ?? "Customer"
+            };
+        }
+
+        public async Task<bool> LogoutAsync(string refreshToken)
+        {
+            if (string.IsNullOrEmpty(refreshToken)) return false;
+            
+            var hashedToken = HashToken(refreshToken);
+            var repo = _unitOfWork.Repository<UserSession>();
+            var sessions = await repo.GetAllAsync();
+            var session = sessions.FirstOrDefault(s => s.RefreshTokenHash == hashedToken);
+            
+            if (session != null)
+            {
+                session.IsRevoked = true;
+                repo.Update(session);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            
+            return true;
         }
 
         private string GenerateJwtToken(AppUser user, string roleName)

@@ -19,6 +19,7 @@ namespace CloudService.Infrastructure.Data
         public DbSet<NewsArticle> NewsArticles { get; set; }
         public DbSet<AffiliateApplication> AffiliateApplications { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<UserSession> UserSessions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -107,6 +108,14 @@ namespace CloudService.Infrastructure.Data
                       .WithMany()
                       .HasForeignKey(e => e.UserId)
                       .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<UserSession>(entity =>
+            {
+                entity.HasOne(e => e.User)
+                      .WithMany()
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

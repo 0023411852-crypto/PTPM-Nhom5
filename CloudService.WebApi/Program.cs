@@ -78,6 +78,8 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseMiddleware<CloudService.WebApi.Middlewares.SessionActivityMiddleware>();
+
 app.MapControllers();
 
 app.Run();
