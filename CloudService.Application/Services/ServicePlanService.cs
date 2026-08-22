@@ -31,6 +31,13 @@ namespace CloudService.Application.Services
                 .Take(filter.PageSize)
                 .ToList();
 
+            foreach (var plan in pagedData.Where(plan => string.IsNullOrWhiteSpace(plan.QRCodeBase64)))
+            {
+                // Sinh tạm khi đọc để public page không bị trống nếu dữ liệu cũ chưa được backfill.
+                // Admin regenerate vẫn là luồng lưu QR chính thức vào database.
+                plan.QRCodeBase64 = _qrCodeService.GenerateQRCodeBase64(BuildQrPayload(plan));
+            }
+
             var dtos = _mapper.Map<List<ServicePlanDto>>(pagedData);
             return new PagedResponse<ServicePlanDto>(dtos, allData.Count(), filter.PageNumber, filter.PageSize);
         }
@@ -122,6 +129,14 @@ namespace CloudService.Application.Services
             return _mapper.Map<ServicePlanDto>(entity);
         }
 
+        private static string BuildQrPayload(ServicePlan plan)
+        {
+            var priceSummary = string.Join(",", plan.Prices
+                .OrderBy(price => price.BillingCycle)
+                .Select(price => $"{price.BillingCycle}:{price.Price + price.SetupFee:0.##}"));
+            return $"CLOUDNOVA|SERVICE_PLAN|{plan.Id}|{plan.Name}|{priceSummary}";
+        }
+
         public async Task<ServicePlanDto?> RegenerateQrCodeAsync(Guid id)
         {
             var repo = _unitOfWork.Repository<ServicePlan>();
@@ -129,11 +144,7 @@ namespace CloudService.Application.Services
             var entity = allData.FirstOrDefault(x => x.Id == id);
             if (entity == null) return null;
 
-            var priceSummary = string.Join(",", entity.Prices
-                .OrderBy(price => price.BillingCycle)
-                .Select(price => $"{price.BillingCycle}:{price.Price + price.SetupFee:0.##}"));
-            var qrPayload = $"CLOUDNOVA|SERVICE_PLAN|{entity.Id}|{entity.Name}|{priceSummary}";
-            entity.QRCodeBase64 = _qrCodeService.GenerateQRCodeBase64(qrPayload);
+            entity.QRCodeBase64 = _qrCodeService.GenerateQRCodeBase64(BuildQrPayload(entity));
             // Entity đã được DbContext tracking; chỉ lưu thay đổi QRCodeBase64.
             // Không gọi Update vì Prices/Category đã được Include và không cần đánh dấu Modified.
             await _unitOfWork.SaveChangesAsync();

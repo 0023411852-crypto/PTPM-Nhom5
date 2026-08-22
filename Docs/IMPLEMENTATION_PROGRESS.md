@@ -65,7 +65,8 @@ Chỉ bổ sung giao diện quản lý danh mục tại Admin, gồm danh sách 
 - Batch 9 liên kết trang Dịch vụ: **Đã hoàn tất và đã push** (`bc81d6f`).
 - Batch 10 dữ liệu động trang chủ: **Đã hoàn tất và đã push** (`fae6be2`).
 - Batch 11 sửa lỗi regenerate QR: **Đã hoàn tất và đã push** (`41d956b`).
-- Batch 12 QR public trên trang Khách hàng: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
+- Batch 12 QR public trên trang Khách hàng: **Đã hoàn tất và đã push** (`f9622dd`).
+- Batch 13 QR fallback và cân đối layout public: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
 - Các batch khác: Chưa bắt đầu.
 
 ## Batch 1 — Giao diện CRUD danh mục dịch vụ
@@ -286,3 +287,21 @@ Trang `/(main)/top-customers` đã có dữ liệu khách hàng VIP và testimon
 ### Nghiệm thu và lưu ý
 
 `npx tsc --noEmit` và `git diff --check` đã pass. QR được dùng trực tiếp từ `qrCodeBase64` do backend sinh/lưu. Nếu gói chưa được regenerate hoặc database chưa có giá trị QR, giao diện hiển thị rõ `Chưa có mã QR`; cần Admin sinh QR trước. Không sửa testimonial, logo/ảnh đại diện hoặc schema.
+
+## Batch 13 — Sinh fallback QR khi dữ liệu cũ chưa có QR
+
+### Phân tích và nguyên nhân
+
+Ảnh kiểm thử cho thấy API trả các gói active nhưng `qrCodeBase64` đang null/rỗng trong database, nên FE hiển thị `Chưa có mã QR`. Luồng Admin regenerate QR chỉ sửa từng gói và không tự backfill các dữ liệu cũ. Layout phần mô tả tiêu đề cũng bị co hẹp trên desktop vì tiêu đề dài chiếm hết không gian flex.
+
+### File đã sửa
+
+| File | Nội dung |
+|---|---|
+| `CloudService.Application/Services/ServicePlanService.cs` | Khi đọc danh sách gói, sinh QR tạm cho gói active thiếu QR bằng cùng payload chuẩn; không ghi database trong luồng GET. Tách helper payload dùng chung cho regenerate |
+| `cloud-service-frontend/src/app/(main)/top-customers/page.tsx` | Cân đối flex header, đặt chiều rộng cố định cho mô tả để không xuống từng ký tự |
+| `Docs/IMPLEMENTATION_PROGRESS.md` | Cập nhật nhật ký Batch 13 |
+
+### Nghiệm thu và lưu ý
+
+`npx tsc --noEmit` và `git diff --check` đã pass. Fallback giúp public page hiển thị QR ngay cả khi dữ liệu cũ chưa backfill; regenerate Admin vẫn lưu QR chính thức vào database. Cần restart Web API sau khi cập nhật và kiểm tra endpoint public trên môi trường local.

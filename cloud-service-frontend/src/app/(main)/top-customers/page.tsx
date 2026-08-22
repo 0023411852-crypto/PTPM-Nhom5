@@ -183,11 +183,11 @@ export default function TopCustomersPage() {
                 {/* Service Plans and QR Section */}
                 <section className="mb-16">
                     <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-10">
-                        <div>
+                        <div className="md:flex-1">
                             <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Dịch vụ nổi bật</p>
                             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mt-2">Mã QR theo từng gói dịch vụ</h2>
                         </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">Quét mã để xem nhanh thông tin gói và mức giá hiện có.</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 md:w-80 md:text-right">Quét mã để xem nhanh thông tin gói và mức giá hiện có.</p>
                     </div>
                     {loadingPlans ? (
                         <p className="text-gray-500 dark:text-gray-400">Đang tải gói dịch vụ...</p>
