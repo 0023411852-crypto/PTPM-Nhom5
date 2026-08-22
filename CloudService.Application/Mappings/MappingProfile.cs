@@ -50,9 +50,12 @@ namespace CloudService.Application.Mappings
             CreateMap<CloudService.Application.DTOs.StaticPages.CreateStaticPageDto, StaticPage>();
             CreateMap<CloudService.Application.DTOs.StaticPages.UpdateStaticPageDto, StaticPage>();
 
-            CreateMap<Promotion, CloudService.Application.DTOs.Promotions.PromotionDto>();
-            CreateMap<CloudService.Application.DTOs.Promotions.CreatePromotionDto, Promotion>();
-            CreateMap<CloudService.Application.DTOs.Promotions.UpdatePromotionDto, Promotion>();
+            CreateMap<Promotion, CloudService.Application.DTOs.Promotions.PromotionDto>()
+                .ForMember(dest => dest.ServicePlanIds, opt => opt.MapFrom(src => src.ServicePlans.Select(sp => sp.Id).ToList()));
+            CreateMap<CloudService.Application.DTOs.Promotions.CreatePromotionDto, Promotion>()
+                .ForMember(dest => dest.ServicePlans, opt => opt.Ignore());
+            CreateMap<CloudService.Application.DTOs.Promotions.UpdatePromotionDto, Promotion>()
+                .ForMember(dest => dest.ServicePlans, opt => opt.Ignore());
 
             CreateMap<MediaFile, CloudService.Application.DTOs.Media.MediaFileDto>().ReverseMap();
         }

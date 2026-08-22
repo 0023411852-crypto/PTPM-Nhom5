@@ -21,7 +21,7 @@ namespace CloudService.Application.Services
         public async Task<PagedResponse<PromotionDto>> GetAllAsync(PaginationFilter filter, bool onlyActive = false)
         {
             var repo = _unitOfWork.Repository<Promotion>();
-            var allData = await repo.GetAllAsync();
+            var allData = await repo.GetAllAsync(includeProperties: "ServicePlans");
 
             if (onlyActive)
             {
@@ -42,7 +42,7 @@ namespace CloudService.Application.Services
         public async Task<PromotionDto?> GetByIdAsync(Guid id)
         {
             var repo = _unitOfWork.Repository<Promotion>();
-            var entity = await repo.GetByIdAsync(id);
+            var entity = await repo.GetByIdAsync(id, includeProperties: "ServicePlans");
             if (entity == null) return null;
             return _mapper.Map<PromotionDto>(entity);
         }
@@ -50,6 +50,14 @@ namespace CloudService.Application.Services
         public async Task<PromotionDto> CreateAsync(CreatePromotionDto dto)
         {
             var entity = _mapper.Map<Promotion>(dto);
+            
+            if (dto.ServicePlanIds != null && dto.ServicePlanIds.Any())
+            {
+                var planRepo = _unitOfWork.Repository<ServicePlan>();
+                var allPlans = await planRepo.GetAllAsync();
+                entity.ServicePlans = allPlans.Where(p => dto.ServicePlanIds.Contains(p.Id)).ToList();
+            }
+
             await _unitOfWork.Repository<Promotion>().AddAsync(entity);
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<PromotionDto>(entity);
@@ -58,10 +66,24 @@ namespace CloudService.Application.Services
         public async Task<PromotionDto> UpdateAsync(Guid id, UpdatePromotionDto dto)
         {
             var repo = _unitOfWork.Repository<Promotion>();
-            var entity = await repo.GetByIdAsync(id);
+            var entity = await repo.GetByIdAsync(id, includeProperties: "ServicePlans");
             if (entity == null) throw new Exception("Promotion not found");
 
             _mapper.Map(dto, entity);
+
+            if (dto.ServicePlanIds != null)
+            {
+                var planRepo = _unitOfWork.Repository<ServicePlan>();
+                var allPlans = await planRepo.GetAllAsync();
+                var selectedPlans = allPlans.Where(p => dto.ServicePlanIds.Contains(p.Id)).ToList();
+                
+                entity.ServicePlans.Clear();
+                foreach(var plan in selectedPlans)
+                {
+                    entity.ServicePlans.Add(plan);
+                }
+            }
+
             repo.Update(entity);
             await _unitOfWork.SaveChangesAsync();
 

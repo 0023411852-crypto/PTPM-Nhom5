@@ -10,7 +10,7 @@ namespace CloudService.Application.DTOs.Promotions
         public string Description { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
         public bool IsFeatured { get; set; }
-        public Guid? ServicePlanId { get; set; }
+        public List<Guid> ServicePlanIds { get; set; } = new();
         public string Code { get; set; } = string.Empty;
         public decimal DiscountPercentage { get; set; }
         public DateTime StartDate { get; set; }
@@ -35,7 +35,7 @@ namespace CloudService.Application.DTOs.Promotions
 
         public bool IsFeatured { get; set; }
 
-        public Guid? ServicePlanId { get; set; }
+        public List<Guid> ServicePlanIds { get; set; } = new();
         public string Code { get; set; } = string.Empty;
         public decimal DiscountPercentage { get; set; }
 
@@ -61,7 +61,7 @@ namespace CloudService.Application.DTOs.Promotions
 
         public bool IsFeatured { get; set; }
 
-        public Guid? ServicePlanId { get; set; }
+        public List<Guid> ServicePlanIds { get; set; } = new();
         public string Code { get; set; } = string.Empty;
         public decimal DiscountPercentage { get; set; }
 

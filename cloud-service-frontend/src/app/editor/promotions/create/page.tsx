@@ -19,11 +19,24 @@ export default function CreatePromotionPage() {
         category: 'Cloud',
         isFeatured: false,
         isActive: true,
-        startDate: new Date().toISOString().split('T')[0],
+        startDate: new Date().toISOString().slice(0, 16),
         endDate: '',
         discountPercentage: 0,
-        code: ''
+        servicePlanIds: [] as string[]
     });
+
+    const [plans, setPlans] = useState<{id: string, name: string}[]>([]);
+
+    useEffect(() => {
+        fetch('http://localhost:5154/api/ServicePlans?PageNumber=1&PageSize=100')
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.data) {
+                    setPlans(data.data);
+                }
+            })
+            .catch(console.error);
+    }, []);
 
     useEffect(() => {
         if (id) {
@@ -39,10 +52,10 @@ export default function CreatePromotionPage() {
                             category: data.category,
                             isFeatured: data.isFeatured,
                             isActive: data.isActive,
-                            startDate: new Date(data.startDate).toISOString().split('T')[0],
-                            endDate: data.endDate ? new Date(data.endDate).toISOString().split('T')[0] : '',
+                            startDate: new Date(data.startDate).toISOString().slice(0, 16),
+                            endDate: data.endDate ? new Date(data.endDate).toISOString().slice(0, 16) : '',
                             discountPercentage: data.discountPercentage || 0,
-                            code: data.code || ''
+                            servicePlanIds: data.servicePlanIds || []
                         });
                     }
                 } catch (error) {
@@ -72,6 +85,7 @@ export default function CreatePromotionPage() {
                 ...formData,
                 startDate: new Date(formData.startDate).toISOString(),
                 endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
+                servicePlanIds: formData.servicePlanIds
             };
 
             const res = await fetch(url, {
@@ -137,22 +151,50 @@ export default function CreatePromotionPage() {
 
                     <div className="space-y-2">
                         <label className="font-body-md text-body-md font-medium text-on-surface">Ngày bắt đầu</label>
-                        <input required type="date" name="startDate" value={formData.startDate} onChange={handleChange} className="w-full h-11 px-4 rounded-lg border border-outline bg-surface text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow" />
+                        <input required type="datetime-local" name="startDate" value={formData.startDate} onChange={handleChange} className="w-full h-11 px-4 rounded-lg border border-outline bg-surface text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow" />
                     </div>
 
                     <div className="space-y-2">
                         <label className="font-body-md text-body-md font-medium text-on-surface">Ngày kết thúc (Để trống nếu ko giới hạn)</label>
-                        <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} className="w-full h-11 px-4 rounded-lg border border-outline bg-surface text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow" />
+                        <input type="datetime-local" name="endDate" value={formData.endDate} onChange={handleChange} className="w-full h-11 px-4 rounded-lg border border-outline bg-surface text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow" />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="font-body-md text-body-md font-medium text-on-surface">Mã giảm giá (Tuỳ chọn)</label>
-                        <input type="text" name="code" value={formData.code} onChange={handleChange} className="w-full h-11 px-4 rounded-lg border border-outline bg-surface text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow" placeholder="VD: CLOUD50" />
+                        <label className="font-body-md text-body-md font-medium text-on-surface">Áp dụng cho gói</label>
+                        <div className="flex flex-col space-y-2 border border-outline rounded-lg p-3 bg-surface max-h-48 overflow-y-auto">
+                            <label className="flex items-center space-x-2">
+                                <input type="checkbox" 
+                                    checked={formData.servicePlanIds.length === 0} 
+                                    onChange={(e) => {
+                                        if (e.target.checked) setFormData({...formData, servicePlanIds: []});
+                                    }}
+                                    className="rounded border-outline text-primary focus:ring-primary"
+                                />
+                                <span>Tất cả các gói</span>
+                            </label>
+                            {plans.map(plan => (
+                                <label key={plan.id} className="flex items-center space-x-2">
+                                    <input type="checkbox" 
+                                        checked={formData.servicePlanIds.includes(plan.id)}
+                                        onChange={(e) => {
+                                            const isChecked = e.target.checked;
+                                            if (isChecked) {
+                                                setFormData({...formData, servicePlanIds: [...formData.servicePlanIds, plan.id]});
+                                            } else {
+                                                setFormData({...formData, servicePlanIds: formData.servicePlanIds.filter(id => id !== plan.id)});
+                                            }
+                                        }}
+                                        className="rounded border-outline text-primary focus:ring-primary"
+                                    />
+                                    <span>{plan.name}</span>
+                                </label>
+                            ))}
+                        </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="font-body-md text-body-md font-medium text-on-surface">% Giảm giá (Tuỳ chọn)</label>
-                        <input type="number" name="discountPercentage" value={formData.discountPercentage} onChange={handleChange} className="w-full h-11 px-4 rounded-lg border border-outline bg-surface text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow" placeholder="VD: 50" />
+                        <label className="font-body-md text-body-md font-medium text-on-surface">% Giảm giá (Nhập số)</label>
+                        <input required type="number" name="discountPercentage" value={formData.discountPercentage} onChange={handleChange} className="w-full h-11 px-4 rounded-lg border border-outline bg-surface text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow" placeholder="VD: 50" min="0" max="100" />
                     </div>
 
                     <div className="space-y-2 md:col-span-2 flex gap-8">

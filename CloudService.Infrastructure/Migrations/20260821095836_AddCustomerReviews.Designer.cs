@@ -4,6 +4,7 @@ using CloudService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CloudService.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260821095836_AddCustomerReviews")]
+    partial class AddCustomerReviews
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -161,9 +164,6 @@ namespace CloudService.Infrastructure.Migrations
                     b.Property<bool>("IsVisible")
                         .HasColumnType("bit");
 
-                    b.Property<Guid?>("OrderId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<decimal>("Rating")
                         .HasColumnType("decimal(18,2)");
 
@@ -184,9 +184,6 @@ namespace CloudService.Infrastructure.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -494,6 +491,9 @@ namespace CloudService.Infrastructure.Migrations
                     b.Property<bool>("IsFeatured")
                         .HasColumnType("bit");
 
+                    b.Property<Guid?>("ServicePlanId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -506,6 +506,8 @@ namespace CloudService.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ServicePlanId");
 
                     b.ToTable("Promotions");
                 });
@@ -778,21 +780,6 @@ namespace CloudService.Infrastructure.Migrations
                     b.ToTable("UserSessions");
                 });
 
-            modelBuilder.Entity("PromotionServicePlan", b =>
-                {
-                    b.Property<Guid>("PromotionsId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ServicePlansId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("PromotionsId", "ServicePlansId");
-
-                    b.HasIndex("ServicePlansId");
-
-                    b.ToTable("PromotionServicePlans", (string)null);
-                });
-
             modelBuilder.Entity("CloudService.Domain.Entities.AffiliateApplication", b =>
                 {
                     b.HasOne("CloudService.Domain.Entities.AppUser", "User")
@@ -901,6 +888,16 @@ namespace CloudService.Infrastructure.Migrations
                     b.Navigation("ServicePlan");
                 });
 
+            modelBuilder.Entity("CloudService.Domain.Entities.Promotion", b =>
+                {
+                    b.HasOne("CloudService.Domain.Entities.ServicePlan", "ServicePlan")
+                        .WithMany("Promotions")
+                        .HasForeignKey("ServicePlanId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("ServicePlan");
+                });
+
             modelBuilder.Entity("CloudService.Domain.Entities.ServicePlan", b =>
                 {
                     b.HasOne("CloudService.Domain.Entities.ServiceCategory", "Category")
@@ -964,21 +961,6 @@ namespace CloudService.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("PromotionServicePlan", b =>
-                {
-                    b.HasOne("CloudService.Domain.Entities.Promotion", null)
-                        .WithMany()
-                        .HasForeignKey("PromotionsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CloudService.Domain.Entities.ServicePlan", null)
-                        .WithMany()
-                        .HasForeignKey("ServicePlansId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("CloudService.Domain.Entities.AppUser", b =>
                 {
                     b.Navigation("Orders");
@@ -997,6 +979,8 @@ namespace CloudService.Infrastructure.Migrations
             modelBuilder.Entity("CloudService.Domain.Entities.ServicePlan", b =>
                 {
                     b.Navigation("Prices");
+
+                    b.Navigation("Promotions");
                 });
 
             modelBuilder.Entity("CloudService.Domain.Entities.SupportTicket", b =>
