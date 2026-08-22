@@ -24,6 +24,14 @@ interface NewsResponse {
 
 const PAGE_SIZE = 6;
 const API_URL = "http://localhost:5154/api/NewsArticles";
+const API_BASE_URL = "http://localhost:5154";
+
+function resolveMediaUrl(url?: string | null) {
+  if (!url) return null;
+  if (/^(https?:|data:|blob:)/i.test(url)) return url;
+  return `${API_BASE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+}
+
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("vi-VN", {
     day: "2-digit",
@@ -152,9 +160,9 @@ export default function NewsPage() {
           <section className="mb-2xl">
             <div className="group flex flex-col lg:flex-row bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-300">
               <div className="lg:w-7/12 relative overflow-hidden bg-surface-container min-h-[260px]">
-                {featuredArticle.thumbnailUrl ? (
-                  <img src={featuredArticle.thumbnailUrl} alt={featuredArticle.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                ) : <div className="w-full h-full min-h-[260px] bg-primary-container" />}
+                {resolveMediaUrl(featuredArticle.thumbnailUrl) ? (
+                  <img src={resolveMediaUrl(featuredArticle.thumbnailUrl) || undefined} alt={featuredArticle.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                ) : <div className="flex w-full h-full min-h-[260px] items-center justify-center bg-gradient-to-br from-primary-container to-surface-container-high text-primary"><span className="material-symbols-outlined text-5xl">article</span></div>}
               </div>
               <div className="lg:w-5/12 p-lg lg:p-xl flex flex-col justify-center">
                 <span className="w-fit px-2 py-1 bg-surface-variant text-primary font-label-caps text-label-caps rounded uppercase mb-md">{featuredArticle.category}</span>
@@ -176,33 +184,70 @@ export default function NewsPage() {
         )}
 
         {!loading && !error && visibleArticles.length > 0 && (
-          <section>
-            <h3 className="font-headline-md text-headline-md text-on-surface mb-lg">Bài viết mới nhất</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
-              {visibleArticles.map((article) => (
-                <article key={article.id} className="group bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-md hover:border-primary/50 transition-all flex flex-col">
-                  <div className="relative h-48 overflow-hidden bg-surface-container">
-                    {article.thumbnailUrl ? <img src={article.thumbnailUrl} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> : <div className="w-full h-full bg-surface-container" />}
-                    <span className="absolute top-4 left-4 px-2 py-1 bg-surface-container-lowest/90 text-secondary font-label-caps text-label-caps rounded border border-outline-variant">{article.category}</span>
-                  </div>
-                  <div className="p-md flex flex-col flex-grow">
-                    <h4 className="font-headline-md text-headline-md text-on-surface mb-2 group-hover:text-primary transition-colors">{article.title}</h4>
-                    <p className="font-body-sm text-secondary mb-4 line-clamp-3">{getExcerpt(article.content)}</p>
-                    <div className="mt-auto pt-4 border-t border-outline-variant/50 flex items-center justify-between gap-sm">
-                      <span className="text-secondary text-xs">{formatDate(article.createdAt)}</span>
-                      <Link href={`/news/${article.id}`} className="text-primary hover:underline font-body-sm text-sm">Xem chi tiết →</Link>
+          <div className="grid grid-cols-1 gap-xl lg:grid-cols-[minmax(0,1fr)_18rem]">
+            <section>
+              <div className="mb-lg flex items-end justify-between gap-md">
+                <div>
+                  <p className="mb-xs font-label-caps text-label-caps uppercase tracking-wide text-primary">CloudNova Knowledge</p>
+                  <h3 className="font-headline-md text-headline-md text-on-surface">Bài viết mới nhất</h3>
+                </div>
+                <span className="font-body-sm text-secondary">{filteredArticles.length} bài viết</span>
+              </div>
+              <div className="grid grid-cols-1 gap-lg md:grid-cols-2">
+                {visibleArticles.map((article) => (
+                  <article key={article.id} className="group flex flex-col overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
+                    <div className="relative h-52 overflow-hidden bg-surface-container">
+                      {resolveMediaUrl(article.thumbnailUrl) ? <img src={resolveMediaUrl(article.thumbnailUrl) || undefined} alt={article.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" /> : <div className="flex h-full w-full items-center justify-center bg-surface-container text-primary"><span className="material-symbols-outlined text-4xl">article</span></div>}
+                      <span className="absolute left-4 top-4 rounded border border-outline-variant bg-surface-container-lowest/90 px-2 py-1 font-label-caps text-label-caps text-secondary">{article.category || "Tin tức"}</span>
                     </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+                    <div className="flex flex-grow flex-col p-lg">
+                      <h4 className="mb-sm font-headline-md text-headline-md text-on-surface transition-colors group-hover:text-primary">{article.title}</h4>
+                      <p className="mb-lg line-clamp-3 font-body-sm text-secondary">{getExcerpt(article.content)}</p>
+                      <div className="mt-auto flex items-center justify-between gap-sm border-t border-outline-variant/50 pt-md">
+                        <span className="text-xs text-secondary">{formatDate(article.createdAt)}</span>
+                        <Link href={`/news/${article.id}`} className="font-body-sm text-primary hover:underline">Xem chi tiết →</Link>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
 
-            <div className="mt-xl flex items-center justify-center gap-sm">
-              <button type="button" disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))} className="px-4 py-2 border border-outline-variant rounded-lg text-secondary hover:bg-surface-container transition-colors font-body-sm disabled:opacity-50">← Trước</button>
-              <span className="px-4 py-2 text-secondary font-body-sm">Trang {currentPage}/{totalPages}</span>
-              <button type="button" disabled={currentPage === totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))} className="px-4 py-2 border border-outline-variant rounded-lg text-secondary hover:bg-surface-container transition-colors font-body-sm disabled:opacity-50">Sau →</button>
-            </div>
-          </section>
+              <div className="mt-xl flex items-center justify-center gap-sm">
+                <button type="button" disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-lg border border-outline-variant px-4 py-2 font-body-sm text-secondary transition-colors hover:bg-surface-container disabled:opacity-50">← Trước</button>
+                <span className="px-4 py-2 font-body-sm text-secondary">Trang {currentPage}/{totalPages}</span>
+                <button type="button" disabled={currentPage === totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))} className="rounded-lg border border-outline-variant px-4 py-2 font-body-sm text-secondary transition-colors hover:bg-surface-container disabled:opacity-50">Sau →</button>
+              </div>
+            </section>
+
+            <aside className="space-y-lg">
+              <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg shadow-sm">
+                <div className="mb-md flex items-center gap-sm border-b border-outline-variant pb-md">
+                  <span className="material-symbols-outlined text-primary">auto_awesome</span>
+                  <h3 className="font-headline-sm text-headline-sm text-on-surface">Thông tin nổi bật</h3>
+                </div>
+                {featuredArticle && (
+                  <Link href={`/news/${featuredArticle.id}`} className="group block">
+                    {resolveMediaUrl(featuredArticle.thumbnailUrl) ? <img src={resolveMediaUrl(featuredArticle.thumbnailUrl) || undefined} alt={featuredArticle.title} className="mb-md h-32 w-full rounded-lg object-cover" /> : <div className="mb-md flex h-32 w-full items-center justify-center rounded-lg bg-primary-container text-primary"><span className="material-symbols-outlined text-4xl">article</span></div>}
+                    <p className="mb-xs font-label-caps text-label-caps uppercase text-primary">{featuredArticle.category || "Tin tức"}</p>
+                    <h4 className="font-body-md font-semibold leading-snug text-on-surface group-hover:text-primary">{featuredArticle.title}</h4>
+                    <p className="mt-sm line-clamp-2 font-body-sm text-secondary">{getExcerpt(featuredArticle.content)}</p>
+                  </Link>
+                )}
+              </div>
+
+              <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg shadow-sm">
+                <h3 className="mb-md border-b border-outline-variant pb-md font-headline-sm text-headline-sm text-on-surface">Thẻ chủ đề</h3>
+                <div className="flex flex-wrap gap-sm">
+                  {categories.filter((item) => item !== "Tất cả").map((item) => (
+                    <button key={item} type="button" onClick={() => setCategory(item)} className={`rounded-full border px-md py-xs font-body-sm transition-colors ${category === item ? "border-primary bg-primary-container text-primary" : "border-outline-variant text-secondary hover:border-primary hover:text-primary"}`}>
+                      #{item}
+                    </button>
+                  ))}
+                  {categories.length === 1 && <span className="font-body-sm text-secondary">Chưa có thẻ chủ đề.</span>}
+                </div>
+              </div>
+            </aside>
+          </div>
         )}
       </div>
 
