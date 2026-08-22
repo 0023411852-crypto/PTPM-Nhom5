@@ -61,7 +61,12 @@ builder.Services.AddSwaggerGen(c =>
 // Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 builder.Services.AddHostedService<OrderExpirationService>();
-var key = Encoding.ASCII.GetBytes(jwtSettings["Secret"]!);
+var secret = jwtSettings["Secret"];
+if (string.IsNullOrEmpty(secret))
+{
+    throw new InvalidOperationException("JWT Secret is not configured. Please set the 'JwtSettings:Secret' environment variable or configure it in appsettings.json.");
+}
+var key = Encoding.ASCII.GetBytes(secret);
 
 builder.Services.AddAuthentication(options =>
 {
