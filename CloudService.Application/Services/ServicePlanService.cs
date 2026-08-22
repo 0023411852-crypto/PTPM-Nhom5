@@ -1,4 +1,5 @@
 using AutoMapper;
+using System.Text.Json;
 using CloudService.Application.Common;
 using CloudService.Application.DTOs.ServicePlans;
 using CloudService.Application.Interfaces;
@@ -131,10 +132,31 @@ namespace CloudService.Application.Services
 
         private static string BuildQrPayload(ServicePlan plan)
         {
+            var cpu = "-";
+            var ram = "-";
+            var ssd = "-";
+            try
+            {
+                using var document = JsonDocument.Parse(string.IsNullOrWhiteSpace(plan.Specifications) ? "{}" : plan.Specifications);
+                var specs = document.RootElement;
+                cpu = ReadSpec(specs, "CPU");
+                ram = ReadSpec(specs, "RAM");
+                ssd = ReadSpec(specs, "SSD");
+            }
+            catch (JsonException)
+            {
+                // Giữ payload QR hợp lệ nếu dữ liệu cấu hình cũ không phải JSON chuẩn.
+            }
+
             var priceSummary = string.Join(",", plan.Prices
                 .OrderBy(price => price.BillingCycle)
                 .Select(price => $"{price.BillingCycle}:{price.Price + price.SetupFee:0.##}"));
-            return $"CLOUDNOVA|SERVICE_PLAN|{plan.Id}|{plan.Name}|{priceSummary}";
+            return $"CLOUDNOVA|SERVICE_PLAN|{plan.Id}|{plan.Name}|CPU:{cpu}|RAM:{ram}|SSD:{ssd}|PRICES:{priceSummary}";
+        }
+
+        private static string ReadSpec(JsonElement specs, string key)
+        {
+            return specs.TryGetProperty(key, out var value) ? value.ToString() : "-";
         }
 
         public async Task<ServicePlanDto?> RegenerateQrCodeAsync(Guid id)

@@ -67,7 +67,8 @@ Chỉ bổ sung giao diện quản lý danh mục tại Admin, gồm danh sách 
 - Batch 11 sửa lỗi regenerate QR: **Đã hoàn tất và đã push** (`41d956b`).
 - Batch 12 QR public trên trang Khách hàng: **Đã hoàn tất và đã push** (`f9622dd`).
 - Batch 13 QR fallback và cân đối layout public: **Đã hoàn tất và đã push** (`d2e0e1f`).
-- Batch 14 chuẩn hóa Base64 QR ở FE: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
+- Batch 14 chuẩn hóa Base64 QR ở FE: **Đã hoàn tất và đã push** (`7391078`).
+- Batch 15 bổ sung CPU/RAM/SSD vào payload QR: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
 - Các batch khác: Chưa bắt đầu.
 
 ## Batch 1 — Giao diện CRUD danh mục dịch vụ
@@ -288,6 +289,27 @@ Trang `/(main)/top-customers` đã có dữ liệu khách hàng VIP và testimon
 ### Nghiệm thu và lưu ý
 
 `npx tsc --noEmit` và `git diff --check` đã pass. QR được dùng trực tiếp từ `qrCodeBase64` do backend sinh/lưu. Nếu gói chưa được regenerate hoặc database chưa có giá trị QR, giao diện hiển thị rõ `Chưa có mã QR`; cần Admin sinh QR trước. Không sửa testimonial, logo/ảnh đại diện hoặc schema.
+
+## Batch 15 — Bổ sung cấu hình CPU/RAM/SSD vào QR
+
+### Phân tích trước khi sửa
+
+`Specifications` của ServicePlan được lưu dạng JSON với các key `CPU`, `RAM` và `SSD`, đúng với form quản trị và phần hiển thị cấu hình hiện có. Payload QR trước đó chỉ chứa mã gói, tên gói và giá theo chu kỳ, nên chưa đủ thông tin cấu hình.
+
+### File đã sửa
+
+| File | Nội dung |
+|---|---|
+| `CloudService.Application/Services/ServicePlanService.cs` | Đọc an toàn JSON Specifications, thêm CPU/RAM/SSD vào payload QR và dùng helper chung cho QR public fallback và Admin regenerate |
+| `Docs/IMPLEMENTATION_PROGRESS.md` | Cập nhật nhật ký Batch 15 |
+
+### Format mới
+
+```text
+CLOUDNOVA|SERVICE_PLAN|ID|TÊN GÓI|CPU:...|RAM:...|SSD:...|PRICES:chu_ky:gia,...
+```
+
+Nếu Specifications trống hoặc JSON lỗi, QR vẫn được tạo với giá trị `-` thay vì làm hỏng request. Không thay đổi database hoặc DTO. `npx tsc --noEmit` và `git diff --check` đã pass; `dotnet build` cần chạy trên máy local có .NET SDK.
 
 ## Batch 13 — Sinh fallback QR khi dữ liệu cũ chưa có QR
 
