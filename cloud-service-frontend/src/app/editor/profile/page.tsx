@@ -34,7 +34,7 @@ export default function EditorProfilePage() {
 
     const fetchActivities = async (token: string) => {
         try {
-            const res = await fetch('http://localhost:5154/api/Users/me/activities', {
+            const res = await fetch('/api/Users/me/activities', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -76,7 +76,7 @@ export default function EditorProfilePage() {
         if (!token) return;
 
         try {
-            const res = await fetch('http://localhost:5154/api/Users/me/password', {
+            const res = await fetch('/api/Users/me/password', {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',

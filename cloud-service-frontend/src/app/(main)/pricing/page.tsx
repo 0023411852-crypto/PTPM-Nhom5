@@ -68,7 +68,7 @@ export default function PricingPage() {
     const [toastMessage, setToastMessage] = useState('');
 
     useEffect(() => {
-        fetch('http://localhost:5154/api/SiteSettings/public')
+        fetch('/api/SiteSettings/public')
             .then(res => res.json())
             .then(data => {
                 if (Array.isArray(data)) {
@@ -87,7 +87,7 @@ export default function PricingPage() {
     useEffect(() => {
         const fetchPlans = async () => {
             try {
-                const res = await fetch('http://localhost:5154/api/ServicePlans?PageNumber=1&PageSize=50');
+                const res = await fetch('/api/ServicePlans?PageNumber=1&PageSize=50');
                 const result = await res.json();
                 if (result && result.data) {
                     setPlans(result.data);
@@ -105,7 +105,7 @@ export default function PricingPage() {
     useEffect(() => {
         const fetchPromotions = async () => {
             try {
-                const res = await fetch('http://localhost:5154/api/Promotions?PageNumber=1&PageSize=50&onlyActive=true');
+                const res = await fetch('/api/Promotions?PageNumber=1&PageSize=50&onlyActive=true');
                 if (res.ok) {
                     const data = await res.json();
                     const activePromos = data.data as Promotion[];

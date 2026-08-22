@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 
 async function getStaticPage(slug: string) {
     try {
-        const res = await fetch(`http://localhost:5154/api/StaticPages/slug/${slug}`, {
+        const res = await fetch(`/api/StaticPages/slug/${slug}`, {
             next: { revalidate: 60 } // Cache for 60 seconds
         });
 

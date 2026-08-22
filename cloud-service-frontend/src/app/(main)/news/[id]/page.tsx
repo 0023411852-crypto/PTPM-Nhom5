@@ -13,7 +13,7 @@ interface NewsArticle {
   createdAt: string;
 }
 
-const API_BASE_URL = "http://localhost:5154";
+const API_BASE_URL = "";
 
 function resolveMediaUrl(url?: string | null) {
   if (!url) return null;

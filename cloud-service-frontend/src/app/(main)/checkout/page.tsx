@@ -66,7 +66,7 @@ export default function CheckoutPage() {
 
     const fetchQRCode = async (orderId: string, amount: number) => {
         try {
-            const res = await fetch(`http://localhost:5154/api/Orders/${orderId}/payment-qr?amount=${amount}`, {
+            const res = await fetch(`/api/Orders/${orderId}/payment-qr?amount=${amount}`, {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
@@ -89,7 +89,7 @@ export default function CheckoutPage() {
         setErrorMsg('');
         try {
             const responses = await Promise.all(demoOrderIds.map(orderId =>
-                fetch(`http://localhost:5154/api/Orders/${orderId}/demo-payment`, {
+                fetch(`/api/Orders/${orderId}/demo-payment`, {
                     method: 'POST',
                     headers: { Authorization: `Bearer ${token}` }
                 }).then(async res => ({ res, data: await res.json().catch(() => ({})) }))
@@ -135,7 +135,7 @@ export default function CheckoutPage() {
             for (let i = 0; i < cart.length; i++) {
                 const item = cart[i];
                 for (let q = 0; q < item.qty; q++) {
-                    const res = await fetch("http://localhost:5154/api/Orders", {
+                    const res = await fetch("/api/Orders", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",

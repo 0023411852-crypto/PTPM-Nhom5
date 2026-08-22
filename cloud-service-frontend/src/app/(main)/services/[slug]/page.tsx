@@ -76,7 +76,7 @@ const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
     },
 };
 
-const API_BASE_URL = "http://localhost:5154";
+const API_BASE_URL = "";
 
 function parseFeatures(value: string | undefined, fallback: string[]) {
     try {

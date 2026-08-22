@@ -52,7 +52,7 @@ export default function TopCustomersPage() {
     const [reviewError, setReviewError] = useState('');
 
     useEffect(() => {
-        fetch('http://localhost:5154/api/ServicePlans?PageNumber=1&PageSize=50')
+        fetch('/api/ServicePlans?PageNumber=1&PageSize=50')
             .then(res => res.ok ? res.json() : Promise.reject(new Error('Không thể tải gói dịch vụ')))
             .then(data => setServicePlans((data.data || []).filter((plan: ServicePlanQr) => plan.isActive)))
             .catch(err => console.error("Failed to fetch service plans:", err))
@@ -61,7 +61,7 @@ export default function TopCustomersPage() {
 
     useEffect(() => {
         // Fetch VIP Customers
-        fetch('http://localhost:5154/api/Users/vip?limit=3')
+        fetch('/api/Users/vip?limit=3')
             .then(res => res.json())
             .then(data => {
                 setVipCustomers(data);
@@ -75,7 +75,7 @@ export default function TopCustomersPage() {
 
     const fetchReviews = (pageToFetch: number) => {
         setLoadingReviews(true);
-        fetch(`http://localhost:5154/api/Users/reviews?page=${pageToFetch}&pageSize=3`)
+        fetch(`/api/Users/reviews?page=${pageToFetch}&pageSize=3`)
             .then(res => res.json())
             .then(data => {
                 setReviews(data.items);
@@ -122,7 +122,7 @@ export default function TopCustomersPage() {
 
         setReviewSubmitting(true);
         try {
-            const response = await fetch('http://localhost:5154/api/Users/reviews', {
+            const response = await fetch('/api/Users/reviews', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

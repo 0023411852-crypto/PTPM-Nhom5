@@ -87,7 +87,7 @@ export default function ClientPortalPage() {
 
     const fetchProfile = async (tokenStr: string) => {
         try {
-            const res = await fetch("http://localhost:5154/api/Users/me", {
+            const res = await fetch("/api/Users/me", {
                 headers: { "Authorization": `Bearer ${tokenStr}` }
             });
             if (res.ok) {
@@ -121,7 +121,7 @@ export default function ClientPortalPage() {
         try {
             const formData = new FormData();
             formData.append('file', file);
-            const response = await fetch('http://localhost:5154/api/Upload', {
+            const response = await fetch('/api/Upload', {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` },
                 body: formData,
@@ -131,7 +131,7 @@ export default function ClientPortalPage() {
                 throw new Error(data.message || 'Tải ảnh thất bại.');
             }
 
-            const fullUrl = data.url.startsWith('http') ? data.url : `http://localhost:5154${data.url}`;
+            const fullUrl = data.url.startsWith('http') ? data.url : `${data.url}`;
             setAvatarUrl(fullUrl);
         } catch (error) {
             alert(error instanceof Error ? error.message : 'Tải ảnh thất bại.');
@@ -145,7 +145,7 @@ export default function ClientPortalPage() {
         if (!token) return;
         setIsUpdatingProfile(true);
         try {
-            const res = await fetch("http://localhost:5154/api/Users/me/profile", {
+            const res = await fetch("/api/Users/me/profile", {
                 method: "PUT",
                 headers: { 
                     "Content-Type": "application/json",
@@ -171,7 +171,7 @@ export default function ClientPortalPage() {
     const fetchOrders = async (tokenStr: string) => {
         setLoadingOrders(true);
         try {
-            const res = await fetch("http://localhost:5154/api/Orders/my-orders?PageNumber=1&PageSize=50", {
+            const res = await fetch("/api/Orders/my-orders?PageNumber=1&PageSize=50", {
                 headers: { "Authorization": `Bearer ${tokenStr}` }
             });
             const data = await res.json();
@@ -188,7 +188,7 @@ export default function ClientPortalPage() {
         setLoadingOrderDetail(true);
         setOrderDetailError('');
         try {
-            const res = await fetch(`http://localhost:5154/api/Orders/${orderId}`, {
+            const res = await fetch(`/api/Orders/${orderId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const data = await res.json().catch(() => null);
@@ -204,7 +204,7 @@ export default function ClientPortalPage() {
     const fetchServices = async (tokenStr: string) => {
         setLoadingServices(true);
         try {
-            const res = await fetch("http://localhost:5154/api/CustomerServices/my-services?PageNumber=1&PageSize=50", {
+            const res = await fetch("/api/CustomerServices/my-services?PageNumber=1&PageSize=50", {
                 headers: { "Authorization": `Bearer ${tokenStr}` }
             });
             const data = await res.json();
@@ -219,7 +219,7 @@ export default function ClientPortalPage() {
     const fetchTickets = async (tokenStr: string) => {
         setLoadingTickets(true);
         try {
-            const res = await fetch("http://localhost:5154/api/SupportTickets/my-tickets?PageNumber=1&PageSize=50", {
+            const res = await fetch("/api/SupportTickets/my-tickets?PageNumber=1&PageSize=50", {
                 headers: { "Authorization": `Bearer ${tokenStr}` }
             });
             const data = await res.json();
@@ -236,7 +236,7 @@ export default function ClientPortalPage() {
         if (!token) return;
 
         try {
-            const res = await fetch("http://localhost:5154/api/SupportTickets", {
+            const res = await fetch("/api/SupportTickets", {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json",
@@ -266,7 +266,7 @@ export default function ClientPortalPage() {
         if (!token) return;
 
         try {
-            const res = await fetch('http://localhost:5154/api/Users/me/password', {
+            const res = await fetch('/api/Users/me/password', {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -295,7 +295,7 @@ export default function ClientPortalPage() {
         
         setSubmittingReview(true);
         try {
-            const res = await fetch('http://localhost:5154/api/Users/reviews', {
+            const res = await fetch('/api/Users/reviews', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',

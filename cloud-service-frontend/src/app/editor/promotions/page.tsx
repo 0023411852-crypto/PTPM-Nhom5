@@ -24,7 +24,7 @@ export default function EditorPromotionsPage() {
 
     const fetchPromotions = async () => {
         try {
-            const res = await fetch('http://localhost:5154/api/Promotions?PageNumber=1&PageSize=50');
+            const res = await fetch('/api/Promotions?PageNumber=1&PageSize=50');
             if (res.ok) {
                 const data = await res.json();
                 setPromotions(data.data);
@@ -44,7 +44,7 @@ export default function EditorPromotionsPage() {
         if (!confirm('Bạn có chắc chắn muốn xóa khuyến mãi này?')) return;
         
         try {
-            const res = await fetch(`http://localhost:5154/api/Promotions/${id}`, {
+            const res = await fetch(`/api/Promotions/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

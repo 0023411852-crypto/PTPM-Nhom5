@@ -18,7 +18,7 @@ export default function PartnersPage() {
     const [promotionDetails, setPromotionDetails] = useState('');
 
     useEffect(() => {
-        fetch('http://localhost:5154/api/SiteSettings/public')
+        fetch('/api/SiteSettings/public')
             .then(res => res.json())
             .then(data => {
                 if (Array.isArray(data)) {
@@ -35,7 +35,7 @@ export default function PartnersPage() {
     }, []);
 
     useEffect(() => {
-        fetch('http://localhost:5154/api/ServicePlans?PageNumber=1&PageSize=100')
+        fetch('/api/ServicePlans?PageNumber=1&PageSize=100')
             .then(res => res.ok ? res.json() : Promise.reject(new Error('Không thể tải danh sách dịch vụ.')))
             .then(data => {
                 const plans = Array.isArray(data?.data) ? data.data : [];
@@ -48,7 +48,7 @@ export default function PartnersPage() {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            const res = await fetch('http://localhost:5154/api/PartnerRequests', {
+            const res = await fetch('/api/PartnerRequests', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

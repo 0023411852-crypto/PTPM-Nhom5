@@ -45,14 +45,14 @@ function EditorForm() {
         formData.append('file', file);
 
         try {
-            const res = await fetch('http://localhost:5154/api/Upload', {
+            const res = await fetch('/api/Upload', {
                 method: 'POST',
                 body: formData,
             });
 
             if (res.ok) {
                 const data = await res.json();
-                setThumbnailUrl('http://localhost:5154' + data.url);
+                setThumbnailUrl('' + data.url);
             } else {
                 alert('Tải ảnh thất bại. Vui lòng thử lại.');
             }
@@ -86,13 +86,13 @@ function EditorForm() {
         try {
             let res: Response;
             if (editId) {
-                res = await fetch(`http://localhost:5154/api/NewsArticles/${editId}`, {
+                res = await fetch(`/api/NewsArticles/${editId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(body)
                 });
             } else {
-                res = await fetch(`http://localhost:5154/api/NewsArticles`, {
+                res = await fetch(`/api/NewsArticles`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(body)

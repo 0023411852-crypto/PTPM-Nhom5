@@ -21,7 +21,7 @@ export default function EditorStaticPagesPage() {
 
     const fetchPages = async () => {
         try {
-            const res = await fetch('http://localhost:5154/api/StaticPages?PageNumber=1&PageSize=50');
+            const res = await fetch('/api/StaticPages?PageNumber=1&PageSize=50');
             if (res.ok) {
                 const data = await res.json();
                 setPages(data.data);
@@ -41,7 +41,7 @@ export default function EditorStaticPagesPage() {
         if (!confirm('Bạn có chắc chắn muốn xóa trang này?')) return;
         
         try {
-            const res = await fetch(`http://localhost:5154/api/StaticPages/${id}`, {
+            const res = await fetch(`/api/StaticPages/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`

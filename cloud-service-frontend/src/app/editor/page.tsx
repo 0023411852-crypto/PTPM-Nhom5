@@ -29,7 +29,7 @@ export default function EditorDashboardPage() {
         const fetchStats = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const res = await fetch('http://localhost:5154/api/Dashboard/editor-stats', {
+                const res = await fetch('/api/Dashboard/editor-stats', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }

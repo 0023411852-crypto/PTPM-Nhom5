@@ -36,7 +36,7 @@ export default function AdminPartnerRequestsPage() {
         setLoading(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:5154/api/PartnerRequests?pageNumber=${pageNumber}&pageSize=${pageSize}&search=${encodeURIComponent(searchKeyword)}&status=${encodeURIComponent(statusFilter)}`, {
+            const res = await fetch(`/api/PartnerRequests?pageNumber=${pageNumber}&pageSize=${pageSize}&search=${encodeURIComponent(searchKeyword)}&status=${encodeURIComponent(statusFilter)}`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (res.ok) {
@@ -69,7 +69,7 @@ export default function AdminPartnerRequestsPage() {
             if (actionType === 'Approve') targetStatus = 'Approved';
             if (actionType === 'Reject') targetStatus = 'Rejected';
 
-            const res = await fetch(`http://localhost:5154/api/PartnerRequests/${selectedRequest.id}/status`, {
+            const res = await fetch(`/api/PartnerRequests/${selectedRequest.id}/status`, {
                 method: "PATCH",
                 headers: { 
                     "Content-Type": "application/json",
@@ -101,7 +101,7 @@ export default function AdminPartnerRequestsPage() {
         setIsSubmitting(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:5154/api/PartnerRequests`, {
+            const res = await fetch(`/api/PartnerRequests`, {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json",

@@ -21,7 +21,7 @@ export default function AdminOrdersPage() {
     const fetchOrders = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch("http://localhost:5154/api/Orders/all?PageNumber=1&PageSize=50", {
+            const res = await fetch("/api/Orders/all?PageNumber=1&PageSize=50", {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             const data = await res.json();
@@ -36,7 +36,7 @@ export default function AdminOrdersPage() {
     const handleExportOrders = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch("http://localhost:5154/api/Orders/export", {
+            const res = await fetch("/api/Orders/export", {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!res.ok) {
@@ -70,7 +70,7 @@ export default function AdminOrdersPage() {
 
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:5154/api/Orders/${orderId}`, {
+            const res = await fetch(`/api/Orders/${orderId}`, {
                 method: "DELETE",
                 headers: { "Authorization": `Bearer ${token}` }
             });

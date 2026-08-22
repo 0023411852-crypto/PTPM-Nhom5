@@ -23,7 +23,7 @@ type CategoryForm = {
   isActive: boolean;
 };
 
-const API_BASE_URL = 'http://localhost:5154/api/ServiceCategories';
+const API_BASE_URL = '/api/ServiceCategories';
 const EMPTY_FORM: CategoryForm = { name: '', description: '', detailTitle: '', icon: 'dns', featuresJson: '[]', isActive: true };
 
 export default function AdminServiceCategoriesPage() {

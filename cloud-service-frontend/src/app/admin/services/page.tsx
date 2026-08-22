@@ -85,8 +85,8 @@ export default function AdminServicesPage() {
         setIsLoading(true);
         try {
             const [plansRes, catsRes] = await Promise.all([
-                fetch('http://localhost:5154/api/ServicePlans?PageNumber=1&PageSize=100'),
-                fetch('http://localhost:5154/api/ServiceCategories?PageNumber=1&PageSize=100')
+                fetch('/api/ServicePlans?PageNumber=1&PageSize=100'),
+                fetch('/api/ServiceCategories?PageNumber=1&PageSize=100')
             ]);
             
             const plansData = await plansRes.json();
@@ -198,8 +198,8 @@ export default function AdminServicesPage() {
 
         try {
             const url = editingPlanId 
-                ? `http://localhost:5154/api/ServicePlans/${editingPlanId}`
-                : `http://localhost:5154/api/ServicePlans`;
+                ? `/api/ServicePlans/${editingPlanId}`
+                : `/api/ServicePlans`;
                 
             const method = editingPlanId ? 'PUT' : 'POST';
 
@@ -235,7 +235,7 @@ export default function AdminServicesPage() {
 
         setIsQrLoading(true);
         try {
-            const res = await fetch(`http://localhost:5154/api/ServicePlans/${plan.id}/regenerate-qr`, {
+            const res = await fetch(`/api/ServicePlans/${plan.id}/regenerate-qr`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -257,7 +257,7 @@ export default function AdminServicesPage() {
         const token = localStorage.getItem("token");
         
         try {
-            const res = await fetch(`http://localhost:5154/api/ServicePlans/${planToDelete}`, {
+            const res = await fetch(`/api/ServicePlans/${planToDelete}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

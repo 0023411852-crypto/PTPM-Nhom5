@@ -14,7 +14,7 @@ export default function Home() {
   const [latestNews, setLatestNews] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:5154/api/SiteSettings/public")
+    fetch("/api/SiteSettings/public")
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -29,9 +29,9 @@ export default function Home() {
     const loadHomepageData = async () => {
       try {
         const [plansRes, promotionsRes, newsRes] = await Promise.all([
-          fetch("http://localhost:5154/api/ServicePlans?PageNumber=1&PageSize=3"),
-          fetch("http://localhost:5154/api/Promotions?PageNumber=1&PageSize=3&onlyActive=true"),
-          fetch("http://localhost:5154/api/NewsArticles?onlyPublished=true&pageNumber=1&pageSize=3")
+          fetch("/api/ServicePlans?PageNumber=1&PageSize=3"),
+          fetch("/api/Promotions?PageNumber=1&PageSize=3&onlyActive=true"),
+          fetch("/api/NewsArticles?onlyPublished=true&pageNumber=1&pageSize=3")
         ]);
         if (plansRes.ok) {
           const data = await plansRes.json();

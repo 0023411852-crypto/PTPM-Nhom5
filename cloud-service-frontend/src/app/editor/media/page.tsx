@@ -35,7 +35,7 @@ export default function EditorMediaPage() {
             }
 
             const token = localStorage.getItem('token');
-            const res = await fetch(`http://localhost:5154/api/Upload?${queryParams.toString()}`, {
+            const res = await fetch(`/api/Upload?${queryParams.toString()}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -87,7 +87,7 @@ export default function EditorMediaPage() {
             setIsUploading(true);
             try {
                 const token = localStorage.getItem('token');
-                const res = await fetch('http://localhost:5154/api/Upload', {
+                const res = await fetch('/api/Upload', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -120,7 +120,7 @@ export default function EditorMediaPage() {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`http://localhost:5154/api/Upload/${id}`, {
+            const res = await fetch(`/api/Upload/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -141,7 +141,7 @@ export default function EditorMediaPage() {
         if (item.fileType === 'Hình ảnh') {
             return (
                 <img 
-                    src={item.fileUrl.startsWith('http') ? item.fileUrl : `http://localhost:5154${item.fileUrl}`} 
+                    src={item.fileUrl.startsWith('http') ? item.fileUrl : `${item.fileUrl}`}
                     alt={item.fileName} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
                 />
@@ -222,7 +222,7 @@ export default function EditorMediaPage() {
                             {renderPreview(item)}
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                 <a 
-                                    href={item.fileUrl.startsWith('http') ? item.fileUrl : `http://localhost:5154${item.fileUrl}`} 
+                                    href={item.fileUrl.startsWith('http') ? item.fileUrl : `${item.fileUrl}`}
                                     target="_blank" 
                                     rel="noreferrer"
                                     className="w-8 h-8 rounded-full bg-surface text-on-surface flex items-center justify-center hover:text-primary transition-colors tooltip" 

@@ -23,8 +23,8 @@ interface NewsResponse {
 }
 
 const PAGE_SIZE = 6;
-const API_URL = "http://localhost:5154/api/NewsArticles";
-const API_BASE_URL = "http://localhost:5154";
+const API_URL = "/api/NewsArticles";
+const API_BASE_URL = "";
 
 function resolveMediaUrl(url?: string | null) {
   if (!url) return null;

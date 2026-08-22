@@ -25,9 +25,9 @@ export default function VpsDetailsPage() {
 
     useEffect(() => {
         Promise.all([
-            fetch("http://localhost:5154/api/ServicePlans?PageNumber=1&PageSize=100"),
-            fetch("http://localhost:5154/api/SiteSettings/public"),
-            fetch("http://localhost:5154/api/ServiceCategories?PageNumber=1&PageSize=100")
+            fetch("/api/ServicePlans?PageNumber=1&PageSize=100"),
+            fetch("/api/SiteSettings/public"),
+            fetch("/api/ServiceCategories?PageNumber=1&PageSize=100")
         ])
             .then(async ([plansResponse, settingsResponse, categoriesResponse]) => {
                 if (plansResponse.ok) {

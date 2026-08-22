@@ -29,7 +29,7 @@ function CreatePromotionPageContent() {
     const [plans, setPlans] = useState<{id: string, name: string}[]>([]);
 
     useEffect(() => {
-        fetch('http://localhost:5154/api/ServicePlans?PageNumber=1&PageSize=100')
+        fetch('/api/ServicePlans?PageNumber=1&PageSize=100')
             .then(res => res.json())
             .then(data => {
                 if (data && data.data) {
@@ -43,7 +43,7 @@ function CreatePromotionPageContent() {
         if (id) {
             const fetchPromo = async () => {
                 try {
-                    const res = await fetch(`http://localhost:5154/api/Promotions/${id}`);
+                    const res = await fetch(`/api/Promotions/${id}`);
                     if (res.ok) {
                         const data = await res.json();
                         setFormData({
@@ -97,8 +97,8 @@ function CreatePromotionPageContent() {
         
         try {
             const url = id 
-                ? `http://localhost:5154/api/Promotions/${id}`
-                : 'http://localhost:5154/api/Promotions';
+                ? `/api/Promotions/${id}`
+                : '/api/Promotions';
             
             const payload = {
                 ...formData,

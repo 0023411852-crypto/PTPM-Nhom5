@@ -14,7 +14,7 @@ export default function AdminSettingsPage() {
     const fetchSettings = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch("http://localhost:5154/api/SiteSettings", {
+            const res = await fetch("/api/SiteSettings", {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             const data = await res.json();
@@ -37,7 +37,7 @@ export default function AdminSettingsPage() {
             
             // Call API to update each setting sequentially
             for (const setting of settings) {
-                await fetch(`http://localhost:5154/api/SiteSettings/${setting.key}`, {
+                await fetch(`/api/SiteSettings/${setting.key}`, {
                     method: "PUT",
                     headers: { 
                         "Content-Type": "application/json",
