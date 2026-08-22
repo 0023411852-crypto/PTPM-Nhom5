@@ -143,17 +143,20 @@ namespace CloudService.Tests
         }
 
         [Fact]
-        public async Task UpdateProfileAsync_ShouldNotUpdateEmail_WhenEmailIsEmpty()
+        public async Task UpdateProfileAsync_ShouldThrowConflictException_WhenEmailIsAlreadyUsed()
         {
             var userId = Guid.NewGuid();
             var user = new AppUser { Id = userId, FullName = "Test User", Email = "old@example.com" };
             _userRepoMock.Setup(r => r.GetByIdAsync(userId, "")).ReturnsAsync(user);
-            var dto = new UpdateProfileDto { FullName = "New Name", Email = "" };
+            
+            var otherUserId = Guid.NewGuid();
+            var otherUser = new AppUser { Id = otherUserId, Email = "used@example.com" };
+            _userRepoMock.Setup(r => r.GetAllAsync("")).ReturnsAsync(new List<AppUser> { user, otherUser }.AsQueryable());
 
-            var result = await _userService.UpdateProfileAsync(userId, dto);
+            var dto = new UpdateProfileDto { FullName = "New Name", Email = "used@example.com" };
+            Func<Task> act = async () => await _userService.UpdateProfileAsync(userId, dto);
 
-            result.Should().BeTrue();
-            user.Email.Should().Be("old@example.com"); // Email không nên bị ghi đè thành rỗng
+            await act.Should().ThrowAsync<ConflictException>().WithMessage("Email đã được sử dụng bởi một tài khoản khác.");
         }
     }
 }
