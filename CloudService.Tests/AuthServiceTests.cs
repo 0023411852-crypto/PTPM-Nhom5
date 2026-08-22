@@ -148,10 +148,10 @@ namespace CloudService.Tests
         [Fact]
         public async Task LoginAsync_ShouldThrowUnauthorized_WhenEmailDoesNotExist()
         {
-            var dto = new LoginDto { Email = "nonexistent@example.com", Password = "any" };
+            var request = new LoginRequest { Email = "nonexistent@example.com", Password = "any" };
             _userRepoMock.Setup(r => r.GetAllAsync("")).ReturnsAsync(new List<AppUser>().AsQueryable());
 
-            Func<Task> act = async () => await _authService.LoginAsync(dto, "127.0.0.1", "TestAgent");
+            Func<Task> act = async () => await _authService.LoginAsync(request, "127.0.0.1", "TestAgent");
 
             await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Email hoặc mật khẩu không chính xác.");
         }
