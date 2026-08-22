@@ -98,7 +98,9 @@ namespace CloudService.Application.Services
 
             if (customerRole == null)
             {
-                throw new Exception("Default role not found");
+                customerRole = new Role { Name = "Customer", Description = "Default User Role" };
+                await roleRepo.AddAsync(customerRole);
+                await _unitOfWork.SaveChangesAsync();
             }
 
             var newUser = new AppUser
