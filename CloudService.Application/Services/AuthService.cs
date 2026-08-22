@@ -98,7 +98,7 @@ namespace CloudService.Application.Services
 
             if (customerRole == null)
             {
-                customerRole = new Role { Name = "Customer", Description = "Default User Role" };
+                customerRole = new Role { Name = "Customer" };
                 await roleRepo.AddAsync(customerRole);
                 await _unitOfWork.SaveChangesAsync();
             }
