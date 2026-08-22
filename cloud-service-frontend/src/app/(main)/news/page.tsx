@@ -60,12 +60,13 @@ export default function NewsPage() {
       setLoading(true);
       setError("");
       try {
-        const response = await fetch(`${API_URL}?PageNumber=1&PageSize=100&onlyPublished=true&search=${encodeURIComponent(search.trim())}`, {
+        const response = await fetch(`${API_URL}?PageNumber=${page}&PageSize=${PAGE_SIZE}&onlyPublished=true&search=${encodeURIComponent(search.trim())}`, {
           signal: controller.signal,
         });
         if (!response.ok) throw new Error("Không thể tải danh sách tin tức.");
         const result: NewsResponse = await response.json();
         setArticles(Array.isArray(result.data) ? result.data : []);
+        // NOTE: BE requires Category filter to be implemented to properly support filtering
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
         setError("Không thể tải tin tức. Vui lòng thử lại sau.");
@@ -79,7 +80,7 @@ export default function NewsPage() {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [search]);
+  }, [search, page]);
 
   const categories = useMemo(() => [
     "Tất cả",
@@ -101,7 +102,8 @@ export default function NewsPage() {
 
   const totalPages = Math.max(1, Math.ceil(filteredArticles.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
-  const visibleArticles = filteredArticles.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  // Remove local slice since we use BE pagination
+  const visibleArticles = filteredArticles;
   const featuredArticle = filteredArticles[0];
 
   useEffect(() => {

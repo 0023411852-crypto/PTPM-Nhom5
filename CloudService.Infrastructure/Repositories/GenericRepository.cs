@@ -44,6 +44,18 @@ namespace CloudService.Infrastructure.Repositories
             return await query.ToListAsync();
         }
 
+        public IQueryable<T> GetQueryable(string includeProperties = "")
+        {
+            IQueryable<T> query = _dbSet;
+
+            foreach (var includeProperty in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                query = query.Include(includeProperty);
+            }
+
+            return query;
+        }
+
         public async Task AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
