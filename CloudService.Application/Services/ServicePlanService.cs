@@ -11,11 +11,13 @@ namespace CloudService.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IQRCodeService _qrCodeService;
 
-        public ServicePlanService(IUnitOfWork unitOfWork, IMapper mapper)
+        public ServicePlanService(IUnitOfWork unitOfWork, IMapper mapper, IQRCodeService qrCodeService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _qrCodeService = qrCodeService;
         }
 
         public async Task<PagedResponse<ServicePlanDto>> GetAllAsync(PaginationFilter filter)
@@ -116,6 +118,24 @@ namespace CloudService.Application.Services
                 }
                 throw new Exception("Lỗi cập nhật dữ liệu: " + (ex.InnerException?.Message ?? ex.Message));
             }
+
+            return _mapper.Map<ServicePlanDto>(entity);
+        }
+
+        public async Task<ServicePlanDto?> RegenerateQrCodeAsync(Guid id)
+        {
+            var repo = _unitOfWork.Repository<ServicePlan>();
+            var allData = await repo.GetAllAsync(includeProperties: "Prices,Category");
+            var entity = allData.FirstOrDefault(x => x.Id == id);
+            if (entity == null) return null;
+
+            var priceSummary = string.Join(",", entity.Prices
+                .OrderBy(price => price.BillingCycle)
+                .Select(price => $"{price.BillingCycle}:{price.Price + price.SetupFee:0.##}"));
+            var qrPayload = $"CLOUDNOVA|SERVICE_PLAN|{entity.Id}|{entity.Name}|{priceSummary}";
+            entity.QRCodeBase64 = _qrCodeService.GenerateQRCodeBase64(qrPayload);
+            repo.Update(entity);
+            await _unitOfWork.SaveChangesAsync();
 
             return _mapper.Map<ServicePlanDto>(entity);
         }

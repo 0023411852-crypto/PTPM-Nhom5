@@ -53,8 +53,9 @@ Chỉ bổ sung giao diện quản lý danh mục tại Admin, gồm danh sách 
 ## Trạng thái
 
 - Batch 0: **Hoàn tất phân tích, chưa sửa code chức năng**.
-- Batch 1 CRUD danh mục: **Đã triển khai, đang chờ kiểm thử và commit**.
+- Batch 1 CRUD danh mục: **Đã hoàn tất và đã push** (`82f198b`).
 - QR theo gói: Chưa bắt đầu.
+- Batch 2 QR theo gói: **Đã triển khai, đang kiểm thử và chuẩn bị commit**.
 - Các batch khác: Chưa bắt đầu.
 
 ## Batch 1 — Giao diện CRUD danh mục dịch vụ
@@ -77,3 +78,23 @@ Không sửa controller, service, entity, DbContext, migration, SQL, gói dịch
 - `git diff --check`.
 - Xác nhận chỉ hai file FE và file Markdown được stage.
 - Kiểm tra patch không có file backend/database ngoài phạm vi.
+
+## Batch 2 — Sinh lại và xem QR theo gói dịch vụ
+
+### Phân tích trước khi sửa
+
+`ServicePlan.QRCodeBase64` đã tồn tại trong entity và `ServicePlanDto` đã trả trường này; `QRCodeService` cũng đã có hàm sinh Base64. Vì vậy batch này không cần thêm entity, DbSet, migration hoặc SQL. Backend chỉ thiếu contract service và endpoint Admin; frontend chỉ thiếu nút gọi endpoint và modal xem QR.
+
+### File đã sửa
+
+| File | Nội dung |
+|---|---|
+| `CloudService.Application/Interfaces/IServicePlanService.cs` | Thêm contract `RegenerateQrCodeAsync` |
+| `CloudService.Application/Services/ServicePlanService.cs` | Sinh payload từ ID/tên/mức giá hiện tại, tạo Base64 QR và lưu `QRCodeBase64` |
+| `CloudService.WebApi/Controllers/ServicePlansController.cs` | Thêm `POST /api/ServicePlans/{id}/regenerate-qr`, chỉ role Admin |
+| `cloud-service-frontend/src/app/admin/services/page.tsx` | Thêm cột QR, nút sinh lại, xem QR và cập nhật state |
+| `Docs/IMPLEMENTATION_PROGRESS.md` | Cập nhật nhật ký batch |
+
+### Giới hạn và nghiệm thu
+
+Batch này không thay đổi create/update DTO, database schema, QR thanh toán order hoặc các luồng public. QR catalog có payload gói và giá hiện tại; khi giá thay đổi, Admin bấm sinh lại để tạo mã mới. TypeScript và `git diff --check` đã pass. `dotnet build` chưa chạy được vì sandbox không có .NET SDK; cần chạy trên máy local có SDK.

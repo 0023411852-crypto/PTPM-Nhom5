@@ -62,6 +62,22 @@ namespace CloudService.WebApi.Controllers
             }
         }
 
+        [HttpPost("{id}/regenerate-qr")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RegenerateQr(Guid id)
+        {
+            try
+            {
+                var result = await _service.RegenerateQrCodeAsync(id);
+                if (result == null) return NotFound(new { message = "Không tìm thấy gói dịch vụ." });
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id)

@@ -25,6 +25,7 @@ type ServicePlan = {
     isActive: boolean;
     category: Category;
     prices: Price[];
+    qrCodeBase64?: string | null;
 };
 
 export default function AdminServicesPage() {
@@ -36,6 +37,9 @@ export default function AdminServicesPage() {
     // Modal states
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+    const [qrPlan, setQrPlan] = useState<ServicePlan | null>(null);
+    const [isQrLoading, setIsQrLoading] = useState(false);
     
     // Data states
     const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
@@ -199,6 +203,31 @@ export default function AdminServicesPage() {
         }
     };
 
+    const handleRegenerateQr = async (plan: ServicePlan) => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            showMessage('Lỗi xác thực', 'Vui lòng đăng nhập lại!', true);
+            return;
+        }
+
+        setIsQrLoading(true);
+        try {
+            const res = await fetch(`http://localhost:5154/api/ServicePlans/${plan.id}/regenerate-qr`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json().catch(() => null);
+            if (!res.ok) throw new Error(data?.message || 'Không thể sinh lại mã QR.');
+            setQrPlan(data);
+            setIsQrModalOpen(true);
+            setPlans((current) => current.map((item) => item.id === data.id ? data : item));
+        } catch (error) {
+            showMessage('Lỗi', error instanceof Error ? error.message : 'Không thể sinh lại mã QR.', true);
+        } finally {
+            setIsQrLoading(false);
+        }
+    };
+
     const handleDelete = async () => {
         if (!planToDelete) return;
         
@@ -258,6 +287,7 @@ export default function AdminServicesPage() {
                                 <th className="py-sm px-md font-semibold">Danh mục</th>
                                 <th className="py-sm px-md font-semibold">Cấu hình</th>
                                 <th className="py-sm px-md font-semibold text-right">Giá gốc (Tháng)</th>
+                                <th className="py-sm px-md font-semibold text-center">QR</th>
                                 <th className="py-sm px-md font-semibold">Trạng thái</th>
                                 <th className="py-sm px-md font-semibold text-right">Thao tác</th>
                             </tr>
@@ -265,13 +295,13 @@ export default function AdminServicesPage() {
                         <tbody>
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan={6} className="py-lg text-center text-on-surface-variant font-body-sm">
+                                    <td colSpan={7} className="py-lg text-center text-on-surface-variant font-body-sm">
                                         Đang tải dữ liệu...
                                     </td>
                                 </tr>
                             ) : plans.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="py-lg text-center text-on-surface-variant font-body-sm">
+                                    <td colSpan={7} className="py-lg text-center text-on-surface-variant font-body-sm">
                                         Không có dịch vụ nào.
                                     </td>
                                 </tr>
@@ -300,6 +330,16 @@ export default function AdminServicesPage() {
                                             </td>
                                             <td className="py-md px-md text-right">
                                                 <p className="font-code-md text-body-md text-on-surface font-medium">{price}</p>
+                                            </td>
+                                            <td className="py-md px-md text-center">
+                                                <div className="flex items-center justify-center gap-xs">
+                                                    <button type="button" onClick={() => { setQrPlan(plan); setIsQrModalOpen(true); }} disabled={!plan.qrCodeBase64} className="p-1 text-on-surface-variant hover:text-primary disabled:opacity-40" title={plan.qrCodeBase64 ? 'Xem mã QR' : 'Chưa có mã QR'}>
+                                                        <span className="material-symbols-outlined text-[20px]">qr_code_2</span>
+                                                    </button>
+                                                    <button type="button" onClick={() => handleRegenerateQr(plan)} disabled={isQrLoading} className="p-1 text-on-surface-variant hover:text-primary disabled:opacity-40" title="Sinh lại mã QR">
+                                                        <span className="material-symbols-outlined text-[20px]">refresh</span>
+                                                    </button>
+                                                </div>
                                             </td>
                                             <td className="py-md px-md">
                                                 <span className={`font-body-sm text-body-sm flex items-center gap-xs ${
@@ -492,6 +532,35 @@ export default function AdminServicesPage() {
                         <p className="font-body-md mb-2">Bạn có chắc chắn muốn xóa dịch vụ này không?</p>
                         <p className="font-body-sm text-on-surface-variant">Hành động này không thể hoàn tác. Dịch vụ sẽ bị xóa hoàn toàn khỏi hệ thống.</p>
                     </div>
+                </div>
+            </Modal>
+
+            {/* QR Preview Modal */}
+            <Modal
+                isOpen={isQrModalOpen}
+                onClose={() => setIsQrModalOpen(false)}
+                title={qrPlan ? `Mã QR: ${qrPlan.name}` : 'Mã QR dịch vụ'}
+                maxWidth="max-w-[28rem]"
+                footer={
+                    <button
+                        onClick={() => setIsQrModalOpen(false)}
+                        className="px-6 py-2 bg-primary text-on-primary rounded-lg font-medium shadow-sm hover:shadow-md transition-all"
+                    >
+                        Đóng
+                    </button>
+                }
+            >
+                <div className="flex flex-col items-center gap-md py-md">
+                    {qrPlan?.qrCodeBase64 ? (
+                        <img
+                            src={`data:image/png;base64,${qrPlan.qrCodeBase64}`}
+                            alt={`Mã QR ${qrPlan.name}`}
+                            className="h-64 w-64 rounded-lg border border-outline-variant bg-white p-2"
+                        />
+                    ) : (
+                        <p className="font-body-sm text-on-surface-variant">Chưa có mã QR. Bấm sinh lại để tạo mã mới.</p>
+                    )}
+                    <p className="text-center font-body-sm text-on-surface-variant">Mã QR được sinh từ thông tin gói và các mức giá hiện tại.</p>
                 </div>
             </Modal>
 
