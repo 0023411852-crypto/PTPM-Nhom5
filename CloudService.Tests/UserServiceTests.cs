@@ -58,7 +58,7 @@ namespace CloudService.Tests
 
             Func<Task> act = async () => await _userService.ChangePasswordAsync(userId, dto);
 
-            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Current password is incorrect");
+            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Mật khẩu hiện tại không chính xác");
         }
 
         [Fact]
@@ -84,7 +84,7 @@ namespace CloudService.Tests
 
             Func<Task> act = async () => await _userService.UpdateUserStatusAsync(adminId, adminId, dto);
 
-            await act.Should().ThrowAsync<ValidationException>().WithMessage("You cannot lock your own account.");
+            await act.Should().ThrowAsync<ValidationException>().WithMessage("Bạn không thể khoá tài khoản của chính mình.");
         }
 
         [Fact]

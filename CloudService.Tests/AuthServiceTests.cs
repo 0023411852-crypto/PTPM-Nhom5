@@ -61,7 +61,7 @@ namespace CloudService.Tests
             Func<Task> act = async () => await _authService.RegisterAsync(request);
 
             // Assert
-            await act.Should().ThrowAsync<ConflictException>().WithMessage("Email already exists");
+            await act.Should().ThrowAsync<ConflictException>().WithMessage("Email đã tồn tại trong hệ thống");
         }
 
         [Fact]
@@ -72,7 +72,7 @@ namespace CloudService.Tests
 
             Func<Task> act = async () => await _authService.LoginAsync(request);
 
-            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Invalid credentials");
+            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Email hoặc mật khẩu không chính xác.");
         }
 
         [Fact]
@@ -88,7 +88,7 @@ namespace CloudService.Tests
 
             Func<Task> act = async () => await _authService.LoginAsync(request);
 
-            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Invalid credentials");
+            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Email hoặc mật khẩu không chính xác.");
         }
 
         [Fact]
@@ -128,7 +128,7 @@ namespace CloudService.Tests
 
             Func<Task> act = async () => await _authService.RefreshTokenAsync(request);
 
-            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Invalid session or refresh token.");
+            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Phiên đăng nhập hoặc token không hợp lệ.");
         }
 
         [Fact]
@@ -142,7 +142,7 @@ namespace CloudService.Tests
 
             Func<Task> act = async () => await _authService.RefreshTokenAsync(request);
 
-            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Invalid session or refresh token.");
+            await act.Should().ThrowAsync<UnauthorizedException>().WithMessage("Phiên đăng nhập hoặc token không hợp lệ.");
         }
     }
 }
