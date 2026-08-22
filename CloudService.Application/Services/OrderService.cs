@@ -6,7 +6,8 @@ using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
 using CloudService.Domain.Enums;
 using CloudService.Domain.Interfaces;
-
+using CloudService.Domain.Exceptions;
+using Microsoft.Extensions.Configuration;
 namespace CloudService.Application.Services
 {
     public class OrderService : IOrderService
@@ -16,13 +17,15 @@ namespace CloudService.Application.Services
         private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
         private readonly IEventDispatcher _eventDispatcher;
+        private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IEmailService emailService, IEventDispatcher eventDispatcher)
+        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IEmailService emailService, IEventDispatcher eventDispatcher, Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _emailService = emailService;
             _eventDispatcher = eventDispatcher;
+            _configuration = configuration;
         }
 
         public async Task<PagedResponse<OrderDto>> GetUserOrdersAsync(Guid userId, PaginationFilter filter)
@@ -151,7 +154,7 @@ namespace CloudService.Application.Services
             if (user != null)
             {
                 await _emailService.SendEmailAsync(user.Email, "Xác nhận đặt hàng thành công", 
-                    $"Cảm ơn {user.FullName}, đơn hàng {order.Id} của bạn đã được khởi tạo. Tổng tiền: {order.TotalAmount}đ.\nChúng tôi sẽ duyệt đơn ngay khi nhận được thanh toán.");
+                    $"Cảm ơn {user.FullName}, đơn hàng {order.Id} của bạn đã được khởi tạo. Tổng tiền: {order.TotalAmount}đ.\nHệ thống sẽ tự động hoàn tất đơn hàng và khởi tạo dịch vụ ngay khi nhận được thanh toán.");
             }
 
             await _eventDispatcher.DispatchAsync(new CloudService.Domain.Events.OrderPlacedEvent(userId, order.Id, order.TotalAmount));
@@ -176,6 +179,9 @@ namespace CloudService.Application.Services
 
         public async Task<DemoPaymentResultDto?> ConfirmDemoPaymentAsync(Guid orderId, Guid requesterId)
         {
+            if (!bool.TryParse(_configuration["DemoPayment:Enabled"], out var isEnabled) || !isEnabled)
+                throw new UnauthorizedException("Demo Payment đang bị tắt trên hệ thống.");
+
             var orderRepo = _unitOfWork.Repository<OrderRequest>();
             var orders = await orderRepo.GetAllAsync(includeProperties: "ServicePlan");
             var order = orders.FirstOrDefault(x => x.Id == orderId && x.UserId == requesterId);
