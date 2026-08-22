@@ -57,7 +57,9 @@ Chỉ bổ sung giao diện quản lý danh mục tại Admin, gồm danh sách 
 - QR theo gói: Chưa bắt đầu.
 - Batch 2 QR theo gói: **Đã hoàn tất và đã push** (`d9249e4`).
 - Batch 3 setup fee bảng giá: **Đã hoàn tất và đã push** (`537e51c`).
-- Batch 4 validation thời hạn khuyến mãi: **Đã triển khai, kiểm thử pass và chuẩn bị commit**.
+- Batch 4 validation thời hạn khuyến mãi: **Đã hoàn tất và đã push** (`d59650e`).
+- Batch 5 Affiliate/PartnerRequests: **Đã hoàn tất và đã push** (`c5c1a16`).
+- Batch 6 thống kê báo cáo: **Đã sửa công thức, kiểm tra diff pass; chưa build được vì sandbox thiếu .NET SDK**.
 - Các batch khác: Chưa bắt đầu.
 
 ## Batch 1 — Giao diện CRUD danh mục dịch vụ
@@ -153,3 +155,20 @@ Dự án đồng thời đã có trang `admin/partner-requests` kết nối đú
 ### Giới hạn và nghiệm thu
 
 Không sửa backend, entity, DTO, database hoặc migration vì API và logic approve/reject đã tồn tại và phù hợp. `npx tsc --noEmit` và `git diff --check` đã pass. Route `/admin/affiliates` hiện dùng dữ liệu server; route menu chính `/admin/partner-requests` vẫn hoạt động độc lập với cùng nghiệp vụ.
+
+## Batch 6 — Đồng nhất công thức thống kê báo cáo Admin
+
+### Phân tích trước khi sửa
+
+`AdminController` và `AdminService` đã có API `GET /api/Admin/revenue-report`; trang `admin/reports` cũng đã gọi API thật. Tuy nhiên doanh thu chỉ tính đơn `Completed`, trong khi số giao dịch và AOV lại tính toàn bộ đơn trong kỳ, bao gồm `Pending`, `Rejected` hoặc trạng thái chưa hoàn tất. Điều này làm các chỉ số không cùng một tập dữ liệu.
+
+### File đã sửa
+
+| File | Nội dung |
+|---|---|
+| `CloudService.Application/Services/AdminService.cs` | Tạo tập `currentCompletedOrders` và `previousCompletedOrders`; dùng chúng cho doanh thu, số giao dịch, AOV và tỷ trọng dịch vụ |
+| `Docs/IMPLEMENTATION_PROGRESS.md` | Cập nhật nhật ký Batch 6 |
+
+### Giới hạn và nghiệm thu
+
+Không thay đổi endpoint, DTO, database, migration hoặc giao diện. `git diff --check` đã pass. Không chạy được `dotnet build` trong sandbox vì máy không có .NET SDK; cần chạy lệnh build trên máy local có SDK. Nút `Xuất báo cáo` hiện vẫn là placeholder và được giữ lại cho batch Excel riêng, không giả vờ đã hoàn thành.
