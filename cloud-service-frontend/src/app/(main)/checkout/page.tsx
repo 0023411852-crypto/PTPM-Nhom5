@@ -20,6 +20,19 @@ export default function CheckoutPage() {
     const [token, setToken] = useState<string | null>(null);
     const [customerNotes, setCustomerNotes] = useState('');
     const [qrCodeData, setQrCodeData] = useState<{qrCode: string, paymentString: string, amount: number} | null>(null);
+    const [demoOrderIds, setDemoOrderIds] = useState<string[]>([]);
+    const [isDemoConfirming, setIsDemoConfirming] = useState(false);
+    const [demoPayment, setDemoPayment] = useState<{
+        orderId: string;
+        status: string;
+        alreadyProcessed: boolean;
+        demoMode: boolean;
+        serviceName: string;
+        vpsIP: string;
+        vpsUser: string;
+        vpsPassword: string;
+        expiryDate: string;
+    } | null>(null);
 
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
@@ -70,6 +83,30 @@ export default function CheckoutPage() {
         }
     };
 
+    const handleConfirmDemoPayment = async () => {
+        if (demoOrderIds.length === 0 || !token || isDemoConfirming) return;
+        setIsDemoConfirming(true);
+        setErrorMsg('');
+        try {
+            const responses = await Promise.all(demoOrderIds.map(orderId =>
+                fetch(`http://localhost:5154/api/Orders/${orderId}/demo-payment`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` }
+                }).then(async res => ({ res, data: await res.json().catch(() => ({})) }))
+            ));
+            const failed = responses.find(({ res }) => !res.ok);
+            if (failed) {
+                setErrorMsg(failed.data.message || 'Không thể xác nhận thanh toán demo.');
+                return;
+            }
+            setDemoPayment(responses[0].data);
+        } catch {
+            setErrorMsg('Lỗi kết nối khi xác nhận thanh toán demo.');
+        } finally {
+            setIsDemoConfirming(false);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMsg('');
@@ -93,6 +130,7 @@ export default function CheckoutPage() {
         
         try {
             let firstOrderId = "";
+            const createdOrderIds: string[] = [];
             // Gửi từng đơn hàng trong giỏ
             for (let i = 0; i < cart.length; i++) {
                 const item = cart[i];
@@ -114,6 +152,7 @@ export default function CheckoutPage() {
                     if (res.ok) {
                         const data = await res.json();
                         if (firstOrderId === "") firstOrderId = data.id;
+                        createdOrderIds.push(data.id);
                     }
                 }
             }
@@ -122,6 +161,8 @@ export default function CheckoutPage() {
                 // Fetch 1 mã QR dùng chung tổng tiền
                 // BE bỏ qua amount do client gửi và trả lại TotalAmount đã lưu trong database.
                 await fetchQRCode(firstOrderId, totalWithVat);
+                setDemoOrderIds(createdOrderIds);
+                setDemoPayment(null);
                 setIsSuccess(true);
                 // Clear cart
                 setCart([]);
@@ -167,7 +208,7 @@ export default function CheckoutPage() {
                     </div>
                     <h1 className="font-display-sm text-display-sm text-on-surface mb-sm">Đặt hàng thành công!</h1>
                     <p className="font-body-lg text-body-lg text-on-surface-variant mb-xl">
-                        Vui lòng quét mã QR dưới đây để thanh toán tổng đơn hàng. Chúng tôi sẽ duyệt toàn bộ dịch vụ ngay khi nhận được thanh toán.
+                        Đây là luồng thanh toán <strong>DEMO</strong> cho bài kết thúc môn. Bạn có thể xem QR minh họa hoặc bấm xác nhận đã thanh toán để mô phỏng callback thành công.
                     </p>
                     
                     {qrCodeData && (
@@ -180,6 +221,28 @@ export default function CheckoutPage() {
                                 <p className="text-[14px] text-on-surface-variant">Nội dung: <strong className="text-on-surface break-all">{qrCodeData.paymentString}</strong></p>
                                 <p className="text-[14px] text-error mt-2">Tổng thanh toán: <strong className="text-error">{formatCurrency(Number(qrCodeData.amount) || totalWithVat)}</strong></p>
                             </div>
+                        </div>
+                    )}
+
+                    {!demoPayment ? (
+                        <div className="mb-lg">
+                            <button
+                                onClick={handleConfirmDemoPayment}
+                                disabled={isDemoConfirming || demoOrderIds.length === 0}
+                                className="w-full max-w-[420px] px-lg py-md bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors disabled:opacity-60"
+                            >
+                                {isDemoConfirming ? 'Đang xác nhận Demo Payment...' : 'Tôi đã thanh toán (DEMO)'}
+                            </button>
+                            <p className="text-xs text-on-surface-variant mt-sm">Nút này chỉ mô phỏng callback thanh toán, không giao dịch tiền thật.</p>
+                        </div>
+                    ) : (
+                        <div className="text-left bg-primary-container/30 border border-primary rounded-xl p-lg mb-lg">
+                            <p className="font-medium text-primary mb-sm">Thanh toán Demo thành công</p>
+                            <p className="text-sm text-on-surface">Dịch vụ: {demoPayment.serviceName}</p>
+                            <p className="text-sm text-on-surface">IP: {demoPayment.vpsIP}</p>
+                            <p className="text-sm text-on-surface">Tài khoản: {demoPayment.vpsUser}</p>
+                            <p className="text-sm text-on-surface">Mật khẩu: {demoPayment.vpsPassword}</p>
+                            <p className="text-sm text-on-surface-variant mt-sm">Hết hạn: {new Date(demoPayment.expiryDate).toLocaleDateString('vi-VN')}</p>
                         </div>
                     )}
                     <div>

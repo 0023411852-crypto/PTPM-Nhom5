@@ -14,11 +14,13 @@ namespace CloudService.WebApi.Controllers
     {
         private readonly IOrderService _orderService;
         private readonly IQRCodeService _qrCodeService;
+        private readonly IConfiguration _configuration;
 
-        public OrdersController(IOrderService orderService, IQRCodeService qrCodeService)
+        public OrdersController(IOrderService orderService, IQRCodeService qrCodeService, IConfiguration configuration)
         {
             _orderService = orderService;
             _qrCodeService = qrCodeService;
+            _configuration = configuration;
         }
 
         [HttpGet("my-orders")]
@@ -80,7 +82,24 @@ namespace CloudService.WebApi.Controllers
             return File(content, "text/csv; charset=utf-8", $"orders-{DateTime.UtcNow:yyyyMMdd-HHmmss}.csv");
         }
 
-        [HttpGet("{id}/payment-qr")]
+        [HttpPost("{id:guid}/demo-payment")]
+        public async Task<IActionResult> ConfirmDemoPayment(Guid id)
+        {
+            if (!_configuration.GetValue<bool>("DemoPayment:Enabled"))
+                return NotFound(new { message = "Demo Payment đang bị tắt." });
+
+            var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdValue, out var userId))
+                return Unauthorized();
+
+            var result = await _orderService.ConfirmDemoPaymentAsync(id, userId);
+            if (result == null)
+                return NotFound(new { message = "Không tìm thấy đơn hàng hoặc đơn không hợp lệ." });
+
+            return Ok(result);
+        }
+
+        [HttpGet("{id:guid}/payment-qr")]
         public async Task<IActionResult> GetPaymentQR(Guid id, [FromQuery] decimal? amount = null)
         {
             var requesterIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

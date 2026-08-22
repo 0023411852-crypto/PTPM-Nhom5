@@ -11,6 +11,7 @@ namespace CloudService.Application.Interfaces
         Task<byte[]> ExportAllOrdersCsvAsync();
         Task<OrderDto> CreateOrderAsync(Guid userId, CreateOrderDto dto);
         Task<decimal?> GetPaymentAmountAsync(Guid orderId, Guid requesterId, bool isAdmin);
+        Task<DemoPaymentResultDto?> ConfirmDemoPaymentAsync(Guid orderId, Guid requesterId);
         Task<bool> DeleteOrderAsync(Guid orderId);
     }
 }

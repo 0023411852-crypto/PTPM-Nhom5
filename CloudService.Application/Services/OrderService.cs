@@ -174,6 +174,64 @@ namespace CloudService.Application.Services
             return Math.Round(subtotal * (1 + VatRate), 2, MidpointRounding.AwayFromZero);
         }
 
+        public async Task<DemoPaymentResultDto?> ConfirmDemoPaymentAsync(Guid orderId, Guid requesterId)
+        {
+            var orderRepo = _unitOfWork.Repository<OrderRequest>();
+            var orders = await orderRepo.GetAllAsync(includeProperties: "ServicePlan");
+            var order = orders.FirstOrDefault(x => x.Id == orderId && x.UserId == requesterId);
+            if (order == null || order.Status == OrderStatus.Cancelled)
+                return null;
+
+            var serviceRepo = _unitOfWork.Repository<CustomerService>();
+            var existingService = (await serviceRepo.GetAllAsync())
+                .FirstOrDefault(x => x.OrderId == order.Id);
+
+            if (existingService != null)
+            {
+                return new DemoPaymentResultDto
+                {
+                    OrderId = order.Id,
+                    Status = order.Status.ToString(),
+                    AlreadyProcessed = true,
+                    ServiceName = existingService.ServiceName,
+                    VpsIP = existingService.VpsIP,
+                    VpsUser = existingService.VpsUser,
+                    VpsPassword = existingService.VpsPassword,
+                    ExpiryDate = existingService.ExpiryDate
+                };
+            }
+
+            order.Status = OrderStatus.Completed;
+            orderRepo.Update(order);
+
+            var newService = new CustomerService
+            {
+                OrderId = order.Id,
+                CustomerId = order.UserId,
+                ServiceName = order.ServicePlan?.Name ?? "Demo VPS",
+                VpsIP = "203.0.113.10",
+                VpsUser = "demo-user",
+                VpsPassword = $"Demo-{order.Id.ToString("N")[..8]}",
+                ExpiryDate = DateTime.UtcNow.AddMonths(1),
+                Status = "Active"
+            };
+
+            await serviceRepo.AddAsync(newService);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new DemoPaymentResultDto
+            {
+                OrderId = order.Id,
+                Status = order.Status.ToString(),
+                AlreadyProcessed = false,
+                ServiceName = newService.ServiceName,
+                VpsIP = newService.VpsIP,
+                VpsUser = newService.VpsUser,
+                VpsPassword = newService.VpsPassword,
+                ExpiryDate = newService.ExpiryDate
+            };
+        }
+
         public async Task<bool> DeleteOrderAsync(Guid orderId)
         {
             var repo = _unitOfWork.Repository<OrderRequest>();
