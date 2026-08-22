@@ -394,7 +394,7 @@ export default function ClientPortalPage() {
                                         <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-md">
                                             <span className="material-symbols-outlined text-[32px] text-secondary">cloud_off</span>
                                         </div>
-                                        <p className="text-on-surface-variant mb-md">Bạn chưa có dịch vụ nào đang hoạt động hoặc đơn hàng đang chờ duyệt.</p>
+                                        <p className="text-on-surface-variant mb-md">Bạn chưa có dịch vụ nào đang hoạt động. Hãy mua một gói dịch vụ để bắt đầu.</p>
                                         <Link href="/pricing" className="inline-block px-lg py-sm bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors">Mua ngay VPS</Link>
                                     </div>
                                 ) : (
@@ -423,9 +423,15 @@ export default function ClientPortalPage() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <button onClick={() => window.open(`http://${svc.vpsIP}`, '_blank')} className="px-md py-sm bg-surface-container text-primary font-medium rounded-lg hover:bg-surface-variant transition-colors whitespace-nowrap">
-                                                    Truy cập Control Panel
-                                                </button>
+                                                {svc.vpsIP === '203.0.113.10' ? (
+                                                    <span className="px-md py-sm bg-warning/10 text-warning font-medium rounded-lg whitespace-nowrap">
+                                                        VPS demo
+                                                    </span>
+                                                ) : (
+                                                    <button onClick={() => window.open(`http://${svc.vpsIP}`, '_blank')} className="px-md py-sm bg-surface-container text-primary font-medium rounded-lg hover:bg-surface-variant transition-colors whitespace-nowrap">
+                                                        Truy cập Control Panel
+                                                    </button>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
