@@ -10,8 +10,8 @@ namespace CloudService.WebApi
         {
             if (!context.Roles.Any())
             {
-                var adminRole = new Role { Id = Guid.NewGuid(), Name = "Admin", Description = "Quản trị viên hệ thống" };
-                var userRole = new Role { Id = Guid.NewGuid(), Name = "User", Description = "Người dùng cơ bản" };
+                var adminRole = new Role { Id = Guid.NewGuid(), Name = "Admin" };
+                var userRole = new Role { Id = Guid.NewGuid(), Name = "User" };
                 context.Roles.AddRange(adminRole, userRole);
                 context.SaveChanges();
             }
@@ -27,7 +27,6 @@ namespace CloudService.WebApi
                         FullName = "System Admin",
                         Email = "admin@ptpm-nhom5.com",
                         PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123!"),
-                        PhoneNumber = "0123456789",
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow,
                         RoleId = adminRole.Id
