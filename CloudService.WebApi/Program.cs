@@ -1,5 +1,6 @@
 using CloudService.Application;
 using CloudService.Infrastructure;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -16,6 +17,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // Configure CORS
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -23,6 +26,14 @@ builder.Services.AddCors(options =>
         policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader();
+    });
+    
+    options.AddPolicy("ProductionCors", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
@@ -100,6 +111,12 @@ builder.Services.AddHostedService<CloudService.WebApi.BackgroundServices.UserCle
 
 var app = builder.Build();
 
+// Cấu hình Forwarded Headers cho Nginx/Cloudflare (tránh lỗi Redirect Loop HTTPS)
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
 // Chỉ tự động apply migration khi được bật rõ ràng, phù hợp cho Docker/demo.
 if (app.Configuration.GetValue<bool>("Database:AutoMigrate"))
 {
@@ -121,7 +138,14 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
-app.UseCors("AllowAll");
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors("AllowAll");
+}
+else
+{
+    app.UseCors("ProductionCors");
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
