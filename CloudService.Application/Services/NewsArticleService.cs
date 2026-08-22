@@ -18,7 +18,7 @@ namespace CloudService.Application.Services
             _mapper = mapper;
         }
 
-        public async Task<PagedResponse<NewsArticleDto>> GetAllAsync(PaginationFilter filter, bool onlyPublished = false)
+        public async Task<PagedResponse<NewsArticleDto>> GetAllAsync(PaginationFilter filter, bool onlyPublished = false, string search = "")
         {
             var repo = _unitOfWork.Repository<NewsArticle>();
             var allData = await repo.GetAllAsync("Author");
@@ -26,6 +26,16 @@ namespace CloudService.Application.Services
             if (onlyPublished)
             {
                 allData = allData.Where(x => x.IsPublished);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var normalizedSearch = search.Trim().ToLower();
+                allData = allData.Where(x =>
+                    x.Title.ToLower().Contains(normalizedSearch) ||
+                    x.Content.ToLower().Contains(normalizedSearch) ||
+                    x.Slug.ToLower().Contains(normalizedSearch) ||
+                    x.Category.ToLower().Contains(normalizedSearch));
             }
 
             var pagedData = allData

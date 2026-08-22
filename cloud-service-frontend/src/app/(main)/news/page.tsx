@@ -56,11 +56,11 @@ export default function NewsPage() {
   useEffect(() => {
     const controller = new AbortController();
 
-    async function loadArticles() {
+        async function loadArticles() {
       setLoading(true);
       setError("");
       try {
-        const response = await fetch(`${API_URL}?PageNumber=1&PageSize=100&onlyPublished=true`, {
+        const response = await fetch(`${API_URL}?PageNumber=1&PageSize=100&onlyPublished=true&search=${encodeURIComponent(search.trim())}`, {
           signal: controller.signal,
         });
         if (!response.ok) throw new Error("Không thể tải danh sách tin tức.");
@@ -74,9 +74,12 @@ export default function NewsPage() {
       }
     }
 
-    loadArticles();
-    return () => controller.abort();
-  }, []);
+    const timer = window.setTimeout(loadArticles, 250);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [search]);
 
   const categories = useMemo(() => [
     "Tất cả",
@@ -89,7 +92,9 @@ export default function NewsPage() {
       const matchesCategory = category === "Tất cả" || article.category === category;
       const matchesSearch = !normalizedSearch ||
         article.title.toLowerCase().includes(normalizedSearch) ||
-        article.content.toLowerCase().includes(normalizedSearch);
+        article.content.toLowerCase().includes(normalizedSearch) ||
+        article.category.toLowerCase().includes(normalizedSearch) ||
+        article.slug.toLowerCase().includes(normalizedSearch);
       return matchesCategory && matchesSearch;
     });
   }, [articles, category, search]);

@@ -5,7 +5,7 @@ namespace CloudService.Application.Interfaces
 {
     public interface INewsArticleService
     {
-        Task<PagedResponse<NewsArticleDto>> GetAllAsync(PaginationFilter filter, bool onlyPublished = false);
+        Task<PagedResponse<NewsArticleDto>> GetAllAsync(PaginationFilter filter, bool onlyPublished = false, string search = "");
         Task<NewsArticleDto?> GetByIdAsync(Guid id);
         Task<NewsArticleDto> CreateAsync(Guid authorId, CreateNewsArticleDto dto);
         Task<NewsArticleDto> UpdateAsync(Guid id, UpdateNewsArticleDto dto);
