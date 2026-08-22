@@ -49,6 +49,11 @@ namespace CloudService.Application.Services
                 throw new Exception("Invalid credentials");
             }
 
+            if (!user.IsActive)
+            {
+                throw new Exception("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+            }
+
             var roleRepo = _unitOfWork.Repository<Role>();
             var role = await roleRepo.GetByIdAsync(user.RoleId);
 
