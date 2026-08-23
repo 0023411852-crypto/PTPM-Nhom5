@@ -103,5 +103,67 @@ namespace CloudService.Application.Services
                 CreatedAt = entity.CreatedAt
             };
         }
+
+        public async Task<byte[]> ExportToExcelAsync(string search = "", string status = "")
+        {
+            var repo = _unitOfWork.Repository<PartnerRequest>();
+            var allData = await repo.GetAllAsync();
+            var query = allData.AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                var searchLower = search.ToLower();
+                query = query.Where(x => x.FullName.ToLower().Contains(searchLower) || 
+                                         x.Email.ToLower().Contains(searchLower) || 
+                                         x.WebsiteUrl.ToLower().Contains(searchLower));
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(x => x.Status == status);
+            }
+
+            var exportData = query.OrderByDescending(x => x.CreatedAt).ToList();
+
+            using var workbook = new ClosedXML.Excel.XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Partner Requests");
+
+            // Headers
+            worksheet.Cell(1, 1).Value = "Mã Yêu Cầu";
+            worksheet.Cell(1, 2).Value = "Họ và Tên";
+            worksheet.Cell(1, 3).Value = "Email";
+            worksheet.Cell(1, 4).Value = "Website URL";
+            worksheet.Cell(1, 5).Value = "Gói Dịch Vụ Yêu Cầu";
+            worksheet.Cell(1, 6).Value = "Cách Thức Quảng Bá";
+            worksheet.Cell(1, 7).Value = "Trạng Thái";
+            worksheet.Cell(1, 8).Value = "Ngày Gửi (UTC)";
+            worksheet.Cell(1, 9).Value = "Ghi Chú";
+
+            var headerRow = worksheet.Row(1);
+            headerRow.Style.Font.Bold = true;
+            headerRow.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.LightGray;
+
+            // Data rows
+            for (int i = 0; i < exportData.Count; i++)
+            {
+                var row = i + 2;
+                var item = exportData[i];
+                worksheet.Cell(row, 1).Value = item.Id.ToString();
+                worksheet.Cell(row, 2).Value = item.FullName;
+                worksheet.Cell(row, 3).Value = item.Email;
+                worksheet.Cell(row, 4).Value = item.WebsiteUrl;
+                worksheet.Cell(row, 5).Value = item.RequestedService;
+                worksheet.Cell(row, 6).Value = item.PromotionMethod;
+                worksheet.Cell(row, 7).Value = item.Status;
+                worksheet.Cell(row, 8).Value = item.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                worksheet.Cell(row, 9).Value = item.Notes;
+            }
+
+            worksheet.Columns().AdjustToContents();
+
+            using var stream = new System.IO.MemoryStream();
+            workbook.SaveAs(stream);
+            return stream.ToArray();
+        }
     }
 }

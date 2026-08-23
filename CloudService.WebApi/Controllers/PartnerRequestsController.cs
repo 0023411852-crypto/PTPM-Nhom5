@@ -62,5 +62,20 @@ namespace CloudService.WebApi.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("export")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Export([FromQuery] string search = "", [FromQuery] string status = "")
+        {
+            try
+            {
+                var fileBytes = await _service.ExportToExcelAsync(search, status);
+                return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "DanhSachYeuCau.xlsx");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

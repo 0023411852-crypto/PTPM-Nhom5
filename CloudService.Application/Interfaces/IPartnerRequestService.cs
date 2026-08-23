@@ -10,5 +10,6 @@ namespace CloudService.Application.Interfaces
         Task<PartnerRequestDto> CreateAsync(CreatePartnerRequestDto dto);
         Task<PagedResponse<PartnerRequestDto>> GetAllAsync(PaginationFilter filter, string search = "", string status = "");
         Task<PartnerRequestDto> UpdateStatusAsync(Guid id, UpdatePartnerRequestStatusDto dto);
+        Task<byte[]> ExportToExcelAsync(string search = "", string status = "");
     }
 }
