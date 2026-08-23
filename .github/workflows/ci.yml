@@ -1,10 +1,10 @@
-name: "CI/CD Pipeline"
+name: "🚀 CI/CD Pipeline"
 
 "on":
   push:
-    branches: [ "main", "master", "develop", "Linh-dev-1" ]
+    branches: [ "main", "master", "develop"]
   pull_request:
-    branches: [ "main", "master", "develop", "Linh-dev-1" ]
+    branches: [ "main", "master", "develop" ]
   workflow_dispatch:
 
 permissions:
@@ -12,56 +12,90 @@ permissions:
 
 jobs:
   build-and-test-backend:
+    name: "🛠️ Build & Test Backend"
     runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Setup .NET 8
+    - name: "⚙️ Setup .NET"
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: |
+          8.0.x
+          9.0.x
         
-    - name: Restore dependencies
+    - name: "📦 Restore dependencies"
       run: dotnet restore CloudServiceSolution.sln
       
-    - name: Build
+    - name: "🔨 Build"
       run: dotnet build CloudServiceSolution.sln --no-restore --configuration Release
       
-    - name: Test
-      run: dotnet test CloudService.Tests/CloudService.Tests.csproj --no-build --configuration Release --verbosity normal
+    - name: "🧪 Test"
+      run: dotnet test CloudService.Tests/CloudService.Tests.csproj --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage"
 
   build-frontend:
+    name: "🖥️ Build Frontend"
     runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Setup Node.js
+    - name: "🟢 Setup Node.js"
       uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'npm'
         cache-dependency-path: 'cloud-service-frontend/package-lock.json'
         
-    - name: Install dependencies
+    - name: "📥 Install dependencies"
       working-directory: ./cloud-service-frontend
       run: npm ci
       
-    - name: Build Next.js app
+    - name: "🏗️ Build Next.js app"
       working-directory: ./cloud-service-frontend
       run: npm run build
 
   docker-build:
-    name: Validate Docker images
+    name: "🐳 Validate Docker images"
     needs: [build-and-test-backend, build-frontend]
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Validate Compose configuration
+    - name: "🐋 Validate Compose configuration"
       run: docker compose config
 
-    - name: Build Docker images
+    - name: "📦 Build Docker images"
       run: docker compose build
+
+  deploy:
+    name: "🚀 Deploy to VPS"
+    needs: [docker-build]
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && vars.AZURE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: "☁️ Deploy via SSH"
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AZURE_HOST }}
+          username: ${{ secrets.AZURE_USER }}
+          key: ${{ secrets.AZURE_SSH_KEY }}
+          script: |
+            # Di chuyển tới thư mục chứa mã nguồn trên server
+            cd /home/azureuser/PTPM-Nhom5
+            
+            # Cập nhật code mới nhất từ nhánh main
+            git fetch origin
+            git checkout main
+            git reset --hard origin/main
+            git pull origin main
+            
+            # Khởi động và build lại Docker containers
+            docker compose down
+            docker compose build
+            docker compose up -d
+            
+            # Xóa các image cũ để giải phóng bộ nhớ
+            docker image prune -f
