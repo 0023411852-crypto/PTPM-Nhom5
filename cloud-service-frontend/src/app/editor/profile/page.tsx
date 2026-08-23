@@ -1,17 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Modal from '@/components/admin/Modal';
 
 export default function EditorProfilePage() {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [user, setUser] = useState({
-        fullName: 'Biên tập viên',
-        email: 'editor@cloudnova.com',
-        role: 'Editor',
-        phone: '0987654321',
-        avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBOCaM618_L8wvckuuCRwIbLO4YBhcpgXtfvuSOxdu3Lsy6-cIP571uAixRrdTAnwZla5y-64mDh2ur749axxvDTLvvbHHd2FupknF4oOJhxp0iVlQsV6O1iAzH4e1kNCD-M6nfkm93BzVXXobmtOFA3hiKlGjViAYgJbRTZ2wVQGEBGbZowvIO3VrwudODWirTKqJlb_89NXVGiHHRru0N8Srz3HfOhwttucCEBk0xz3Eol2w3VQ'
+        fullName: '',
+        email: '',
+        role: '',
+        phone: '',
+        avatar: ''
     });
 
     const [oldPassword, setOldPassword] = useState('');
@@ -19,18 +20,51 @@ export default function EditorProfilePage() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [activities, setActivities] = useState<any[]>([]);
 
-    useEffect(() => {
-        // Load data from localStorage if available
-        const name = localStorage.getItem('fullName');
-        const role = localStorage.getItem('role');
-        const token = localStorage.getItem('token');
-        if (name) setUser(prev => ({ ...prev, fullName: name }));
-        if (role) setUser(prev => ({ ...prev, role: role }));
+    const [messageModal, setMessageModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        isError: false
+    });
 
+    const showMessage = (title: string, message: string, isError = false) => {
+        setMessageModal({ isOpen: true, title, message, isError });
+    };
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
         if (token) {
+            fetchMyProfile(token);
             fetchActivities(token);
         }
     }, []);
+
+    const fetchMyProfile = async (token: string) => {
+        try {
+            const res = await fetch('/api/Users/me', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setUser(prev => ({
+                    ...prev,
+                    fullName: data.fullName || prev.fullName,
+                    email: data.email || prev.email,
+                    phone: data.phoneNumber || prev.phone,
+                    role: data.role || prev.role,
+                    avatar: data.avatarUrl || prev.avatar
+                }));
+                
+                // Update localStorage to keep it in sync for other components
+                if (data.fullName) localStorage.setItem('fullName', data.fullName);
+                if (data.avatarUrl) localStorage.setItem('avatar', data.avatarUrl);
+                window.dispatchEvent(new Event('profileUpdated'));
+                if (data.role) localStorage.setItem('role', data.role);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     const fetchActivities = async (token: string) => {
         try {
@@ -53,6 +87,7 @@ export default function EditorProfilePage() {
         if (action.includes('PASSWORD_CHANGED')) return 'Đổi mật khẩu';
         if (action.includes('ADMIN_LOCK')) return 'Cập nhật trạng thái tài khoản';
         if (action.includes('REGISTER')) return 'Đăng ký tài khoản';
+        if (action.includes('PROFILE_UPDATED')) return 'Cập nhật hồ sơ';
         return action;
     };
 
@@ -63,13 +98,50 @@ export default function EditorProfilePage() {
         if (action.includes('PASSWORD_CHANGED')) return 'key';
         if (action.includes('ADMIN_LOCK')) return 'lock';
         if (action.includes('REGISTER')) return 'person_add';
+        if (action.includes('PROFILE_UPDATED')) return 'manage_accounts';
         return 'edit';
+    };
+
+    const handleProfileUpdate = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        try {
+            const payload = { 
+                fullName: user.fullName || '', 
+                email: user.email || '', 
+                avatarUrl: user.avatar || ''
+            };
+            
+            const res = await fetch('/api/Users/me/profile', {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                showMessage('Thành công', 'Cập nhật hồ sơ thành công!');
+                localStorage.setItem('fullName', user.fullName);
+                localStorage.setItem('avatar', user.avatar);
+                window.dispatchEvent(new Event('profileUpdated'));
+                fetchActivities(token);
+            } else {
+                const errData = await res.json().catch(() => null);
+                console.error("Lỗi cập nhật:", errData);
+                showMessage('Lỗi', errData?.message || 'Không thể cập nhật hồ sơ. Vui lòng kiểm tra lại thông tin.', true);
+            }
+        } catch (e) {
+            showMessage('Lỗi', 'Lỗi kết nối. Vui lòng thử lại sau.', true);
+        }
     };
 
     const handlePasswordChange = async (e: React.FormEvent) => {
         e.preventDefault();
         if (newPassword !== confirmPassword) {
-            alert('Mật khẩu mới không khớp!');
+            showMessage('Lỗi đổi mật khẩu', 'Mật khẩu mới và xác nhận mật khẩu không khớp!', true);
             return;
         }
         const token = localStorage.getItem('token');
@@ -87,32 +159,65 @@ export default function EditorProfilePage() {
 
             const data = await res.json();
             if (res.ok) {
-                alert('Đổi mật khẩu thành công!');
+                showMessage('Thành công', 'Đổi mật khẩu thành công!');
                 setOldPassword('');
                 setNewPassword('');
                 setConfirmPassword('');
+                // Fetch activities again to show the password change event
+                fetchActivities(token);
             } else {
-                alert(data.message || 'Lỗi khi đổi mật khẩu.');
+                showMessage('Lỗi đổi mật khẩu', data.message || 'Lỗi khi đổi mật khẩu.', true);
             }
         } catch (e) {
-            alert('Lỗi kết nối.');
+            showMessage('Lỗi kết nối', 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.', true);
         }
     };
 
-    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const imageUrl = URL.createObjectURL(file);
-            setUser(prev => ({ ...prev, avatar: imageUrl }));
+        if (!file) return;
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            showMessage('Lỗi', 'Vui lòng đăng nhập lại.', true);
+            return;
+        }
+
+        // Tạo local preview URL ngay lập tức cho trải nghiệm nhanh
+        const localPreviewUrl = URL.createObjectURL(file);
+        setUser(prev => ({ ...prev, avatar: localPreviewUrl }));
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const res = await fetch('/api/Upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.url) {
+                    setUser(prev => ({ ...prev, avatar: data.url }));
+                }
+            } else {
+                showMessage('Lỗi', 'Không thể tải ảnh lên máy chủ. Vui lòng thử lại.', true);
+            }
+        } catch (error) {
+            showMessage('Lỗi', 'Lỗi mạng khi tải ảnh lên.', true);
         }
     };
 
     return (
-        <div className="max-w-[1200px] mx-auto space-y-lg pb-xl">
+        <div className="max-w-container-max mx-auto space-y-lg pb-xl">
             <div className="flex justify-between items-end mb-lg">
                 <div>
                     <h2 className="font-headline-lg text-headline-lg text-on-surface">Thông tin cá nhân</h2>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-unit">Cập nhật hồ sơ và quản lý tài khoản biên tập viên</p>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-unit">Quản lý hồ sơ và bảo mật tài khoản quản trị viên</p>
                 </div>
             </div>
 
@@ -120,34 +225,25 @@ export default function EditorProfilePage() {
                 {/* Cột trái: Avatar & Tóm tắt */}
                 <div className="lg:col-span-1">
                     <div className="bg-surface rounded-xl border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-lg flex flex-col items-center text-center">
-                        <label className="w-32 h-32 rounded-full overflow-hidden border-4 border-surface-container-low mb-md relative group cursor-pointer block">
-                            <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-                            <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+                        <label className="w-32 h-32 rounded-full overflow-hidden border-4 border-surface-container-low mb-md relative group cursor-pointer block bg-surface-variant">
+                            <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} onClick={(e) => (e.target as HTMLInputElement).value = ''} />
+                            <img 
+                                src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || 'Admin')}&background=random`} 
+                                alt="Profile" 
+                                className="w-full h-full object-cover" 
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.onerror = null;
+                                    target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || 'Admin')}&background=random`;
+                                }}
+                            />
                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                 <span className="material-symbols-outlined text-white">photo_camera</span>
                             </div>
                         </label>
                         <h3 className="font-headline-md text-[20px] font-semibold text-on-surface">{user.fullName}</h3>
                         <p className="font-body-sm text-body-sm text-on-surface-variant mt-xs">{user.email}</p>
-                        <span className="mt-md px-3 py-1 bg-tertiary-container text-on-tertiary-container font-label-caps text-[12px] rounded uppercase tracking-wider">{user.role}</span>
-                    </div>
-
-                    <div className="bg-surface rounded-xl border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-lg mt-lg">
-                        <h4 className="font-body-md font-semibold text-on-surface mb-md">Thống kê nội dung</h4>
-                        <div className="space-y-sm">
-                            <div className="flex justify-between items-center py-sm border-b border-outline-variant/50">
-                                <span className="font-body-sm text-on-surface-variant">Bài viết đã xuất bản</span>
-                                <span className="font-body-md font-medium text-on-surface">12</span>
-                            </div>
-                            <div className="flex justify-between items-center py-sm border-b border-outline-variant/50">
-                                <span className="font-body-sm text-on-surface-variant">Bài viết đang chờ</span>
-                                <span className="font-body-md font-medium text-on-surface">3</span>
-                            </div>
-                            <div className="flex justify-between items-center py-sm">
-                                <span className="font-body-sm text-on-surface-variant">Tổng lượt xem</span>
-                                <span className="font-body-md font-medium text-primary">15.2k</span>
-                            </div>
-                        </div>
+                        <span className="mt-md px-3 py-1 bg-primary-container text-on-primary-container font-label-caps text-[12px] rounded uppercase tracking-wider">{user.role}</span>
                     </div>
 
                     <div className="bg-surface rounded-xl border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-lg mt-lg">
@@ -179,24 +275,30 @@ export default function EditorProfilePage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
                                 <div>
                                     <label className="block font-label-caps text-[12px] text-on-surface-variant mb-[8px] uppercase">Họ và tên</label>
-                                    <input type="text" className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-[10px] px-[12px] font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" defaultValue={user.fullName} />
+                                    <input 
+                                        type="text" 
+                                        className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-[10px] px-[12px] font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" 
+                                        value={user.fullName || ''} 
+                                        onChange={(e) => setUser({...user, fullName: e.target.value})}
+                                    />
                                 </div>
                                 <div>
                                     <label className="block font-label-caps text-[12px] text-on-surface-variant mb-[8px] uppercase">Số điện thoại</label>
-                                    <input type="text" className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-[10px] px-[12px] font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" defaultValue={user.phone} />
+                                    <input 
+                                        type="text" 
+                                        className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-[10px] px-[12px] font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" 
+                                        value={user.phone || ''} 
+                                        onChange={(e) => setUser({...user, phone: e.target.value})}
+                                    />
                                 </div>
                             </div>
                             <div>
                                 <label className="block font-label-caps text-[12px] text-on-surface-variant mb-[8px] uppercase">Địa chỉ Email</label>
-                                <input type="email" className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-[10px] px-[12px] font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" defaultValue={user.email} disabled />
+                                <input type="email" className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-[10px] px-[12px] font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" value={user.email || ''} disabled />
                                 <p className="text-[12px] text-on-surface-variant mt-1">Không thể thay đổi email đăng nhập hệ thống.</p>
                             </div>
-                            <div>
-                                <label className="block font-label-caps text-[12px] text-on-surface-variant mb-[8px] uppercase">Tiểu sử ngắn</label>
-                                <textarea rows={3} className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-[10px] px-[12px] font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all resize-none" defaultValue="Xin chào, tôi là Biên tập viên nội dung của CloudNova. Đam mê về điện toán đám mây và bảo mật."></textarea>
-                            </div>
                             <div className="flex justify-end pt-sm border-t border-outline-variant mt-lg">
-                                <button type="button" className="px-lg py-sm bg-primary text-on-primary rounded-lg font-body-sm text-body-sm font-medium hover:bg-primary-container transition-colors shadow-sm flex items-center gap-sm">
+                                <button type="button" onClick={handleProfileUpdate} className="px-lg py-sm bg-primary text-on-primary rounded-lg font-body-sm text-body-sm font-medium hover:bg-primary-container transition-colors shadow-sm flex items-center gap-sm">
                                     Lưu thay đổi
                                 </button>
                             </div>
@@ -277,6 +379,31 @@ export default function EditorProfilePage() {
                     </div>
                 </div>
             </div>
+
+            {/* Message Modal */}
+            <Modal
+                isOpen={messageModal.isOpen}
+                onClose={() => setMessageModal(prev => ({ ...prev, isOpen: false }))}
+                title={messageModal.title}
+                maxWidth="max-w-[28rem]"
+                footer={
+                    <button 
+                        onClick={() => setMessageModal(prev => ({ ...prev, isOpen: false }))} 
+                        className="px-6 py-2 bg-primary text-on-primary rounded-lg font-medium shadow-sm hover:shadow-md transition-all"
+                    >
+                        Đóng
+                    </button>
+                }
+            >
+                <div className="flex flex-col items-center text-center py-4">
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${messageModal.isError ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                        <span className="material-symbols-outlined text-[32px]">
+                            {messageModal.isError ? 'error' : 'check_circle'}
+                        </span>
+                    </div>
+                    <p className="text-on-surface font-body-md">{messageModal.message}</p>
+                </div>
+            </Modal>
         </div>
     );
 }

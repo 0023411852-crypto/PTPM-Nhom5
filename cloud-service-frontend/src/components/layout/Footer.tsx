@@ -1,7 +1,23 @@
 import React from "react";
 import Link from "next/link";
 
-export default function Footer() {
+async function getStaticPages() {
+  try {
+    const API_URL = process.env.API_PROXY_URL || "http://localhost:5154";
+    const res = await fetch(`${API_URL}/api/StaticPages?onlyPublished=true&PageNumber=1&PageSize=10`, {
+      next: { revalidate: 60 }
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.items || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+export default async function Footer() {
+  const staticPages = await getStaticPages();
+
   return (
     <footer className="bg-inverse-surface dark:bg-surface-container-lowest w-full py-xl border-t border-outline-variant dark:border-outline no shadows">
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-lg px-gutter max-w-container-max mx-auto">
@@ -49,33 +65,48 @@ export default function Footer() {
         </div>
         <div>
           <h4 className="font-label-caps text-label-caps text-surface-variant dark:text-on-surface-variant mb-md opacity-70">
-            Legal
+            Chính sách & Pháp lý
           </h4>
           <ul className="space-y-sm">
-            <li>
-              <Link
-                className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant hover:text-white transition-colors hover:underline"
-                href="/dieu-khoan"
-              >
-                Điều khoản
-              </Link>
-            </li>
-            <li>
-              <Link
-                className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant hover:text-white transition-colors hover:underline"
-                href="/bao-mat"
-              >
-                Bảo mật
-              </Link>
-            </li>
-            <li>
-              <Link
-                className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant hover:text-white transition-colors hover:underline"
-                href="/sla"
-              >
-                SLA
-              </Link>
-            </li>
+            {staticPages.length > 0 ? (
+                staticPages.map((page: any) => (
+                    <li key={page.id}>
+                      <Link
+                        className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant hover:text-white transition-colors hover:underline"
+                        href={`/${page.slug}`}
+                      >
+                        {page.title}
+                      </Link>
+                    </li>
+                ))
+            ) : (
+                <>
+                    <li>
+                      <Link
+                        className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant hover:text-white transition-colors hover:underline"
+                        href="/dieu-khoan"
+                      >
+                        Điều khoản
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant hover:text-white transition-colors hover:underline"
+                        href="/bao-mat"
+                      >
+                        Bảo mật
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant hover:text-white transition-colors hover:underline"
+                        href="/sla"
+                      >
+                        SLA
+                      </Link>
+                    </li>
+                </>
+            )}
           </ul>
         </div>
         <div>

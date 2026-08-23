@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
@@ -16,6 +16,43 @@ function StaticPageForm() {
     const [content, setContent] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
+
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const insertTag = (tagStart: string, tagEnd: string) => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = content.substring(start, end);
+        
+        const newContent = content.substring(0, start) + tagStart + selectedText + tagEnd + content.substring(end);
+        setContent(newContent);
+        
+        setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + tagStart.length, end + tagStart.length);
+        }, 0);
+    };
+
+    const handleFormat = (type: string) => {
+        switch (type) {
+            case 'bold': insertTag('<b>', '</b>'); break;
+            case 'italic': insertTag('<i>', '</i>'); break;
+            case 'underline': insertTag('<u>', '</u>'); break;
+            case 'ul': insertTag('<ul>\n<li>', '</li>\n</ul>'); break;
+            case 'ol': insertTag('<ol>\n<li>', '</li>\n</ol>'); break;
+            case 'link': 
+                const url = prompt('Nhập đường dẫn URL:');
+                if (url) insertTag(`<a href="${url}">`, '</a>');
+                break;
+            case 'image':
+                const imgUrl = prompt('Nhập đường dẫn hình ảnh:');
+                if (imgUrl) insertTag(`<img src="${imgUrl}" alt="Hình ảnh" class="max-w-full h-auto rounded-lg my-4" />`, '');
+                break;
+        }
+    };
 
     useEffect(() => {
         if (editId) {
@@ -117,17 +154,18 @@ function StaticPageForm() {
                         </div>
 
                         <div className="flex items-center gap-2 mb-md border-y border-outline-variant py-2">
-                            <button className="p-2 rounded hover:bg-surface-container-low text-on-surface-variant"><span className="material-symbols-outlined text-[18px]">format_bold</span></button>
-                            <button className="p-2 rounded hover:bg-surface-container-low text-on-surface-variant"><span className="material-symbols-outlined text-[18px]">format_italic</span></button>
-                            <button className="p-2 rounded hover:bg-surface-container-low text-on-surface-variant"><span className="material-symbols-outlined text-[18px]">format_underlined</span></button>
+                            <button onClick={() => handleFormat('bold')} className="p-2 rounded hover:bg-surface-container-low text-on-surface-variant"><span className="material-symbols-outlined text-[18px]">format_bold</span></button>
+                            <button onClick={() => handleFormat('italic')} className="p-2 rounded hover:bg-surface-container-low text-on-surface-variant"><span className="material-symbols-outlined text-[18px]">format_italic</span></button>
+                            <button onClick={() => handleFormat('underline')} className="p-2 rounded hover:bg-surface-container-low text-on-surface-variant"><span className="material-symbols-outlined text-[18px]">format_underlined</span></button>
                             <div className="w-px h-6 bg-outline-variant mx-1"></div>
-                            <button className="p-2 rounded hover:bg-surface-container-low text-on-surface-variant"><span className="material-symbols-outlined text-[18px]">format_list_bulleted</span></button>
-                            <button className="p-2 rounded hover:bg-surface-container-low text-on-surface-variant"><span className="material-symbols-outlined text-[18px]">format_list_numbered</span></button>
+                            <button onClick={() => handleFormat('ul')} className="p-2 rounded hover:bg-surface-container-low text-on-surface-variant"><span className="material-symbols-outlined text-[18px]">format_list_bulleted</span></button>
+                            <button onClick={() => handleFormat('ol')} className="p-2 rounded hover:bg-surface-container-low text-on-surface-variant"><span className="material-symbols-outlined text-[18px]">format_list_numbered</span></button>
                             <div className="w-px h-6 bg-outline-variant mx-1"></div>
-                            <button className="p-2 rounded hover:bg-surface-container-low text-on-surface-variant"><span className="material-symbols-outlined text-[18px]">link</span></button>
-                            <button className="p-2 rounded hover:bg-surface-container-low text-on-surface-variant"><span className="material-symbols-outlined text-[18px]">image</span></button>
+                            <button onClick={() => handleFormat('link')} className="p-2 rounded hover:bg-surface-container-low text-on-surface-variant"><span className="material-symbols-outlined text-[18px]">link</span></button>
+                            <button onClick={() => handleFormat('image')} className="p-2 rounded hover:bg-surface-container-low text-on-surface-variant"><span className="material-symbols-outlined text-[18px]">image</span></button>
                         </div>
                         <textarea 
+                            ref={textareaRef}
                             className="w-full h-[400px] bg-transparent border-none font-body-md text-body-md text-on-surface focus:outline-none resize-none"
                             placeholder="Bắt đầu viết nội dung của bạn tại đây..."
                             value={content}

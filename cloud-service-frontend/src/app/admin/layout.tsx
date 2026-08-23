@@ -40,6 +40,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         localStorage.removeItem('role');
         localStorage.removeItem('fullName');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('avatar');
+        localStorage.removeItem('avatarUrl');
         router.push('/login');
     };
 
@@ -117,7 +119,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <div className="flex items-center justify-between gap-2 p-sm rounded-lg hover:bg-primary-fixed-variant/10 transition-colors group">
                             <Link href="/admin/profile" className="flex items-center gap-sm flex-1 min-w-0 cursor-pointer">
                                 <div className="w-8 h-8 rounded-full bg-surface-container overflow-hidden shrink-0">
-                                    <img className="w-full h-full object-cover" alt="Admin Profile" src={userProfile.avatar}/>
+                                    <img 
+                                        className="w-full h-full object-cover" 
+                                        alt="Admin Profile" 
+                                        src={userProfile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile.fullName || 'Admin')}&background=random`}
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.onerror = null;
+                                            target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile.fullName || 'Admin')}&background=random`;
+                                        }}
+                                    />
                                 </div>
                                 <div className="overflow-hidden">
                                     <p className="font-body-sm text-body-sm font-medium truncate text-on-secondary group-hover:text-primary-fixed transition-colors">{userProfile.fullName}</p>
@@ -160,7 +171,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 >
                                     <span className="text-primary font-body-sm text-body-sm font-medium ml-1">Hồ sơ</span>
                                     <div className="w-8 h-8 rounded-full bg-surface-container overflow-hidden shrink-0 border border-outline-variant">
-                                        <img className="w-full h-full object-cover" alt="Admin Profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbMEgEupdtqeNJbFCWOuVqd_GjuaVKzdIHU0ql9HU2j1MEyenAXeRddJMIGE7MUcNS8Uck3AfqjloPJhuk4ydEGDAKK_o-bKFfIqpmYJEQUj3Kypy0bk7ZsmbyI7ViTfVBTNqQLK0mEI48pStNag4v7FXjZXJrTd63vPNF2u_p8HRihk1UdYfhcGYFhAPZ2pyqal6y4Oqa5Ql-LGFPchxDabNPkIE5qw3ZXM0WSUwt8WSLwTip1w"/>
+                                        <img 
+                                            className="w-full h-full object-cover" 
+                                            alt="Admin Profile" 
+                                            src={userProfile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile.fullName || 'Admin')}&background=random`}
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.onerror = null;
+                                                target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile.fullName || 'Admin')}&background=random`;
+                                            }}
+                                        />
                                     </div>
                                     <span className="material-symbols-outlined text-outline text-sm">expand_more</span>
                                 </button>

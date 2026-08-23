@@ -6,14 +6,38 @@ import { useRouter, usePathname } from 'next/navigation';
 
 export default function EditorLayout({ children }: { children: React.ReactNode }) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [userProfile, setUserProfile] = useState({
+        fullName: 'Biên tập viên',
+        email: 'editor@cloudnova.com',
+        avatar: ''
+    });
+
     const router = useRouter();
     const pathname = usePathname();
+
+    const loadProfileData = () => {
+        const name = localStorage.getItem('fullName');
+        const email = localStorage.getItem('email');
+        const avatar = localStorage.getItem('avatar');
+        
+        setUserProfile(prev => ({
+            ...prev,
+            fullName: name || prev.fullName,
+            email: email || prev.email,
+            avatar: avatar || prev.avatar
+        }));
+    };
 
     useEffect(() => {
         const role = localStorage.getItem('role');
         if (role !== 'Editor') {
             router.push('/login');
+            return;
         }
+
+        loadProfileData();
+        window.addEventListener('profileUpdated', loadProfileData);
+        return () => window.removeEventListener('profileUpdated', loadProfileData);
     }, [router]);
 
     const handleLogout = () => {
@@ -21,6 +45,8 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
         localStorage.removeItem('role');
         localStorage.removeItem('fullName');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('avatar');
+        localStorage.removeItem('avatarUrl');
         router.push('/login');
     };
 
@@ -127,7 +153,16 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
                             >
                                 <span className="text-primary font-body-sm text-body-sm font-medium ml-1">Hồ sơ</span>
                                 <div className="w-8 h-8 rounded-full bg-surface-container overflow-hidden shrink-0 border border-outline-variant flex items-center justify-center text-on-surface">
-                                    <span className="material-symbols-outlined">account_circle</span>
+                                    <img 
+                                        className="w-full h-full object-cover" 
+                                        alt="Editor Profile" 
+                                        src={userProfile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile.fullName || 'Editor')}&background=random`}
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.onerror = null;
+                                            target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile.fullName || 'Editor')}&background=random`;
+                                        }}
+                                    />
                                 </div>
                                 <span className="material-symbols-outlined text-outline text-sm">expand_more</span>
                             </button>

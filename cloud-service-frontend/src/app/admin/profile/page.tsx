@@ -8,11 +8,11 @@ export default function AdminProfilePage() {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [user, setUser] = useState({
-        fullName: 'Admin User',
-        email: 'admin@cloudnova.com',
-        role: 'Admin',
-        phone: '0901234567',
-        avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCbMEgEupdtqeNJbFCWOuVqd_GjuaVKzdIHU0ql9HU2j1MEyenAXeRddJMIGE7MUcNS8Uck3AfqjloPJhuk4ydEGDAKK_o-bKFfIqpmYJEQUj3Kypy0bk7ZsmbyI7ViTfVBTNqQLK0mEI48pStNag4v7FXjZXJrTd63vPNF2u_p8HRihk1UdYfhcGYFhAPZ2pyqal6y4Oqa5Ql-LGFPchxDabNPkIE5qw3ZXM0WSUwt8WSLwTip1w'
+        fullName: '',
+        email: '',
+        role: '',
+        phone: '',
+        avatar: ''
     });
 
     const [oldPassword, setOldPassword] = useState('');
@@ -32,17 +32,39 @@ export default function AdminProfilePage() {
     };
 
     useEffect(() => {
-        // Load data from localStorage if available
-        const name = localStorage.getItem('fullName');
-        const role = localStorage.getItem('role');
         const token = localStorage.getItem('token');
-        if (name) setUser(prev => ({ ...prev, fullName: name }));
-        if (role) setUser(prev => ({ ...prev, role: role }));
-
         if (token) {
+            fetchMyProfile(token);
             fetchActivities(token);
         }
     }, []);
+
+    const fetchMyProfile = async (token: string) => {
+        try {
+            const res = await fetch('/api/Users/me', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setUser(prev => ({
+                    ...prev,
+                    fullName: data.fullName || prev.fullName,
+                    email: data.email || prev.email,
+                    phone: data.phoneNumber || prev.phone,
+                    role: data.role || prev.role,
+                    avatar: data.avatarUrl || prev.avatar
+                }));
+                
+                // Update localStorage to keep it in sync for other components
+                if (data.fullName) localStorage.setItem('fullName', data.fullName);
+                if (data.avatarUrl) localStorage.setItem('avatar', data.avatarUrl);
+                window.dispatchEvent(new Event('profileUpdated'));
+                if (data.role) localStorage.setItem('role', data.role);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     const fetchActivities = async (token: string) => {
         try {
@@ -65,6 +87,7 @@ export default function AdminProfilePage() {
         if (action.includes('PASSWORD_CHANGED')) return 'Đổi mật khẩu';
         if (action.includes('ADMIN_LOCK')) return 'Cập nhật trạng thái tài khoản';
         if (action.includes('REGISTER')) return 'Đăng ký tài khoản';
+        if (action.includes('PROFILE_UPDATED')) return 'Cập nhật hồ sơ';
         return action;
     };
 
@@ -75,7 +98,44 @@ export default function AdminProfilePage() {
         if (action.includes('PASSWORD_CHANGED')) return 'key';
         if (action.includes('ADMIN_LOCK')) return 'lock';
         if (action.includes('REGISTER')) return 'person_add';
+        if (action.includes('PROFILE_UPDATED')) return 'manage_accounts';
         return 'edit';
+    };
+
+    const handleProfileUpdate = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        try {
+            const payload = { 
+                fullName: user.fullName || '', 
+                email: user.email || '', 
+                avatarUrl: user.avatar || ''
+            };
+            
+            const res = await fetch('/api/Users/me/profile', {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                showMessage('Thành công', 'Cập nhật hồ sơ thành công!');
+                localStorage.setItem('fullName', user.fullName);
+                localStorage.setItem('avatar', user.avatar);
+                window.dispatchEvent(new Event('profileUpdated'));
+                fetchActivities(token);
+            } else {
+                const errData = await res.json().catch(() => null);
+                console.error("Lỗi cập nhật:", errData);
+                showMessage('Lỗi', errData?.message || 'Không thể cập nhật hồ sơ. Vui lòng kiểm tra lại thông tin.', true);
+            }
+        } catch (e) {
+            showMessage('Lỗi', 'Lỗi kết nối. Vui lòng thử lại sau.', true);
+        }
     };
 
     const handlePasswordChange = async (e: React.FormEvent) => {
@@ -113,13 +173,42 @@ export default function AdminProfilePage() {
         }
     };
 
-    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const imageUrl = URL.createObjectURL(file);
-            setUser(prev => ({ ...prev, avatar: imageUrl }));
-            localStorage.setItem('avatar', imageUrl);
-            window.dispatchEvent(new Event('profileUpdated'));
+        if (!file) return;
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            showMessage('Lỗi', 'Vui lòng đăng nhập lại.', true);
+            return;
+        }
+
+        // Tạo local preview URL ngay lập tức cho trải nghiệm nhanh
+        const localPreviewUrl = URL.createObjectURL(file);
+        setUser(prev => ({ ...prev, avatar: localPreviewUrl }));
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const res = await fetch('/api/Upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.url) {
+                    setUser(prev => ({ ...prev, avatar: data.url }));
+                }
+            } else {
+                showMessage('Lỗi', 'Không thể tải ảnh lên máy chủ. Vui lòng thử lại.', true);
+            }
+        } catch (error) {
+            showMessage('Lỗi', 'Lỗi mạng khi tải ảnh lên.', true);
         }
     };
 
@@ -136,9 +225,18 @@ export default function AdminProfilePage() {
                 {/* Cột trái: Avatar & Tóm tắt */}
                 <div className="lg:col-span-1">
                     <div className="bg-surface rounded-xl border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-lg flex flex-col items-center text-center">
-                        <label className="w-32 h-32 rounded-full overflow-hidden border-4 border-surface-container-low mb-md relative group cursor-pointer block">
-                            <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-                            <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+                        <label className="w-32 h-32 rounded-full overflow-hidden border-4 border-surface-container-low mb-md relative group cursor-pointer block bg-surface-variant">
+                            <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} onClick={(e) => (e.target as HTMLInputElement).value = ''} />
+                            <img 
+                                src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || 'Admin')}&background=random`} 
+                                alt="Profile" 
+                                className="w-full h-full object-cover" 
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.onerror = null;
+                                    target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || 'Admin')}&background=random`;
+                                }}
+                            />
                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                 <span className="material-symbols-outlined text-white">photo_camera</span>
                             </div>
@@ -177,20 +275,30 @@ export default function AdminProfilePage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
                                 <div>
                                     <label className="block font-label-caps text-[12px] text-on-surface-variant mb-[8px] uppercase">Họ và tên</label>
-                                    <input type="text" className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-[10px] px-[12px] font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" defaultValue={user.fullName} />
+                                    <input 
+                                        type="text" 
+                                        className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-[10px] px-[12px] font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" 
+                                        value={user.fullName || ''} 
+                                        onChange={(e) => setUser({...user, fullName: e.target.value})}
+                                    />
                                 </div>
                                 <div>
                                     <label className="block font-label-caps text-[12px] text-on-surface-variant mb-[8px] uppercase">Số điện thoại</label>
-                                    <input type="text" className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-[10px] px-[12px] font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" defaultValue={user.phone} />
+                                    <input 
+                                        type="text" 
+                                        className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-[10px] px-[12px] font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" 
+                                        value={user.phone || ''} 
+                                        onChange={(e) => setUser({...user, phone: e.target.value})}
+                                    />
                                 </div>
                             </div>
                             <div>
                                 <label className="block font-label-caps text-[12px] text-on-surface-variant mb-[8px] uppercase">Địa chỉ Email</label>
-                                <input type="email" className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-[10px] px-[12px] font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" defaultValue={user.email} disabled />
+                                <input type="email" className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-[10px] px-[12px] font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" value={user.email || ''} disabled />
                                 <p className="text-[12px] text-on-surface-variant mt-1">Không thể thay đổi email đăng nhập hệ thống.</p>
                             </div>
                             <div className="flex justify-end pt-sm border-t border-outline-variant mt-lg">
-                                <button type="button" className="px-lg py-sm bg-primary text-on-primary rounded-lg font-body-sm text-body-sm font-medium hover:bg-primary-container transition-colors shadow-sm flex items-center gap-sm">
+                                <button type="button" onClick={handleProfileUpdate} className="px-lg py-sm bg-primary text-on-primary rounded-lg font-body-sm text-body-sm font-medium hover:bg-primary-container transition-colors shadow-sm flex items-center gap-sm">
                                     Lưu thay đổi
                                 </button>
                             </div>

@@ -9,6 +9,7 @@ export default function Navbar() {
   const router = useRouter();
   const [token, setToken] = React.useState<string | null>(null);
   const [fullName, setFullName] = React.useState<string>("");
+  const [avatarUrl, setAvatarUrl] = React.useState<string>("");
   const [cartCount, setCartCount] = React.useState(0);
   const [showDropdown, setShowDropdown] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -17,6 +18,7 @@ export default function Navbar() {
     const syncAuthState = () => {
       setToken(localStorage.getItem("token"));
       setFullName(localStorage.getItem("fullName") || "User");
+      setAvatarUrl(localStorage.getItem("avatarUrl") || localStorage.getItem("avatar") || "");
     };
 
     const syncCartState = () => {
@@ -47,7 +49,7 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = () => {
-    ["token", "refreshToken", "role", "fullName", "avatarUrl"].forEach((key) => {
+    ["token", "refreshToken", "role", "fullName", "avatarUrl", "avatar"].forEach((key) => {
       localStorage.removeItem(key);
     });
     window.dispatchEvent(new Event("authChanged"));
@@ -116,11 +118,24 @@ export default function Navbar() {
               </Link>
               
               <div className="relative">
-                <button 
+                <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white font-bold text-lg hover:shadow-md transition-shadow focus:outline-none"
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white font-bold text-lg hover:shadow-md transition-shadow focus:outline-none overflow-hidden"
                 >
-                  {fullName.charAt(0).toUpperCase()}
+                  {avatarUrl ? (
+                      <img 
+                          src={avatarUrl} 
+                          alt="User avatar" 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.onerror = null;
+                              target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
+                          }}
+                      />
+                  ) : (
+                      fullName.charAt(0).toUpperCase()
+                  )}
                 </button>
                 
                 {showDropdown && (

@@ -139,6 +139,18 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
+// Đảm bảo thư mục uploads tồn tại và được phục vụ
+var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads");
+if (!Directory.Exists(uploadsPath))
+{
+    Directory.CreateDirectory(uploadsPath);
+}
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
+    RequestPath = "/uploads"
+});
+
 if (app.Environment.IsDevelopment())
 {
     app.UseCors("AllowAll");

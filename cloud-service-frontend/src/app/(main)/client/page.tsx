@@ -598,7 +598,16 @@ export default function ClientPortalPage() {
                                         {isUploadingAvatar && <p className="text-sm text-primary mt-2">Đang tải ảnh lên...</p>}
                                         {avatarUrl && (
                                             <div className="mt-2">
-                                                <img src={avatarUrl} alt="Avatar Preview" className="w-16 h-16 rounded-full object-cover border border-outline-variant" />
+                                                <img 
+                                                    src={avatarUrl} 
+                                                    alt="Avatar Preview" 
+                                                    className="w-16 h-16 rounded-full object-cover border border-outline-variant" 
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.onerror = null;
+                                                        target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName || 'User')}&background=random`;
+                                                    }}
+                                                />
                                             </div>
                                         )}
                                     </div>
