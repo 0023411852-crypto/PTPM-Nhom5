@@ -24,7 +24,7 @@ namespace CloudService.Application.Services
         public async Task<PagedResponse<ServicePlanDto>> GetAllAsync(PaginationFilter filter)
         {
             var repo = _unitOfWork.Repository<ServicePlan>();
-            var query = repo.GetQueryable("Prices,Category");
+            var query = repo.GetQueryable("Prices,Category,PackageSpecifications");
             
             var totalRecords = query.Count();
 
@@ -48,7 +48,7 @@ namespace CloudService.Application.Services
         public async Task<ServicePlanDto?> GetByIdAsync(Guid id)
         {
             var repo = _unitOfWork.Repository<ServicePlan>();
-            var allData = await repo.GetAllAsync(includeProperties: "Prices,Category");
+            var allData = await repo.GetAllAsync(includeProperties: "Prices,Category,PackageSpecifications");
             var entity = allData.FirstOrDefault(x => x.Id == id);
             if (entity == null) return null;
             return _mapper.Map<ServicePlanDto>(entity);
@@ -71,7 +71,7 @@ namespace CloudService.Application.Services
         public async Task<ServicePlanDto> UpdateAsync(Guid id, UpdateServicePlanDto dto)
         {
             var repo = _unitOfWork.Repository<ServicePlan>();
-            var allData = await repo.GetAllAsync(includeProperties: "Prices,Category");
+            var allData = await repo.GetAllAsync(includeProperties: "Prices,Category,PackageSpecifications");
             var entity = allData.FirstOrDefault(x => x.Id == id);
             if (entity == null) throw new Exception("Plan not found");
 
@@ -164,7 +164,7 @@ namespace CloudService.Application.Services
         public async Task<ServicePlanDto?> RegenerateQrCodeAsync(Guid id)
         {
             var repo = _unitOfWork.Repository<ServicePlan>();
-            var allData = await repo.GetAllAsync(includeProperties: "Prices,Category");
+            var allData = await repo.GetAllAsync(includeProperties: "Prices,Category,PackageSpecifications");
             var entity = allData.FirstOrDefault(x => x.Id == id);
             if (entity == null) return null;
 

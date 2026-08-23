@@ -15,7 +15,9 @@ namespace CloudService.Application
             
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IServiceCategoryService, ServiceCategoryService>();
+            services.AddScoped<IServiceFeatureService, ServiceFeatureService>();
             services.AddScoped<IServicePlanService, ServicePlanService>();
+            services.AddScoped<IPackageSpecificationService, PackageSpecificationService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IQRCodeService, QRCodeService>();
             services.AddScoped<INewsArticleService, NewsArticleService>();

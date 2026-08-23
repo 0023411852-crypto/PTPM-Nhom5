@@ -26,6 +26,15 @@ namespace CloudService.Application.Mappings
                 .ForMember(dest => dest.Prices, opt => opt.Ignore());
             CreateMap<CreatePlanPriceDto, PlanPrice>();
 
+            CreateMap<ServiceFeature, CloudService.Application.DTOs.ServiceFeatures.ServiceFeatureDto>();
+            CreateMap<CloudService.Application.DTOs.ServiceFeatures.CreateServiceFeatureDto, ServiceFeature>();
+            CreateMap<CloudService.Application.DTOs.ServiceFeatures.UpdateServiceFeatureDto, ServiceFeature>();
+
+            CreateMap<PackageSpecification, CloudService.Application.DTOs.PackageSpecifications.PackageSpecificationDto>();
+            CreateMap<CloudService.Application.DTOs.PackageSpecifications.CreatePackageSpecificationDto, PackageSpecification>();
+            CreateMap<CloudService.Application.DTOs.PackageSpecifications.UpdatePackageSpecificationDto, PackageSpecification>();
+
+
             CreateMap<OrderRequest, OrderDto>();
             CreateMap<CreateOrderDto, OrderRequest>();
 

@@ -28,7 +28,8 @@ namespace CloudService.Infrastructure.Data
         public DbSet<MediaFile> MediaFiles { get; set; }
         public DbSet<PartnerRequest> PartnerRequests { get; set; }
         public DbSet<CustomerReview> CustomerReviews { get; set; }
-
+        public DbSet<ServiceFeature> ServiceFeatures { get; set; }
+        public DbSet<PackageSpecification> PackageSpecifications { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -58,6 +59,22 @@ namespace CloudService.Infrastructure.Data
                       .OnDelete(DeleteBehavior.Cascade);
                 entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.SetupFee).HasColumnType("decimal(18,2)");
+            });
+
+            modelBuilder.Entity<ServiceFeature>(entity =>
+            {
+                entity.HasOne(e => e.Category)
+                      .WithMany(c => c.ServiceFeatures)
+                      .HasForeignKey(e => e.ServiceCategoryId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<PackageSpecification>(entity =>
+            {
+                entity.HasOne(e => e.ServicePlan)
+                      .WithMany(p => p.PackageSpecifications)
+                      .HasForeignKey(e => e.ServicePlanId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Promotion>(entity =>

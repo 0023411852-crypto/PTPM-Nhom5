@@ -1,12 +1,67 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+type ServiceFeature = {
+    id: string;
+    name: string;
+    isActive: boolean;
+    displayOrder: number;
+};
+
+type ServiceCategory = {
+    id: string;
+    name: string;
+    description: string;
+    detailTitle: string;
+    icon: string;
+    featuresJson: string;
+    serviceFeatures?: ServiceFeature[];
+    slug: string;
+    isActive: boolean;
+};
 
 export default function ServicesPage() {
     const [filter, setFilter] = useState('Tất cả');
+    const [categories, setCategories] = useState<ServiceCategory[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await fetch('/api/ServiceCategories?PageNumber=1&PageSize=100');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && Array.isArray(data.data)) {
+                        setCategories(data.data.filter((c: ServiceCategory) => c.isActive));
+                    }
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải danh sách dịch vụ:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchCategories();
+    }, []);
     
-    const categories = ['Tất cả', 'Cloud', 'Hosting', 'Domain', 'Email', 'Security'];
+    const categoryTabs = ['Tất cả', ...Array.from(new Set(categories.map(c => c.name)))];
+
+    const getFeatures = (category: ServiceCategory) => {
+        if (category.serviceFeatures && category.serviceFeatures.length > 0) {
+            return category.serviceFeatures
+                .filter(f => f.isActive)
+                .sort((a, b) => a.displayOrder - b.displayOrder)
+                .map(f => f.name);
+        }
+        try {
+            const parsed = JSON.parse(category.featuresJson || "[]");
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch {}
+        return ["Hiệu năng cao", "An toàn & Bảo mật", "Hỗ trợ 24/7", "Dễ dàng mở rộng"];
+    };
 
     return (
         <>
@@ -76,7 +131,7 @@ export default function ServicesPage() {
 
 <section className="py-lg px-gutter max-w-container-max mx-auto flex justify-center overflow-x-auto no-scrollbar">
 <div className="flex space-x-sm bg-surface-container-low p-xs rounded-full border border-outline-variant">
-    {categories.map(cat => (
+    {categoryTabs.map(cat => (
         <button 
             key={cat} 
             onClick={() => setFilter(cat)}
@@ -94,119 +149,35 @@ export default function ServicesPage() {
 
 <section className="py-2xl px-gutter max-w-container-max mx-auto">
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
-
-{(filter === 'Tất cả' || filter === 'Cloud') && (
-<div className="glass-card rounded-[12px] p-lg flex flex-col hover:border-primary hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all group animate-fade-in">
-<div className="flex items-center gap-sm mb-md">
-<div className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
-<span className="material-symbols-outlined">dns</span>
-</div>
-<h3 className="font-headline-md text-headline-md">Cloud VPS</h3>
-</div>
-<p className="font-body-md text-body-md text-on-surface-variant mb-lg flex-grow">Hiệu năng cao với ổ cứng NVMe và khả năng mở rộng linh hoạt. Lựa chọn hoàn hảo cho dự án lớn.</p>
-<ul className="space-y-sm mb-lg font-body-sm text-body-sm text-on-surface">
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> vCPU &amp; RAM linh hoạt</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> NVMe siêu tốc</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Root Access toàn quyền</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> 99.9% Uptime Guarantee</li>
-</ul>
-<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="/services/vps">Khám phá VPS <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
-</div>
-)}
-
-{(filter === 'Tất cả' || filter === 'Hosting') && (
-<div className="glass-card rounded-[12px] p-lg flex flex-col hover:border-primary hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all group animate-fade-in">
-<div className="flex items-center gap-sm mb-md">
-<div className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
-<span className="material-symbols-outlined">web</span>
-</div>
-<h3 className="font-headline-md text-headline-md">Web Hosting</h3>
-</div>
-<p className="font-body-md text-body-md text-on-surface-variant mb-lg flex-grow">Giải pháp lưu trữ website ổn định, dễ dàng quản lý với cPanel/DirectAdmin.</p>
-<ul className="space-y-sm mb-lg font-body-sm text-body-sm text-on-surface">
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> SSD/NVMe Storage</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Free SSL Certificate</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Auto Backup daily</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Integrated Email</li>
-</ul>
-<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="/services/hosting">Khám phá Hosting <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
-</div>
-)}
-
-{(filter === 'Tất cả' || filter === 'Domain') && (
-<div className="glass-card rounded-[12px] p-lg flex flex-col hover:border-primary hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all group animate-fade-in">
-<div className="flex items-center gap-sm mb-md">
-<div className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
-<span className="material-symbols-outlined">public</span>
-</div>
-<h3 className="font-headline-md text-headline-md">Domain</h3>
-</div>
-<p className="font-body-md text-body-md text-on-surface-variant mb-lg flex-grow">Đăng ký tên miền quốc tế và Việt Nam với công cụ quản lý DNS mạnh mẽ.</p>
-<ul className="space-y-sm mb-lg font-body-sm text-body-sm text-on-surface">
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> International domains</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Advanced DNS Management</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Free WHOIS Protection</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Auto Renewal options</li>
-</ul>
-<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="/services/domain">Đăng ký Domain <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
-</div>
-)}
-
-{(filter === 'Tất cả' || filter === 'Email') && (
-<div className="glass-card rounded-[12px] p-lg flex flex-col hover:border-primary hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all group animate-fade-in">
-<div className="flex items-center gap-sm mb-md">
-<div className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
-<span className="material-symbols-outlined">mail</span>
-</div>
-<h3 className="font-headline-md text-headline-md">Business Email</h3>
-</div>
-<p className="font-body-md text-body-md text-on-surface-variant mb-lg flex-grow">Email doanh nghiệp theo tên miền riêng, chuyên nghiệp và bảo mật cao.</p>
-<ul className="space-y-sm mb-lg font-body-sm text-body-sm text-on-surface">
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Custom domains</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Advanced Spam Protection</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Large storage quotas</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Modern Webmail UI</li>
-</ul>
-<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="/services/email">Khám phá Email <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
-</div>
-)}
-
-{(filter === 'Tất cả' || filter === 'Security') && (
-<>
-<div className="glass-card rounded-[12px] p-lg flex flex-col hover:border-primary hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all group animate-fade-in">
-<div className="flex items-center gap-sm mb-md">
-<div className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
-<span className="material-symbols-outlined">lock</span>
-</div>
-<h3 className="font-headline-md text-headline-md">SSL Certificate</h3>
-</div>
-<p className="font-body-md text-body-md text-on-surface-variant mb-lg flex-grow">Bảo vệ dữ liệu truyền tải và tăng độ tin cậy cho website của bạn với HTTPS.</p>
-<ul className="space-y-sm mb-lg font-body-sm text-body-sm text-on-surface">
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Secure HTTPS</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> 256-bit Encryption</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Domain Validation (DV)</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> High Browser Trust</li>
-</ul>
-<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="/services/ssl">Xem SSL <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
-</div>
-
-<div className="glass-card rounded-[12px] p-lg flex flex-col hover:border-primary hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all group animate-fade-in">
-<div className="flex items-center gap-sm mb-md">
-<div className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
-<span className="material-symbols-outlined">shield</span>
-</div>
-<h3 className="font-headline-md text-headline-md">DDoS Firewall</h3>
-</div>
-<p className="font-body-md text-body-md text-on-surface-variant mb-lg flex-grow">Hệ thống tường lửa bảo vệ ứng dụng khỏi các cuộc tấn công mạng quy mô lớn.</p>
-<ul className="space-y-sm mb-lg font-body-sm text-body-sm text-on-surface">
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Intelligent Traffic Filtering</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> L3/4/7 Protection</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Real-time Monitoring</li>
-<li className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> Custom Rulesets</li>
-</ul>
-<Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs" href="/services/security">Khám phá Security <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
-</div>
-</>
+{isLoading ? (
+    <div className="text-center py-2xl text-secondary">Đang tải danh sách dịch vụ...</div>
+) : categories.length === 0 ? (
+    <div className="text-center py-2xl text-secondary">Hiện chưa có dịch vụ nào đang hoạt động.</div>
+) : (
+    <>
+        {categories
+            .filter(c => filter === 'Tất cả' || filter === c.name)
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map(category => (
+                <div key={category.id} className="glass-card rounded-[12px] p-lg flex flex-col hover:border-primary hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all group animate-fade-in">
+                    <div className="flex items-center gap-sm mb-md">
+                        <div className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+                            <span className="material-symbols-outlined">{category.icon || "dns"}</span>
+                        </div>
+                        <h3 className="font-headline-md text-headline-md">{category.name}</h3>
+                    </div>
+                    <p className="font-body-md text-body-md text-on-surface-variant mb-lg flex-grow">{category.description}</p>
+                    <ul className="space-y-sm mb-lg font-body-sm text-body-sm text-on-surface">
+                        {getFeatures(category).slice(0, 4).map((feature: string, idx: number) => (
+                            <li key={idx} className="flex items-center gap-xs"><span className="material-symbols-outlined text-[16px] text-primary">check</span> {feature}</li>
+                        ))}
+                    </ul>
+                    <Link className="font-body-sm text-body-sm font-semibold text-primary group-hover:text-primary-container flex items-center gap-xs mt-auto" href={`/services/${category.slug}`}>
+                        Khám phá {category.name} <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                    </Link>
+                </div>
+            ))}
+    </>
 )}
 </div>
 </section>

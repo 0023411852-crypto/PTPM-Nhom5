@@ -15,5 +15,6 @@ namespace CloudService.Domain.Entities
 
         public virtual ICollection<PlanPrice> Prices { get; set; } = new List<PlanPrice>();
         public virtual ICollection<Promotion> Promotions { get; set; } = new List<Promotion>();
+        public virtual ICollection<PackageSpecification> PackageSpecifications { get; set; } = new List<PackageSpecification>();
     }
 }

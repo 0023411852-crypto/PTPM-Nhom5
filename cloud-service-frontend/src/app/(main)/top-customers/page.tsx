@@ -19,6 +19,7 @@ interface Review {
     reviewerAvatar: string;
     rating: number;
     content: string;
+    createdAt: string;
 }
 
 interface ServicePlanQr {
@@ -332,6 +333,11 @@ export default function TopCustomersPage() {
                                     <div>
                                         <h3 className="font-semibold text-gray-900 dark:text-white">{review.reviewerName}</h3>
                                         <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">{review.reviewerTitle}</p>
+                                        {review.createdAt && (
+                                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                                                {new Date(review.createdAt).toLocaleDateString('vi-VN')}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="flex mb-3">
@@ -406,6 +412,11 @@ export default function TopCustomersPage() {
                             <div>
                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">{selectedReview.reviewerName}</h3>
                                 <p className="text-gray-500 dark:text-gray-400">{selectedReview.reviewerTitle}</p>
+                                {selectedReview.createdAt && (
+                                    <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                                        {new Date(selectedReview.createdAt).toLocaleDateString('vi-VN')}
+                                    </p>
+                                )}
                             </div>
                         </div>
                         <div className="flex mb-6 bg-yellow-50 dark:bg-yellow-900/10 p-3 rounded-lg w-fit">

@@ -42,6 +42,22 @@ namespace CloudService.Application.Services
                 .ToList();
 
             var dtos = _mapper.Map<List<OrderDto>>(pagedData);
+
+            if (dtos.Any())
+            {
+                var orderIds = dtos.Select(d => d.Id).ToList();
+                var reviewRepo = _unitOfWork.Repository<CustomerReview>();
+                var reviewedOrderIds = reviewRepo.GetQueryable()
+                    .Where(r => r.OrderId.HasValue && orderIds.Contains(r.OrderId.Value))
+                    .Select(r => r.OrderId.Value)
+                    .ToList();
+
+                foreach (var dto in dtos)
+                {
+                    dto.IsReviewed = reviewedOrderIds.Contains(dto.Id);
+                }
+            }
+
             return new PagedResponse<OrderDto>(dtos, totalRecords, filter.PageNumber, filter.PageSize);
         }
 

@@ -11,5 +11,6 @@ namespace CloudService.Application.DTOs.Orders
         public decimal TotalAmount { get; set; }
         public OrderStatus Status { get; set; }
         public DateTime OrderDate { get; set; }
+        public bool IsReviewed { get; set; }
     }
 }

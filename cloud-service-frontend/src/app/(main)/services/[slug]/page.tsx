@@ -5,91 +5,66 @@ import { useParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import Modal from "@/components/admin/Modal";
 
+type PackageSpecification = {
+    id: string;
+    name: string;
+    value: string;
+    unit: string;
+    displayOrder: number;
+};
+
 type ServicePlan = {
     id: string;
     name: string;
     description: string;
     specifications: string;
+    packageSpecifications?: PackageSpecification[];
     isActive: boolean;
     prices?: { id: string; billingCycle: string; price: number; setupFee?: number | null; isActive: boolean }[];
-    category?: { name?: string };
+    category?: { id: string; name?: string; slug?: string };
+};
+
+type ServiceFeature = {
+    id: string;
+    name: string;
+    isActive: boolean;
+    displayOrder: number;
 };
 
 type ServiceCategory = {
+    id: string;
     slug: string;
     name: string;
     description?: string;
     detailTitle?: string;
     icon?: string;
     featuresJson?: string;
+    serviceFeatures?: ServiceFeature[];
 };
 
-type ServiceConfig = {
-    title: string;
-    eyebrow: string;
-    description: string;
-    icon: string;
-    keywords: string[];
-    features: string[];
-};
-
-const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
-    hosting: {
-        title: "Web Hosting ổn định, dễ quản lý",
-        eyebrow: "Web Hosting",
-        description: "Lưu trữ website nhanh và an toàn với SSD/NVMe, SSL miễn phí cùng công cụ quản trị thân thiện.",
-        icon: "web",
-        keywords: ["hosting", "web"],
-        features: ["SSD/NVMe Storage", "Free SSL Certificate", "Auto Backup daily", "Integrated Email"],
-    },
-    domain: {
-        title: "Tên miền cho thương hiệu của bạn",
-        eyebrow: "Domain",
-        description: "Đăng ký tên miền quốc tế và Việt Nam, quản lý DNS tập trung và bảo vệ thông tin đăng ký.",
-        icon: "public",
-        keywords: ["domain", "tên miền"],
-        features: ["International domains", "Advanced DNS Management", "Free WHOIS Protection", "Auto Renewal options"],
-    },
-    email: {
-        title: "Business Email chuyên nghiệp",
-        eyebrow: "Business Email",
-        description: "Email doanh nghiệp theo tên miền riêng với dung lượng linh hoạt, giao diện hiện đại và chống spam.",
-        icon: "mail",
-        keywords: ["email", "mail"],
-        features: ["Custom domains", "Advanced Spam Protection", "Large storage quotas", "Modern Webmail UI"],
-    },
-    ssl: {
-        title: "SSL Certificate bảo vệ website",
-        eyebrow: "SSL Certificate",
-        description: "Tăng độ tin cậy cho website bằng HTTPS và mã hóa dữ liệu truyền tải với chứng chỉ phù hợp.",
-        icon: "lock",
-        keywords: ["ssl", "certificate", "bảo mật"],
-        features: ["Secure HTTPS", "256-bit Encryption", "Domain Validation (DV)", "High Browser Trust"],
-    },
-    security: {
-        title: "DDoS Firewall bảo vệ hạ tầng",
-        eyebrow: "DDoS Firewall",
-        description: "Giám sát và lọc lưu lượng thông minh để giảm thiểu rủi ro từ các cuộc tấn công mạng quy mô lớn.",
-        icon: "shield",
-        keywords: ["security", "bảo mật", "ddos", "firewall"],
-        features: ["Intelligent Traffic Filtering", "L3/4/7 Protection", "Real-time Monitoring", "Custom Rulesets"],
-    },
-};
-
-const API_BASE_URL = "";
-
-function parseFeatures(value: string | undefined, fallback: string[]) {
+function getFeatures(category: ServiceCategory | null | undefined, fallback: string[]) {
+    if (category?.serviceFeatures && category.serviceFeatures.length > 0) {
+        return category.serviceFeatures
+            .filter(f => f.isActive)
+            .sort((a, b) => a.displayOrder - b.displayOrder)
+            .map(f => f.name);
+    }
     try {
-        const parsed = JSON.parse(value || "[]");
+        const parsed = JSON.parse(category?.featuresJson || "[]");
         return Array.isArray(parsed) && parsed.length > 0 ? parsed.filter(item => typeof item === "string") : fallback;
     } catch {
         return fallback;
     }
 }
 
-function parseSpecifications(specifications: string) {
+function getSpecifications(plan: ServicePlan) {
+    if (plan.packageSpecifications && plan.packageSpecifications.length > 0) {
+        return plan.packageSpecifications
+            .sort((a, b) => a.displayOrder - b.displayOrder)
+            .map(s => [s.name, s.unit ? `${s.value} ${s.unit}` : s.value]);
+    }
     try {
-        const parsed = JSON.parse(specifications || "{}");
+        const parsed = JSON.parse(plan.specifications || "{}");
         return Object.entries(parsed).filter(([, value]) => value !== null && value !== undefined && value !== "");
     } catch {
         return [];
@@ -99,7 +74,7 @@ function parseSpecifications(specifications: string) {
 export default function ServiceDetailsPage() {
     const params = useParams<{ slug: string }>();
     const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
-    const config = SERVICE_CONFIGS[slug] || SERVICE_CONFIGS.hosting;
+    
     const [plans, setPlans] = useState<ServicePlan[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isContactOpen, setIsContactOpen] = useState(false);
@@ -109,9 +84,9 @@ export default function ServiceDetailsPage() {
     useEffect(() => {
         const controller = new AbortController();
         Promise.all([
-            fetch(`${API_BASE_URL}/api/ServicePlans?PageNumber=1&PageSize=100`, { signal: controller.signal }),
-            fetch(`${API_BASE_URL}/api/SiteSettings/public`, { signal: controller.signal }),
-            fetch(`${API_BASE_URL}/api/ServiceCategories?PageNumber=1&PageSize=100`, { signal: controller.signal }),
+            fetch(`/api/ServicePlans?PageNumber=1&PageSize=100`, { signal: controller.signal }),
+            fetch(`/api/SiteSettings/public`, { signal: controller.signal }),
+            fetch(`/api/ServiceCategories?PageNumber=1&PageSize=100`, { signal: controller.signal }),
         ])
             .then(async ([plansResponse, settingsResponse, categoriesResponse]) => {
                 if (plansResponse.ok) {
@@ -122,7 +97,7 @@ export default function ServiceDetailsPage() {
                 if (categoriesResponse.ok) {
                     const result = await categoriesResponse.json();
                     const categories = Array.isArray(result?.data) ? result.data : [];
-                    const selected = categories.find((category: ServiceCategory) => category.slug?.toLowerCase() === slug.toLowerCase()) || categories.find((category: ServiceCategory) => config.keywords.some(keyword => `${category.name} ${category.slug}`.toLowerCase().includes(keyword)));
+                    const selected = categories.find((category: ServiceCategory) => category.slug?.toLowerCase() === slug.toLowerCase());
                     if (selected) setCategoryContent(selected);
                 }
                 if (settingsResponse.ok) {
@@ -141,23 +116,31 @@ export default function ServiceDetailsPage() {
                 if (!controller.signal.aborted) setIsLoading(false);
             });
         return () => controller.abort();
-    }, []);
+    }, [slug]);
 
     const displayConfig = useMemo(() => ({
-        ...config,
-        title: categoryContent?.detailTitle || config.title,
-        description: categoryContent?.description || config.description,
-        icon: categoryContent?.icon || config.icon,
-        features: parseFeatures(categoryContent?.featuresJson, config.features),
-    }), [categoryContent, config]);
+        title: categoryContent?.detailTitle || categoryContent?.name || "Chi tiết dịch vụ",
+        eyebrow: categoryContent?.name || "Dịch vụ",
+        description: categoryContent?.description || "Thông tin dịch vụ đang được cập nhật.",
+        icon: categoryContent?.icon || "dns",
+        features: getFeatures(categoryContent, ["Hiệu năng cao", "Bảo mật & An toàn", "Hỗ trợ 24/7", "Dễ dàng mở rộng"]),
+    }), [categoryContent]);
 
     const detailPlans = useMemo(() => {
-        const matching = plans.filter(plan => {
-            const text = `${plan.category?.name || ""} ${plan.name} ${plan.description}`.toLowerCase();
-            return displayConfig.keywords.some(keyword => text.includes(keyword));
-        });
-        return matching.length > 0 ? matching : plans.filter(plan => plan.category?.name?.toLowerCase() === displayConfig.eyebrow.toLowerCase());
-    }, [plans, displayConfig]);
+        return plans.filter(plan => plan.category?.slug?.toLowerCase() === slug.toLowerCase() || plan.category?.id === categoryContent?.id);
+    }, [plans, slug, categoryContent]);
+
+    if (!isLoading && !categoryContent) {
+        return (
+            <main className="flex-grow bg-surface py-3xl px-gutter text-center">
+                <div className="max-w-container-max mx-auto py-3xl">
+                    <h1 className="font-headline-lg text-headline-lg text-on-background mb-md">Không tìm thấy dịch vụ</h1>
+                    <p className="mb-lg text-secondary">Dịch vụ bạn đang tìm kiếm không tồn tại hoặc đã bị ẩn.</p>
+                    <Link href="/services" className="text-on-primary bg-primary px-lg py-md rounded-lg hover:bg-primary/90">Quay lại danh sách dịch vụ</Link>
+                </div>
+            </main>
+        );
+    }
 
     return (
         <main className="flex-grow bg-surface">
@@ -185,7 +168,7 @@ export default function ServiceDetailsPage() {
                 <div className="mb-2xl grid grid-cols-1 gap-lg md:grid-cols-2">
                     {displayConfig.features.map(feature => <div key={feature} className="flex items-center gap-sm rounded-lg border border-outline-variant bg-surface-container-lowest p-md text-on-surface"><span className="material-symbols-outlined text-primary">check_circle</span>{feature}</div>)}
                 </div>
-                {isLoading ? <div className="py-2xl text-center text-secondary">Đang tải các gói dịch vụ...</div> : detailPlans.length === 0 ? <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-xl text-center text-secondary">Hiện chưa có gói {displayConfig.eyebrow} đang hoạt động.</div> : <div className="grid grid-cols-1 gap-lg md:grid-cols-2 lg:grid-cols-3">{detailPlans.map(plan => { const price = plan.prices?.find(item => item.isActive !== false); const specs = parseSpecifications(plan.specifications); return <article key={plan.id} className="flex flex-col rounded-xl border border-outline-variant bg-surface-container-lowest p-xl shadow-sm transition hover:-translate-y-1 hover:border-primary hover:shadow-lg"><p className="mb-sm font-label-caps text-label-caps uppercase tracking-wider text-primary">{plan.category?.name || displayConfig.eyebrow}</p><h3 className="mb-sm font-headline-md text-headline-md text-on-background">{plan.name}</h3><p className="mb-lg min-h-12 text-secondary">{plan.description || displayConfig.description}</p><div className="mb-xl flex-1 space-y-sm border-y border-outline-variant py-md">{specs.length > 0 ? specs.map(([key, value]) => <div key={key} className="flex justify-between gap-md text-sm"><span className="text-secondary">{key}</span><strong>{String(value)}</strong></div>) : <p className="text-sm text-secondary">Liên hệ để nhận thông tin chi tiết.</p>}</div><div className="flex items-center justify-between gap-md"><span className="font-semibold text-primary">{price ? `${price.price.toLocaleString("vi-VN")} đ/${price.billingCycle === "Yearly" ? "năm" : "tháng"}` : "Liên hệ"}</span><Link href={`/pricing?plan=${plan.id}`} className="rounded-lg bg-primary px-md py-sm text-sm font-semibold text-on-primary hover:bg-primary/90">Đăng ký gói</Link></div></article>; })}</div>}
+                {isLoading ? <div className="py-2xl text-center text-secondary">Đang tải các gói dịch vụ...</div> : detailPlans.length === 0 ? <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-xl text-center text-secondary">Hiện chưa có gói {displayConfig.eyebrow} đang hoạt động.</div> : <div className="grid grid-cols-1 gap-lg md:grid-cols-2 lg:grid-cols-3">{detailPlans.map(plan => { const price = plan.prices?.find(item => item.isActive !== false); const specs = getSpecifications(plan); return <article key={plan.id} className="flex flex-col rounded-xl border border-outline-variant bg-surface-container-lowest p-xl shadow-sm transition hover:-translate-y-1 hover:border-primary hover:shadow-lg"><p className="mb-sm font-label-caps text-label-caps uppercase tracking-wider text-primary">{plan.category?.name || displayConfig.eyebrow}</p><h3 className="mb-sm font-headline-md text-headline-md text-on-background">{plan.name}</h3><p className="mb-lg min-h-12 text-secondary">{plan.description || displayConfig.description}</p><div className="mb-xl flex-1 space-y-sm border-y border-outline-variant py-md">{specs.length > 0 ? specs.map(([key, value]) => <div key={key} className="flex justify-between gap-md text-sm"><span className="text-secondary">{key}</span><strong>{String(value)}</strong></div>) : <p className="text-sm text-secondary">Liên hệ để nhận thông tin chi tiết.</p>}</div><div className="flex items-center justify-between gap-md"><span className="font-semibold text-primary">{price ? `${price.price.toLocaleString("vi-VN")} đ/${price.billingCycle === "12" ? "năm" : "tháng"}` : "Liên hệ"}</span><Link href={`/pricing?plan=${plan.id}`} className="rounded-lg bg-primary px-md py-sm text-sm font-semibold text-on-primary hover:bg-primary/90">Đăng ký gói</Link></div></article>; })}</div>}
             </section>
 
             <section className="bg-primary-container px-gutter py-3xl text-center text-on-primary-container"><h2 className="mb-md font-headline-lg text-headline-lg">Cần tư vấn lựa chọn gói?</h2><p className="mx-auto mb-xl max-w-[42rem] text-body-lg opacity-80">Hãy để CloudNova đề xuất phương án phù hợp với nhu cầu và ngân sách của bạn.</p><button onClick={() => setIsContactOpen(true)} className="rounded-lg bg-surface-container-lowest px-xl py-md font-semibold text-primary shadow-sm">Nhận tư vấn miễn phí</button></section>

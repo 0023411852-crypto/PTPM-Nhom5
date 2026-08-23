@@ -21,7 +21,7 @@ namespace CloudService.Application.Services
         public async Task<PagedResponse<ServiceCategoryDto>> GetAllAsync(PaginationFilter filter)
         {
             var repo = _unitOfWork.Repository<ServiceCategory>();
-            var query = repo.GetQueryable();
+            var query = repo.GetQueryable("ServiceFeatures");
             
             var totalRecords = query.Count();
 
@@ -38,7 +38,7 @@ namespace CloudService.Application.Services
         public async Task<ServiceCategoryDto?> GetByIdAsync(Guid id)
         {
             var repo = _unitOfWork.Repository<ServiceCategory>();
-            var entity = await repo.GetByIdAsync(id);
+            var entity = await repo.GetByIdAsync(id, "ServiceFeatures");
             if (entity == null) return null;
             return _mapper.Map<ServiceCategoryDto>(entity);
         }

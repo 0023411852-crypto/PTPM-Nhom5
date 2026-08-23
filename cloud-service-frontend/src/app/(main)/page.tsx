@@ -397,12 +397,20 @@ void main() {
             {featuredPlans.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-lg">
                 {featuredPlans.map((plan) => (
-                  <article key={plan.id} className="bg-surface rounded-xl border border-outline-variant p-lg shadow-sm">
-                    <p className="font-label-caps text-label-caps text-primary">{plan.category?.name || "Cloud"}</p>
-                    <h3 className="font-headline-md text-headline-md text-on-surface mt-sm">{plan.name}</h3>
-                    <p className="font-body-sm text-on-surface-variant mt-sm line-clamp-2">{plan.description}</p>
-                    <p className="font-headline-sm text-headline-sm text-on-surface mt-lg">{plan.prices?.[0]?.price?.toLocaleString("vi-VN") || "Liên hệ"} đ</p>
-                  </article>
+                  <Link href="/pricing" key={plan.id} className="block group h-full">
+                    <article className="bg-surface rounded-xl border border-outline-variant p-lg shadow-sm group-hover:border-primary group-hover:shadow-md transition-all flex flex-col h-full">
+                      <p className="font-label-caps text-label-caps text-primary">{plan.category?.name || "Cloud"}</p>
+                      <h3 className="font-headline-md text-headline-md text-on-surface mt-sm group-hover:text-primary transition-colors">{plan.name}</h3>
+                      <p className="font-body-sm text-on-surface-variant mt-sm line-clamp-2 flex-grow">{plan.description}</p>
+                      <div className="mt-lg flex items-end justify-between border-t border-outline-variant/50 pt-md">
+                        <div>
+                            <p className="font-body-sm text-on-surface-variant mb-1">Giá từ</p>
+                            <p className="font-headline-sm text-headline-sm text-on-surface">{plan.prices?.[0]?.price?.toLocaleString("vi-VN") || "Liên hệ"} đ</p>
+                        </div>
+                        <span className="material-symbols-outlined text-primary bg-primary-container/50 rounded-full p-2 group-hover:bg-primary group-hover:text-on-primary transition-colors">arrow_forward</span>
+                      </div>
+                    </article>
+                  </Link>
                 ))}
               </div>
             ) : <p className="text-on-surface-variant">Chưa có gói dịch vụ nổi bật.</p>}

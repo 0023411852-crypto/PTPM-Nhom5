@@ -16,5 +16,6 @@ namespace CloudService.Domain.Entities
         public bool IsActive { get; set; } = true;
 
         public virtual ICollection<ServicePlan> ServicePlans { get; set; } = new List<ServicePlan>();
+        public virtual ICollection<ServiceFeature> ServiceFeatures { get; set; } = new List<ServiceFeature>();
     }
 }
