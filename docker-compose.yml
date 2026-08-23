@@ -41,6 +41,8 @@ services:
     build:
       context: ./cloud-service-frontend
       dockerfile: Dockerfile
+      args:
+        API_PROXY_URL: http://api:8080
     container_name: cloudservice-frontend
     ports:
       - "3000:3000"
