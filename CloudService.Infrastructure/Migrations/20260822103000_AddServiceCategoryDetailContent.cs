@@ -2,9 +2,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+using Microsoft.EntityFrameworkCore.Infrastructure;
+
 namespace CloudService.Infrastructure.Migrations
 {
-    /// <inheritdoc />
+    [DbContext(typeof(Data.ApplicationDbContext))]
+    [Migration("20260822103000_AddServiceCategoryDetailContent")]
     public partial class AddServiceCategoryDetailContent : Migration
     {
         /// <inheritdoc />
