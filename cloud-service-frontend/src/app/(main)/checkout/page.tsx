@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface CartItem {
     planId: string;
@@ -13,6 +14,7 @@ interface CartItem {
 }
 
 export default function CheckoutPage() {
+    const router = useRouter();
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -356,12 +358,12 @@ export default function CheckoutPage() {
 
 
                                 <button 
-                                    onClick={handleSubmit} 
+                                    onClick={token ? handleSubmit : () => router.push('/login')} 
                                     disabled={isSubmitting}
                                     className="w-full flex justify-center items-center gap-sm bg-primary text-on-primary font-label-caps text-label-caps uppercase py-4 rounded-xl shadow-sm hover:bg-on-primary-fixed-variant transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
-                                    {isSubmitting ? 'Đang xử lý...' : 'Tiến hành Thanh toán'}
-                                    {!isSubmitting && <span className="material-symbols-outlined">arrow_forward</span>}
+                                    {isSubmitting ? 'Đang xử lý...' : (token ? 'Tiến hành Thanh toán' : 'Đăng nhập để Thanh toán')}
+                                    {!isSubmitting && <span className="material-symbols-outlined">{token ? 'arrow_forward' : 'login'}</span>}
                                 </button>
                                 
                                 <p className="font-body-sm text-body-sm text-outline mt-md text-center">

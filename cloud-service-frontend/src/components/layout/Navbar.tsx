@@ -106,17 +106,17 @@ export default function Navbar() {
         </div>
         <div className="flex items-center gap-md relative">
           
+          <Link href="/checkout" className="relative p-2 text-on-surface hover:bg-surface-container rounded-full transition-colors">
+            <span className="material-symbols-outlined text-[24px]">shopping_cart</span>
+            {cartCount > 0 && (
+              <span className="absolute top-0 right-0 bg-error text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
+          </Link>
+
           {token ? (
             <div className="flex items-center gap-4">
-              <Link href="/checkout" className="relative p-2 text-on-surface hover:bg-surface-container rounded-full transition-colors">
-                <span className="material-symbols-outlined text-[24px]">shopping_cart</span>
-                {cartCount > 0 && (
-                  <span className="absolute top-0 right-0 bg-error text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
-              
               <div className="relative">
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}

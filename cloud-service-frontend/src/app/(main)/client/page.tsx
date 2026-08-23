@@ -40,6 +40,9 @@ export default function ClientPortalPage() {
     const [avatarUrl, setAvatarUrl] = useState('');
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
     const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+    
+    // Cart state
+    const [cartItems, setCartItems] = useState<any[]>([]);
 
     // Services state
     const [services, setServices] = useState<any[]>([]);
@@ -58,8 +61,10 @@ export default function ClientPortalPage() {
     
     // New Ticket state
     const [isCreatingTicket, setIsCreatingTicket] = useState(false);
-    const [ticketTitle, setTicketTitle] = useState('');
-    const [ticketDesc, setTicketDesc] = useState('');
+    const [newTicketSubject, setNewTicketSubject] = useState('');
+    const [newTicketMessage, setNewTicketMessage] = useState('');
+    const [newTicketType, setNewTicketType] = useState('Technical');
+    const [newTicketPriority, setNewTicketPriority] = useState('Normal');
 
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -74,10 +79,17 @@ export default function ClientPortalPage() {
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
         if (!storedToken) {
-            window.location.href = '/login';
+            window.location.href = "/login";
             return;
         }
         setToken(storedToken);
+        
+        try {
+            const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
+            setCartItems(Array.isArray(storedCart) ? storedCart : []);
+        } catch {
+            setCartItems([]);
+        }
         
         fetchProfile(storedToken);
         fetchServices(storedToken);
@@ -346,8 +358,8 @@ export default function ClientPortalPage() {
                                 onClick={() => setActiveTab('services')}
                                 className={`w-full flex items-center gap-md px-md py-sm rounded-xl transition-colors ${activeTab === 'services' ? 'bg-primary-container text-primary font-medium' : 'text-on-surface-variant hover:bg-surface-container'}`}
                             >
-                                <span className="material-symbols-outlined text-[20px]">dns</span>
-                                Dịch vụ của tôi
+                                <span className="material-symbols-outlined text-[20px]">shopping_cart</span>
+                                Giỏ hàng & Quản lý dịch vụ
                             </button>
                             <button 
                                 onClick={() => setActiveTab('orders')}
@@ -385,8 +397,37 @@ export default function ClientPortalPage() {
                         
                         {/* Tab Dịch vụ */}
                         {activeTab === 'services' && (
-                            <div className="bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
-                                <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">VPS Đang hoạt động</h2>
+                            <div className="space-y-xl">
+                                {/* Giỏ hàng Section */}
+                                <div className="bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
+                                    <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">Giỏ hàng của bạn</h2>
+                                    {cartItems.length === 0 ? (
+                                        <div className="text-center py-lg text-on-surface-variant">Giỏ hàng đang trống.</div>
+                                    ) : (
+                                        <div className="space-y-md">
+                                            {cartItems.map((item, idx) => (
+                                                <div key={idx} className="flex justify-between items-center border border-outline-variant rounded-xl p-md">
+                                                    <div>
+                                                        <h3 className="font-headline-sm text-on-surface">{item.planName}</h3>
+                                                        <p className="text-sm text-on-surface-variant">Chu kỳ: {item.cycle === 'yearly' ? '12 tháng' : '1 tháng'} | SL: {item.qty}</p>
+                                                    </div>
+                                                    <div className="font-headline-sm text-primary">
+                                                        {(item.price * (item.cycle === 'yearly' ? 12 : 1) * item.qty).toLocaleString('vi-VN')}đ
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            <div className="flex justify-end mt-md">
+                                                <Link href="/checkout" className="px-xl py-md bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors inline-flex items-center gap-2">
+                                                    Thanh toán ngay <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Quản lý Dịch vụ Section */}
+                                <div className="bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
+                                    <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">VPS Đang hoạt động</h2>
                                 
                                 {loadingServices ? (
                                     <div className="text-center py-xl text-secondary">Đang tải dữ liệu...</div>
@@ -437,6 +478,7 @@ export default function ClientPortalPage() {
                                         ))}
                                     </div>
                                 )}
+                            </div>
                             </div>
                         )}
 
