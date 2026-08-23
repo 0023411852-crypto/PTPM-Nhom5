@@ -73,7 +73,7 @@ jobs:
   deploy:
     name: "🚀 Deploy to VPS"
     needs: [docker-build]
-    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && vars.AZURE_ENABLED == 'true' }}
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && secrets.AZURE_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: "☁️ Deploy via SSH"
