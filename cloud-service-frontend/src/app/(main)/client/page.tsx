@@ -61,8 +61,8 @@ export default function ClientPortalPage() {
     
     // New Ticket state
     const [isCreatingTicket, setIsCreatingTicket] = useState(false);
-    const [newTicketSubject, setNewTicketSubject] = useState('');
-    const [newTicketMessage, setNewTicketMessage] = useState('');
+    const [ticketTitle, setTicketTitle] = useState('');
+    const [ticketDesc, setTicketDesc] = useState('');
     const [newTicketType, setNewTicketType] = useState('Technical');
     const [newTicketPriority, setNewTicketPriority] = useState('Normal');
 
