@@ -83,6 +83,11 @@ jobs:
           username: ${{ secrets.AZURE_USER }}
           password: ${{ secrets.AZURE_PASSWORD }}
           script: |
+            # Clone nếu thư mục chưa tồn tại
+            if [ ! -d "/home/azureuser/PTPM-Nhom5" ]; then
+              git clone https://github.com/0023411852-crypto/PTPM-Nhom5.git /home/azureuser/PTPM-Nhom5
+            fi
+            
             # Di chuyển tới thư mục chứa mã nguồn trên server
             cd /home/azureuser/PTPM-Nhom5
             
