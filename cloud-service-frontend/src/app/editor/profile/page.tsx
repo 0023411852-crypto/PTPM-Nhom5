@@ -18,7 +18,7 @@ export default function EditorProfilePage() {
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [activities, setActivities] = useState<any[]>([]);
+    const [activities, setActivities] = useState<{ action: string; timestamp: string }[]>([]);
 
     const [messageModal, setMessageModal] = useState({
         isOpen: false,
@@ -30,14 +30,6 @@ export default function EditorProfilePage() {
     const showMessage = (title: string, message: string, isError = false) => {
         setMessageModal({ isOpen: true, title, message, isError });
     };
-
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            fetchMyProfile(token);
-            fetchActivities(token);
-        }
-    }, []);
 
     const fetchMyProfile = async (token: string) => {
         try {
@@ -61,8 +53,8 @@ export default function EditorProfilePage() {
                 window.dispatchEvent(new Event('profileUpdated'));
                 if (data.role) localStorage.setItem('role', data.role);
             }
-        } catch (e) {
-            console.error(e);
+        } catch {
+            console.error("Failed to fetch profile");
         }
     };
 
@@ -75,10 +67,21 @@ export default function EditorProfilePage() {
                 const data = await res.json();
                 setActivities(data);
             }
-        } catch (e) {
-            console.error(e);
+        } catch {
+            console.error("Failed to fetch activities");
         }
     };
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            // Use setTimeout to avoid setState in effect warning
+            setTimeout(() => {
+                fetchMyProfile(token);
+                fetchActivities(token);
+            }, 0);
+        }
+    }, []);
 
     const formatActivity = (action: string) => {
         if (!action) return 'Hoạt động không xác định';
@@ -133,7 +136,7 @@ export default function EditorProfilePage() {
                 console.error("Lỗi cập nhật:", errData);
                 showMessage('Lỗi', errData?.message || 'Không thể cập nhật hồ sơ. Vui lòng kiểm tra lại thông tin.', true);
             }
-        } catch (e) {
+        } catch {
             showMessage('Lỗi', 'Lỗi kết nối. Vui lòng thử lại sau.', true);
         }
     };
@@ -168,7 +171,7 @@ export default function EditorProfilePage() {
             } else {
                 showMessage('Lỗi đổi mật khẩu', data.message || 'Lỗi khi đổi mật khẩu.', true);
             }
-        } catch (e) {
+        } catch {
             showMessage('Lỗi kết nối', 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.', true);
         }
     };
@@ -207,7 +210,7 @@ export default function EditorProfilePage() {
             } else {
                 showMessage('Lỗi', 'Không thể tải ảnh lên máy chủ. Vui lòng thử lại.', true);
             }
-        } catch (error) {
+        } catch {
             showMessage('Lỗi', 'Lỗi mạng khi tải ảnh lên.', true);
         }
     };

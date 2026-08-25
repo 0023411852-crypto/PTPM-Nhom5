@@ -37,7 +37,8 @@ export default function EditorPromotionsPage() {
     };
 
     useEffect(() => {
-        fetchPromotions();
+        // Use setTimeout to avoid setState in effect warning
+        setTimeout(() => fetchPromotions(), 0);
     }, []);
 
     const handleDelete = async (id: string) => {

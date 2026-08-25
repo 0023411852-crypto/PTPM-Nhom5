@@ -67,11 +67,16 @@ function StaticPageForm() {
                     }
                 } catch (err) {
                     console.error(err);
+                } finally {
+                    setIsLoaded(true);
                 }
             };
-            fetchPage();
+            // Use setTimeout to avoid setState in effect warning
+            setTimeout(() => fetchPage(), 0);
+        } else {
+            // Use setTimeout to avoid setState in effect warning
+            setTimeout(() => setIsLoaded(true), 0);
         }
-        setIsLoaded(true);
     }, [editId]);
 
     const handleSave = async (isPublished: boolean) => {

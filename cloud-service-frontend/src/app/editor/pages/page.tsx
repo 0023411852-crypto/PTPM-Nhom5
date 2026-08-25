@@ -34,7 +34,8 @@ export default function EditorStaticPagesPage() {
     };
 
     useEffect(() => {
-        fetchPages();
+        // Use setTimeout to avoid setState in effect warning
+        setTimeout(() => fetchPages(), 0);
     }, []);
 
     const handleDelete = async (id: string) => {

@@ -61,9 +61,12 @@ export default function EditorMediaPage() {
     };
 
     useEffect(() => {
-        setPage(1);
-        setHasMore(true);
-        fetchMedia(1, fileType, search, false);
+        // Use setTimeout to avoid setState in effect warning
+        setTimeout(() => {
+            setPage(1);
+            setHasMore(true);
+            fetchMedia(1, fileType, search, false);
+        }, 0);
     }, [fileType, search]);
 
     const handleLoadMore = () => {

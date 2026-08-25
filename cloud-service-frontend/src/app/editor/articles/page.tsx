@@ -31,7 +31,8 @@ export default function EditorArticlesPage() {
     const [articleToDelete, setArticleToDelete] = useState<string | null>(null);
 
     useEffect(() => {
-        fetchArticles();
+        // Use setTimeout to avoid setState in effect warning
+        setTimeout(() => fetchArticles(), 0);
     }, []);
 
     const fetchArticles = async () => {

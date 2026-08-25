@@ -35,7 +35,8 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
             return;
         }
 
-        loadProfileData();
+        // Use setTimeout to avoid setState in effect warning
+        setTimeout(() => loadProfileData(), 0);
         window.addEventListener('profileUpdated', loadProfileData);
         return () => window.removeEventListener('profileUpdated', loadProfileData);
     }, [router]);

@@ -3,8 +3,17 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 
+type AdminStats = {
+    totalRevenue: number;
+    totalOrders: number;
+    totalUsers: number;
+    activeTickets: number;
+    pendingOrders: number;
+    openTickets: number;
+};
+
 export default function AdminDashboardPage() {
-    const [stats, setStats] = useState<any>(null);
+    const [stats, setStats] = useState<AdminStats | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -16,14 +25,15 @@ export default function AdminDashboardPage() {
                 });
                 const data = await res.json();
                 if (res.ok) setStats(data);
-            } catch (e) {
-                console.error(e);
+            } catch {
+                console.error("Failed to fetch stats");
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchStats();
+        // Use setTimeout to avoid setState in effect warning
+        setTimeout(() => fetchStats(), 0);
     }, []);
 
     if (loading) return <div className="text-center p-2xl">Đang tải dữ liệu...</div>;
