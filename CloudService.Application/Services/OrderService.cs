@@ -268,54 +268,43 @@ namespace CloudService.Application.Services
                 }
             }
 
-            // Use transaction to ensure atomicity of order status update and service creation
-            await using var transaction = await _unitOfWork.BeginTransactionAsync();
-            try
+            order.Status = OrderStatus.Completed;
+            orderRepo.Update(order);
+
+            var serviceRepo = _unitOfWork.Repository<CustomerService>();
+
+            // Generate demo credentials (randomized for demo environment)
+            var random = new Random();
+            var demoIp = $"10.{random.Next(0, 255)}.{random.Next(0, 255)}.{random.Next(10, 254)}";
+            var demoUser = $"demo-{order.Id.ToString("N")[..8]}";
+            var demoPassword = GenerateRandomPassword();
+
+            var newService = new CustomerService
             {
-                order.Status = OrderStatus.Completed;
-                orderRepo.Update(order);
+                OrderId = order.Id,
+                CustomerId = order.UserId,
+                ServiceName = order.ServicePlan?.Name ?? "Demo VPS",
+                VpsIP = demoIp,
+                VpsUser = demoUser,
+                VpsPassword = demoPassword,
+                ExpiryDate = DateTime.UtcNow.AddMonths(1),
+                Status = "Active"
+            };
 
-                var serviceRepo = _unitOfWork.Repository<CustomerService>();
+            await serviceRepo.AddAsync(newService);
+            await _unitOfWork.SaveChangesAsync();
 
-                // Generate demo credentials (randomized for demo environment)
-                var random = new Random();
-                var demoIp = $"10.{random.Next(0, 255)}.{random.Next(0, 255)}.{random.Next(10, 254)}";
-                var demoUser = $"demo-{order.Id.ToString("N")[..8]}";
-                var demoPassword = GenerateRandomPassword();
-
-                var newService = new CustomerService
-                {
-                    OrderId = order.Id,
-                    CustomerId = order.UserId,
-                    ServiceName = order.ServicePlan?.Name ?? "Demo VPS",
-                    VpsIP = demoIp,
-                    VpsUser = demoUser,
-                    VpsPassword = demoPassword,
-                    ExpiryDate = DateTime.UtcNow.AddMonths(1),
-                    Status = "Active"
-                };
-
-                await serviceRepo.AddAsync(newService);
-                await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitTransactionAsync();
-
-                return new DemoPaymentResultDto
-                {
-                    OrderId = order.Id,
-                    Status = order.Status.ToString(),
-                    AlreadyProcessed = false,
-                    ServiceName = newService.ServiceName,
-                    VpsIP = newService.VpsIP,
-                    VpsUser = newService.VpsUser,
-                    VpsPassword = "********", // Masked for security
-                    ExpiryDate = newService.ExpiryDate
-                };
-            }
-            catch
+            return new DemoPaymentResultDto
             {
-                await _unitOfWork.RollbackTransactionAsync();
-                throw;
-            }
+                OrderId = order.Id,
+                Status = order.Status.ToString(),
+                AlreadyProcessed = false,
+                ServiceName = newService.ServiceName,
+                VpsIP = newService.VpsIP,
+                VpsUser = newService.VpsUser,
+                VpsPassword = "********", // Masked for security
+                ExpiryDate = newService.ExpiryDate
+            };
         }
 
         private static string GenerateRandomPassword(int length = 16)

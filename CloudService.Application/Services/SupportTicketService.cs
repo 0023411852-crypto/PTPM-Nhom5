@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using CloudService.Application.Common;
 using CloudService.Application.DTOs.SupportTickets;
 using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
