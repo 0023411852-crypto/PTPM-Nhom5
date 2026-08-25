@@ -286,7 +286,7 @@ namespace CloudService.WebApi.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // Seed Orders
+            // Seed Orders (idempotent - check if orders already exist for these users)
             var plans = _context.ServicePlans.ToList();
             var planMax = plans.FirstOrDefault(p => p.Name.Contains("Enterprise")) ?? plans.First();
             var planGPU = plans.FirstOrDefault(p => p.Name.Contains("Business")) ?? plans.First();
@@ -296,57 +296,67 @@ namespace CloudService.WebApi.Controllers
             var priceGPU = _context.PlanPrices.FirstOrDefault(p => p.ServicePlanId == planGPU.Id);
             var pricePro = _context.PlanPrices.FirstOrDefault(p => p.ServicePlanId == planPro.Id);
 
-            var orders = new List<CloudService.Domain.Entities.OrderRequest>
+            var existingOrders = _context.OrderRequests.Where(o => users.Select(u => u.Id).Contains(o.UserId)).ToList();
+            var ordersToCreate = new List<CloudService.Domain.Entities.OrderRequest>();
+            
+            if (!existingOrders.Any(o => o.UserId == users[0].Id))
             {
-                new CloudService.Domain.Entities.OrderRequest { UserId = users[0].Id, ServicePlanId = planMax.Id, PlanPriceId = priceMax!.Id, TotalAmount = 150000000, Status = CloudService.Domain.Enums.OrderStatus.Completed },
-                new CloudService.Domain.Entities.OrderRequest { UserId = users[1].Id, ServicePlanId = planGPU.Id, PlanPriceId = priceGPU!.Id, TotalAmount = 120000000, Status = CloudService.Domain.Enums.OrderStatus.Completed },
-                new CloudService.Domain.Entities.OrderRequest { UserId = users[2].Id, ServicePlanId = planPro.Id, PlanPriceId = pricePro!.Id, TotalAmount = 95000000, Status = CloudService.Domain.Enums.OrderStatus.Completed }
-            };
-            _context.OrderRequests.AddRange(orders);
-            await _context.SaveChangesAsync();
+                ordersToCreate.Add(new CloudService.Domain.Entities.OrderRequest { UserId = users[0].Id, ServicePlanId = planMax.Id, PlanPriceId = priceMax!.Id, TotalAmount = 150000000, Status = CloudService.Domain.Enums.OrderStatus.Completed });
+            }
+            if (!existingOrders.Any(o => o.UserId == users[1].Id))
+            {
+                ordersToCreate.Add(new CloudService.Domain.Entities.OrderRequest { UserId = users[1].Id, ServicePlanId = planGPU.Id, PlanPriceId = priceGPU!.Id, TotalAmount = 120000000, Status = CloudService.Domain.Enums.OrderStatus.Completed });
+            }
+            if (!existingOrders.Any(o => o.UserId == users[2].Id))
+            {
+                ordersToCreate.Add(new CloudService.Domain.Entities.OrderRequest { UserId = users[2].Id, ServicePlanId = planPro.Id, PlanPriceId = pricePro!.Id, TotalAmount = 95000000, Status = CloudService.Domain.Enums.OrderStatus.Completed });
+            }
+            
+            if (ordersToCreate.Any())
+            {
+                _context.OrderRequests.AddRange(ordersToCreate);
+                await _context.SaveChangesAsync();
+            }
 
-            // Seed Reviews
-            var reviews = new List<CloudService.Domain.Entities.CustomerReview>
+            // Get the orders (either existing or newly created)
+            var finalOrders = _context.OrderRequests.Where(o => users.Select(u => u.Id).Contains(o.UserId)).ToList();
+
+            // Seed Reviews (idempotent - check if reviews already exist by reviewer name)
+            var existingReviews = _context.CustomerReviews.ToList();
+            var reviewsToCreate = new List<CloudService.Domain.Entities.CustomerReview>();
+            
+            var reviewData = new[]
             {
-                new CloudService.Domain.Entities.CustomerReview
-                {
-                    ReviewerName = "Phạm D",
-                    ReviewerTitle = "CTO tại TechCore",
-                    ReviewerAvatar = "https://lh3.googleusercontent.com/aida-public/AB6AXuB0JBkk4hHmiPwFYHwgF3KNsUDFFNcPcGaCWm7KckVzCGeTs7iyNXIpBYG6DBHBFYQP8nTEXzDHu-DAEqStbkVLfyLjLWviR_-16Q6We9VgoNtSKdcgLBcwE6eAXWByIBZnNwtWm3uxt3N9urYD0RcNR22EQw1ACqz8Xn2zmFHZxSEwZrUlCs7y5LawNwEFuOxK-vl0_ltWm_K21GraYkTRPzyWDuOBE3LT0I2n5aBhp1gRwwE5w7De",
-                    Rating = 5,
-                    Content = "Hạ tầng của CloudNova cực kỳ ổn định. Từ khi chuyển đổi, tốc độ tải trang của chúng tôi tăng 40%.",
-                    SortOrder = 1
-                },
-                new CloudService.Domain.Entities.CustomerReview
-                {
-                    ReviewerName = "Vũ E",
-                    ReviewerTitle = "Founder of DataFlow",
-                    ReviewerAvatar = "https://lh3.googleusercontent.com/aida-public/AB6AXuB0JBkk4hHmiPwFYHwgF3KNsUDFFNcPcGaCWm7KckVzCGeTs7iyNXIpBYG6DBHBFYQP8nTEXzDHu-DAEqStbkVLfyLjLWviR_-16Q6We9VgoNtSKdcgLBcwE6eAXWByIBZnNwtWm3uxt3N9urYD0RcNR22EQw1ACqz8Xn2zmFHZxSEwZrUlCs7y5LawNwEFuOxK-vl0_ltWm_K21GraYkTRPzyWDuOBE3LT0I2n5aBhp1gRwwE5w7De",
-                    Rating = 5,
-                    Content = "Dịch vụ hỗ trợ 24/7 vô cùng chuyên nghiệp. Các sự cố được giải quyết gần như ngay lập tức, rất đáng tin cậy.",
-                    SortOrder = 2
-                },
-                new CloudService.Domain.Entities.CustomerReview
-                {
-                    ReviewerName = "Ngô F",
-                    ReviewerTitle = "Giám đốc Hạ tầng, VinTech",
-                    ReviewerAvatar = "https://lh3.googleusercontent.com/aida-public/AB6AXuB0JBkk4hHmiPwFYHwgF3KNsUDFFNcPcGaCWm7KckVzCGeTs7iyNXIpBYG6DBHBFYQP8nTEXzDHu-DAEqStbkVLfyLjLWviR_-16Q6We9VgoNtSKdcgLBcwE6eAXWByIBZnNwtWm3uxt3N9urYD0RcNR22EQw1ACqz8Xn2zmFHZxSEwZrUlCs7y5LawNwEFuOxK-vl0_ltWm_K21GraYkTRPzyWDuOBE3LT0I2n5aBhp1gRwwE5w7De",
-                    Rating = 4.5M,
-                    Content = "VPS GPU xử lý các model AI của chúng tôi rất mượt mà. Chi phí hợp lý so với hiệu năng mang lại.",
-                    SortOrder = 3
-                },
-                new CloudService.Domain.Entities.CustomerReview
-                {
-                    ReviewerName = "Lý G",
-                    ReviewerTitle = "CEO tại StartUpX",
-                    ReviewerAvatar = "https://lh3.googleusercontent.com/aida-public/AB6AXuB0JBkk4hHmiPwFYHwgF3KNsUDFFNcPcGaCWm7KckVzCGeTs7iyNXIpBYG6DBHBFYQP8nTEXzDHu-DAEqStbkVLfyLjLWviR_-16Q6We9VgoNtSKdcgLBcwE6eAXWByIBZnNwtWm3uxt3N9urYD0RcNR22EQw1ACqz8Xn2zmFHZxSEwZrUlCs7y5LawNwEFuOxK-vl0_ltWm_K21GraYkTRPzyWDuOBE3LT0I2n5aBhp1gRwwE5w7De",
-                    Rating = 5,
-                    Content = "Hệ thống quản lý dễ sử dụng, tôi có thể tự mình thiết lập máy chủ chỉ trong 5 phút. Rất hài lòng!",
-                    SortOrder = 4
-                }
+                new { Name = "Phạm D", Title = "CTO tại TechCore", Rating = 5.0M, Content = "Hạ tầng của CloudNova cực kỳ ổn định. Từ khi chuyển đổi, tốc độ tải trang của chúng tôi tăng 40%.", SortOrder = 1 },
+                new { Name = "Vũ E", Title = "Founder of DataFlow", Rating = 5.0M, Content = "Dịch vụ hỗ trợ 24/7 vô cùng chuyên nghiệp. Các sự cố được giải quyết gần như ngay lập tức, rất đáng tin cậy.", SortOrder = 2 },
+                new { Name = "Ngô F", Title = "Giám đốc Hạ tầng, VinTech", Rating = 4.5M, Content = "VPS GPU xử lý các model AI của chúng tôi rất mượt mà. Chi phí hợp lý so với hiệu năng mang lại.", SortOrder = 3 },
+                new { Name = "Lý G", Title = "CEO tại StartUpX", Rating = 5.0M, Content = "Hệ thống quản lý dễ sử dụng, tôi có thể tự mình thiết lập máy chủ chỉ trong 5 phút. Rất hài lòng!", SortOrder = 4 }
             };
-            _context.CustomerReviews.AddRange(reviews);
-            await _context.SaveChangesAsync();
+
+            for (int i = 0; i < reviewData.Length && i < finalOrders.Count; i++)
+            {
+                var data = reviewData[i];
+                if (!existingReviews.Any(r => r.ReviewerName == data.Name))
+                {
+                    reviewsToCreate.Add(new CloudService.Domain.Entities.CustomerReview
+                    {
+                        OrderId = finalOrders[i].Id,
+                        UserId = finalOrders[i].UserId,
+                        ReviewerName = data.Name,
+                        ReviewerTitle = data.Title,
+                        ReviewerAvatar = "https://lh3.googleusercontent.com/aida-public/AB6AXuB0JBkk4hHmiPwFYHwgF3KNsUDFFNcPcGaCWm7KckVzCGeTs7iyNXIpBYG6DBHBFYQP8nTEXzDHu-DAEqStbkVLfyLjLWviR_-16Q6We9VgoNtSKdcgLBcwE6eAXWByIBZnNwtWm3uxt3N9urYD0RcNR22EQw1ACqz8Xn2zmFHZxSEwZrUlCs7y5LawNwEFuOxK-vl0_ltWm_K21GraYkTRPzyWDuOBE3LT0I2n5aBhp1gRwwE5w7De",
+                        Rating = data.Rating,
+                        Content = data.Content,
+                        SortOrder = data.SortOrder
+                    });
+                }
+            }
+            
+            if (reviewsToCreate.Any())
+            {
+                _context.CustomerReviews.AddRange(reviewsToCreate);
+                await _context.SaveChangesAsync();
+            }
 
             return Ok("Seeded successfully");
         }

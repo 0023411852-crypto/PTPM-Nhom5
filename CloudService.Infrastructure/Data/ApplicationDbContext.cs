@@ -174,11 +174,17 @@ namespace CloudService.Infrastructure.Data
                       .WithMany()
                       .HasForeignKey(e => e.CustomerId)
                       .OnDelete(DeleteBehavior.Restrict);
+                
+                // Unique constraint on OrderId to prevent duplicate services for the same order
+                entity.HasIndex(e => e.OrderId).IsUnique();
             });
 
             modelBuilder.Entity<CustomerReview>(entity =>
             {
                 entity.Property(e => e.Rating).HasPrecision(3, 1);
+                
+                // Unique constraint on OrderId to prevent duplicate reviews for the same order
+                entity.HasIndex(e => e.OrderId).IsUnique().HasFilter("[OrderId] IS NOT NULL");
             });
         }
     }
