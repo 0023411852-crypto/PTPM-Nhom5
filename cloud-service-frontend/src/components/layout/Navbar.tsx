@@ -70,13 +70,19 @@ export default function Navbar() {
         color: "primary",
         borderBottom: "2px solid",
         borderColor: "primary",
-        ...baseClass,
+        fontSize: "label-caps",
+        fontWeight: "label-caps",
+        transition: "colors",
+        paddingBottom: "1",
       });
     }
     return css({
       color: "on-surface-variant",
       _hover: { color: "primary" },
-      ...baseClass,
+      fontSize: "label-caps",
+      fontWeight: "label-caps",
+      transition: "colors",
+      paddingBottom: "1",
     });
   };
 

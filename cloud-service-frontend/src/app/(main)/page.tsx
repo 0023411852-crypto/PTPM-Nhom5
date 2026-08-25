@@ -539,7 +539,7 @@ void main() {
                 gap: "lg",
               })}>
                 {featuredPlans.map((plan) => (
-                  <Link href="/pricing" key={plan.id} className={css({ display: "block", group: true, height: "full" })}>
+                  <Link href="/pricing" key={plan.id} className={css({ display: "block", height: "full" })}>
                     <article className={css({
                       backgroundColor: "surface",
                       borderRadius: "xl",
@@ -547,7 +547,7 @@ void main() {
                       borderColor: "outline-variant",
                       padding: "lg",
                       boxShadow: "sm",
-                      _groupHover: { borderColor: "primary", boxShadow: "md" },
+                      _hover: { borderColor: "primary", boxShadow: "md" },
                       transition: "all",
                       display: "flex",
                       flexDirection: "column",
@@ -565,16 +565,17 @@ void main() {
                         _groupHover: { color: "primary" },
                         transition: "colors",
                       })}>{plan.name}</h3>
-                      <p className={css({
-                        fontSize: "body-sm",
-                        color: "on-surface-variant",
-                        marginTop: "sm",
-                        overflow: "hidden",
-                        display: "-webkit-box",
-                        WebkitLineClamp: "2",
-                        WebkitBoxOrient: "vertical",
-                        flexGrow: "1",
-                      })}>{plan.description}</p>
+                      <p 
+                        className={css({
+                          fontSize: "body-sm",
+                          color: "on-surface-variant",
+                          marginTop: "sm",
+                          overflow: "hidden",
+                          display: "-webkit-box",
+                          flexGrow: "1",
+                        })}
+                        style={{ WebkitLineClamp: "2", WebkitBoxOrient: "vertical" }}
+                      >{plan.description}</p>
                       <div className={css({
                         marginTop: "lg",
                         display: "flex",
