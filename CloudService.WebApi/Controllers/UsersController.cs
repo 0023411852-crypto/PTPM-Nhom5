@@ -286,6 +286,10 @@ namespace CloudService.WebApi.Controllers
                 await _context.SaveChangesAsync();
             }
 
+            // Merge existing users with newly created users for order seeding
+            var allVipUsers = existingUsers.Concat(users).ToList();
+            var vipUserIds = allVipUsers.Select(u => u.Id).ToList();
+
             // Seed Orders (idempotent - check if orders already exist for these users)
             var plans = _context.ServicePlans.ToList();
             var planMax = plans.FirstOrDefault(p => p.Name.Contains("Enterprise")) ?? plans.First();
@@ -296,20 +300,25 @@ namespace CloudService.WebApi.Controllers
             var priceGPU = _context.PlanPrices.FirstOrDefault(p => p.ServicePlanId == planGPU.Id);
             var pricePro = _context.PlanPrices.FirstOrDefault(p => p.ServicePlanId == planPro.Id);
 
-            var existingOrders = _context.OrderRequests.Where(o => users.Select(u => u.Id).Contains(o.UserId)).ToList();
+            var existingOrders = _context.OrderRequests.Where(o => vipUserIds.Contains(o.UserId)).ToList();
             var ordersToCreate = new List<CloudService.Domain.Entities.OrderRequest>();
             
-            if (!existingOrders.Any(o => o.UserId == users[0].Id))
+            // Find users by email to ensure correct mapping
+            var userA = allVipUsers.FirstOrDefault(u => u.Email == "nguyenvana@techcore.vn");
+            var userB = allVipUsers.FirstOrDefault(u => u.Email == "tranthib@dataflow.corp");
+            var userC = allVipUsers.FirstOrDefault(u => u.Email == "lehoangc@fintech.asia");
+
+            if (userA != null && !existingOrders.Any(o => o.UserId == userA.Id))
             {
-                ordersToCreate.Add(new CloudService.Domain.Entities.OrderRequest { UserId = users[0].Id, ServicePlanId = planMax.Id, PlanPriceId = priceMax!.Id, TotalAmount = 150000000, Status = CloudService.Domain.Enums.OrderStatus.Completed });
+                ordersToCreate.Add(new CloudService.Domain.Entities.OrderRequest { UserId = userA.Id, ServicePlanId = planMax.Id, PlanPriceId = priceMax!.Id, TotalAmount = 150000000, Status = CloudService.Domain.Enums.OrderStatus.Completed });
             }
-            if (!existingOrders.Any(o => o.UserId == users[1].Id))
+            if (userB != null && !existingOrders.Any(o => o.UserId == userB.Id))
             {
-                ordersToCreate.Add(new CloudService.Domain.Entities.OrderRequest { UserId = users[1].Id, ServicePlanId = planGPU.Id, PlanPriceId = priceGPU!.Id, TotalAmount = 120000000, Status = CloudService.Domain.Enums.OrderStatus.Completed });
+                ordersToCreate.Add(new CloudService.Domain.Entities.OrderRequest { UserId = userB.Id, ServicePlanId = planGPU.Id, PlanPriceId = priceGPU!.Id, TotalAmount = 120000000, Status = CloudService.Domain.Enums.OrderStatus.Completed });
             }
-            if (!existingOrders.Any(o => o.UserId == users[2].Id))
+            if (userC != null && !existingOrders.Any(o => o.UserId == userC.Id))
             {
-                ordersToCreate.Add(new CloudService.Domain.Entities.OrderRequest { UserId = users[2].Id, ServicePlanId = planPro.Id, PlanPriceId = pricePro!.Id, TotalAmount = 95000000, Status = CloudService.Domain.Enums.OrderStatus.Completed });
+                ordersToCreate.Add(new CloudService.Domain.Entities.OrderRequest { UserId = userC.Id, ServicePlanId = planPro.Id, PlanPriceId = pricePro!.Id, TotalAmount = 95000000, Status = CloudService.Domain.Enums.OrderStatus.Completed });
             }
             
             if (ordersToCreate.Any())
@@ -319,7 +328,7 @@ namespace CloudService.WebApi.Controllers
             }
 
             // Get the orders (either existing or newly created)
-            var finalOrders = _context.OrderRequests.Where(o => users.Select(u => u.Id).Contains(o.UserId)).ToList();
+            var finalOrders = _context.OrderRequests.Where(o => vipUserIds.Contains(o.UserId)).ToList();
 
             // Seed Reviews (idempotent - check if reviews already exist by reviewer name)
             var existingReviews = _context.CustomerReviews.ToList();

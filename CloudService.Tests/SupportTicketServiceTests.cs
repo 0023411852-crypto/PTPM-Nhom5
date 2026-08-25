@@ -17,26 +17,28 @@ namespace CloudService.Tests
 {
     public class SupportTicketServiceTests
     {
-        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+        private readonly Mock<IGenericRepository<SupportTicket>> _ticketRepoMock;
+        private readonly Mock<IGenericRepository<TicketReply>> _replyRepoMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<IEventDispatcher> _eventDispatcherMock;
+        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly SupportTicketService _ticketService;
-        private readonly Mock<IGenericRepository<SupportTicket>> _ticketRepoMock;
-        private readonly Mock<IGenericRepository<AppUser>> _userRepoMock;
 
         public SupportTicketServiceTests()
         {
-            _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _ticketRepoMock = new Mock<IGenericRepository<SupportTicket>>();
+            _replyRepoMock = new Mock<IGenericRepository<TicketReply>>();
             _mapperMock = new Mock<IMapper>();
             _eventDispatcherMock = new Mock<IEventDispatcher>();
+            _unitOfWorkMock = new Mock<IUnitOfWork>();
 
-            _ticketRepoMock = new Mock<IGenericRepository<SupportTicket>>();
-            _userRepoMock = new Mock<IGenericRepository<AppUser>>();
-
-            _unitOfWorkMock.Setup(u => u.Repository<SupportTicket>()).Returns(_ticketRepoMock.Object);
-            _unitOfWorkMock.Setup(u => u.Repository<AppUser>()).Returns(_userRepoMock.Object);
-
-            _ticketService = new SupportTicketService(_unitOfWorkMock.Object, _mapperMock.Object, _eventDispatcherMock.Object);
+            _ticketService = new SupportTicketService(
+                _ticketRepoMock.Object,
+                _replyRepoMock.Object,
+                _mapperMock.Object,
+                _eventDispatcherMock.Object,
+                _unitOfWorkMock.Object
+            );
         }
 
         [Fact]
@@ -44,7 +46,7 @@ namespace CloudService.Tests
         {
             var userId = Guid.NewGuid();
             var ticketId = Guid.NewGuid();
-            var dto = new CreateTicketReplyDto { Content = "Test reply" };
+            var dto = new CreateTicketReplyDto { Message = "Test reply" };
             _ticketRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((SupportTicket?)null);
 
             Func<Task> act = async () => await _ticketService.ReplyToTicketAsync(userId, ticketId, dto, false);
@@ -53,27 +55,40 @@ namespace CloudService.Tests
         }
 
         [Fact]
-        public async Task CloseTicketAsync_ShouldThrowNotFoundException_WhenTicketDoesNotExist()
+        public async Task CloseTicketAsync_ShouldReturnFalse_WhenTicketDoesNotExist()
         {
             var ticketId = Guid.NewGuid();
             _ticketRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((SupportTicket?)null);
 
-            Func<Task> act = async () => await _ticketService.CloseTicketAsync(ticketId);
+            var result = await _ticketService.CloseTicketAsync(ticketId);
 
-            await act.Should().ThrowAsync<NotFoundException>();
+            result.Should().BeFalse();
         }
 
         [Fact]
-        public async Task CreateAsync_ShouldDispatchTicketCreatedEvent_WhenSuccess()
+        public async Task CreateTicketAsync_ShouldDispatchTicketCreatedEvent_WhenSuccess()
         {
             var customerId = Guid.NewGuid();
-            var dto = new CreateSupportTicketDto { Title = "Test Issue", Content = "Test content" };
-            var user = new AppUser { Id = customerId, Email = "test@example.com" };
-            _userRepoMock.Setup(r => r.GetByIdAsync(customerId)).ReturnsAsync(user);
+            var dto = new CreateSupportTicketDto { Title = "Test Issue", Description = "Test content" };
+            _mapperMock.Setup(m => m.Map<SupportTicketDto>(It.IsAny<SupportTicket>())).Returns(new SupportTicketDto { Id = Guid.NewGuid() });
 
-            await _ticketService.CreateAsync(customerId, dto);
+            await _ticketService.CreateTicketAsync(customerId, dto);
 
-            _eventDispatcherMock.Verify(d => d.DispatchAsync(It.IsAny<SupportTicketCreatedEvent>()), Times.Once);
+            _eventDispatcherMock.Verify(d => d.DispatchAsync(It.IsAny<CloudService.Domain.Events.SupportTicketCreatedEvent>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task ReplyToTicketAsync_ShouldThrowValidationException_WhenTicketIsClosed()
+        {
+            var userId = Guid.NewGuid();
+            var ticketId = Guid.NewGuid();
+            var ticket = new SupportTicket { Id = ticketId, Status = "Closed", CustomerId = userId };
+            var dto = new CreateTicketReplyDto { Message = "Test reply" };
+            _ticketRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync(ticket);
+
+            Func<Task> act = async () => await _ticketService.ReplyToTicketAsync(userId, ticketId, dto, false);
+
+            await act.Should().ThrowAsync<ValidationException>().WithMessage("Không thể trả lời ticket đã đóng.");
         }
     }
 }
