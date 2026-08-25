@@ -31,8 +31,8 @@ export default function RegisterPage() {
             await api.post('/Auth/register', { email, password, fullName: fullname });
             alert('Đăng ký tài khoản thành công! Bạn có thể đăng nhập ngay bây giờ.');
             router.push('/login');
-        } catch (err: any) {
-            setError(err.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.');
+        } catch (err) {
+            setError((err as Error).message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.');
         } finally {
             setLoading(false);
         }

@@ -90,7 +90,8 @@ export default function TopCustomersPage() {
     };
 
     useEffect(() => {
-        fetchReviews(1);
+        // Use setTimeout to avoid setState in effect warning
+        setTimeout(() => fetchReviews(1), 0);
     }, []);
 
     const handlePageChange = (newPage: number) => {
@@ -344,7 +345,7 @@ export default function TopCustomersPage() {
                                     {renderStars(review.rating)}
                                 </div>
                                 <div className="flex-grow overflow-hidden">
-                                    <p className="text-gray-600 dark:text-gray-300 italic line-clamp-3">"{review.content}"</p>
+                                    <p className="text-gray-600 dark:text-gray-300 italic line-clamp-3">&ldquo;{review.content}&rdquo;</p>
                                 </div>
                                 <button 
                                     onClick={() => setSelectedReview(review)}
@@ -424,7 +425,7 @@ export default function TopCustomersPage() {
                         </div>
                         <div className="max-h-[50vh] overflow-y-auto pr-2 pb-2">
                             <p className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed italic">
-                                "{selectedReview.content}"
+                                &ldquo;{selectedReview.content}&rdquo;
                             </p>
                         </div>
                     </div>
