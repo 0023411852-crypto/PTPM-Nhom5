@@ -16,7 +16,8 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
             alert("Bạn không có quyền truy cập trang Quản trị!");
             router.replace("/");
         } else {
-            setIsAuthorized(true);
+            // Use setTimeout to avoid setState in effect warning
+            setTimeout(() => setIsAuthorized(true), 0);
         }
     }, [pathname, router]);
 

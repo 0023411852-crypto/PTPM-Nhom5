@@ -115,12 +115,12 @@ export async function apiRequest<T>(
 
 export const api = {
   get: <T>(endpoint: string) => apiRequest<T>(endpoint, { method: 'GET' }),
-  post: <T>(endpoint: string, body: any) =>
+  post: <T>(endpoint: string, body: unknown) =>
     apiRequest<T>(endpoint, { method: 'POST', body: JSON.stringify(body) }),
-  put: <T>(endpoint: string, body: any) =>
+  put: <T>(endpoint: string, body: unknown) =>
     apiRequest<T>(endpoint, { method: 'PUT', body: JSON.stringify(body) }),
   delete: <T>(endpoint: string) => apiRequest<T>(endpoint, { method: 'DELETE' }),
-  patch: <T>(endpoint: string, body: any) =>
+  patch: <T>(endpoint: string, body: unknown) =>
     apiRequest<T>(endpoint, { method: 'PATCH', body: JSON.stringify(body) }),
 };
 

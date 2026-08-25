@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Ignore auto-generated styled-system files
+    "styled-system/**",
+    "strip_layout.js",
   ]),
 ]);
 

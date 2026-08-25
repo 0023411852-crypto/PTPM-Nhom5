@@ -11,7 +11,7 @@ async function getStaticPages() {
     if (!res.ok) return [];
     const data = await res.json();
     return data.items || [];
-  } catch (e) {
+  } catch {
     return [];
   }
 }
@@ -124,7 +124,7 @@ export default async function Footer() {
           </h4>
           <ul className={css({ display: "flex", flexDirection: "column", gap: "sm" })}>
             {staticPages.length > 0 ? (
-                staticPages.map((page: any) => (
+                staticPages.map((page: { id: string; slug: string; title: string }) => (
                     <li key={page.id}>
                       <Link
                         className={css({

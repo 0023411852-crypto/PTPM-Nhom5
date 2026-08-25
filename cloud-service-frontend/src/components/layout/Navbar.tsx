@@ -59,12 +59,6 @@ export default function Navbar() {
   };
 
   const getLinkClass = (path: string) => {
-    const baseClass = css({
-      fontSize: "label-caps",
-      fontWeight: "label-caps",
-      transition: "colors",
-      paddingBottom: "1",
-    });
     if (pathname === path) {
       return css({
         color: "primary",
