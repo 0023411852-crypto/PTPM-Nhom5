@@ -30,11 +30,6 @@ export default function EditorArticlesPage() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [articleToDelete, setArticleToDelete] = useState<string | null>(null);
 
-    useEffect(() => {
-        // Use setTimeout to avoid setState in effect warning
-        setTimeout(() => fetchArticles(), 0);
-    }, []);
-
     const fetchArticles = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -55,6 +50,11 @@ export default function EditorArticlesPage() {
             setIsLoaded(true);
         }
     };
+
+    useEffect(() => {
+        // Use setTimeout to avoid setState in effect warning
+        setTimeout(() => fetchArticles(), 0);
+    }, []);
 
     const handleDelete = async () => {
         if (articleToDelete) {
