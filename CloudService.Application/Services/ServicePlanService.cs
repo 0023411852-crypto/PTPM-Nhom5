@@ -5,6 +5,7 @@ using CloudService.Application.DTOs.ServicePlans;
 using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
 using CloudService.Domain.Interfaces;
+using CloudService.Domain.Exceptions;
 
 namespace CloudService.Application.Services
 {
@@ -59,7 +60,7 @@ namespace CloudService.Application.Services
             var catRepo = _unitOfWork.Repository<ServiceCategory>();
             if (await catRepo.GetByIdAsync(dto.CategoryId) == null)
             {
-                throw new Exception("Category not found");
+                throw new NotFoundException("Category not found");
             }
 
             var entity = _mapper.Map<ServicePlan>(dto);
@@ -73,12 +74,12 @@ namespace CloudService.Application.Services
             var repo = _unitOfWork.Repository<ServicePlan>();
             var allData = await repo.GetAllAsync(includeProperties: "Prices,Category,PackageSpecifications");
             var entity = allData.FirstOrDefault(x => x.Id == id);
-            if (entity == null) throw new Exception("Plan not found");
+            if (entity == null) throw new NotFoundException("Plan not found");
 
             var catRepo = _unitOfWork.Repository<ServiceCategory>();
             if (await catRepo.GetByIdAsync(dto.CategoryId) == null)
             {
-                throw new Exception("Category not found");
+                throw new NotFoundException("Category not found");
             }
 
             var oldPrices = entity.Prices.ToList();
@@ -124,9 +125,9 @@ namespace CloudService.Application.Services
             {
                 if (ex.InnerException != null && ex.InnerException.Message.Contains("REFERENCE constraint"))
                 {
-                    throw new Exception("Không thể cập nhật/xóa bảng giá vì đang có Đơn Hàng sử dụng giá cũ. Vui lòng giữ nguyên các mốc thời gian đã tạo.");
+                    throw new ConflictException("Không thể cập nhật/xóa bảng giá vì đang có Đơn Hàng sử dụng giá cũ. Vui lòng giữ nguyên các mốc thời gian đã tạo.");
                 }
-                throw new Exception("Lỗi cập nhật dữ liệu: " + (ex.InnerException?.Message ?? ex.Message));
+                throw new ValidationException("Lỗi cập nhật dữ liệu: " + (ex.InnerException?.Message ?? ex.Message));
             }
 
             return _mapper.Map<ServicePlanDto>(entity);
@@ -191,9 +192,9 @@ namespace CloudService.Application.Services
             {
                 if (ex.InnerException != null && ex.InnerException.Message.Contains("REFERENCE constraint"))
                 {
-                    throw new Exception("Không thể xóa Dịch Vụ này vì đang có Đơn Hàng sử dụng nó.");
+                    throw new ConflictException("Không thể xóa Dịch Vụ này vì đang có Đơn Hàng sử dụng nó.");
                 }
-                throw new Exception("Lỗi xóa dữ liệu: " + (ex.InnerException?.Message ?? ex.Message));
+                throw new ValidationException("Lỗi xóa dữ liệu: " + (ex.InnerException?.Message ?? ex.Message));
             }
             return true;
         }

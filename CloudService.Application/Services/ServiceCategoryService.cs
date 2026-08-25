@@ -4,6 +4,7 @@ using CloudService.Application.DTOs.ServiceCategories;
 using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
 using CloudService.Domain.Interfaces;
+using CloudService.Domain.Exceptions;
 
 namespace CloudService.Application.Services
 {
@@ -55,7 +56,7 @@ namespace CloudService.Application.Services
         {
             var repo = _unitOfWork.Repository<ServiceCategory>();
             var entity = await repo.GetByIdAsync(id);
-            if (entity == null) throw new Exception("Category not found");
+            if (entity == null) throw new NotFoundException("Category not found");
 
             _mapper.Map(dto, entity);
             repo.Update(entity);

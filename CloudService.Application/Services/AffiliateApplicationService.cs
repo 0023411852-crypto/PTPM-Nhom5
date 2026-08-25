@@ -5,6 +5,7 @@ using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
 using CloudService.Domain.Enums;
 using CloudService.Domain.Interfaces;
+using CloudService.Domain.Exceptions;
 using System.Security.Cryptography;
 
 namespace CloudService.Application.Services
@@ -76,7 +77,7 @@ namespace CloudService.Application.Services
             var query = repo.GetQueryable();
             if (query.Any(x => x.UserId == userId))
             {
-                throw new Exception("You have already applied for the affiliate program.");
+                throw new ConflictException("You have already applied for the affiliate program.");
             }
 
             var entity = _mapper.Map<AffiliateApplication>(dto);
@@ -93,7 +94,7 @@ namespace CloudService.Application.Services
         {
             var repo = _unitOfWork.Repository<AffiliateApplication>();
             var entity = await repo.GetByIdAsync(id);
-            if (entity == null) throw new Exception("Application not found");
+            if (entity == null) throw new NotFoundException("Application not found");
 
             entity.Status = dto.Status;
             repo.Update(entity);
@@ -137,7 +138,7 @@ namespace CloudService.Application.Services
             
             if (existingApps.Any(a => a.UserId == userToUse.Id))
             {
-                throw new Exception("Người dùng này đã là đối tác.");
+                throw new ConflictException("Người dùng này đã là đối tác.");
             }
 
             var entity = new AffiliateApplication

@@ -4,6 +4,7 @@ using CloudService.Application.DTOs.Promotions;
 using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
 using CloudService.Domain.Interfaces;
+using CloudService.Domain.Exceptions;
 
 namespace CloudService.Application.Services
 {
@@ -68,7 +69,7 @@ namespace CloudService.Application.Services
         {
             var repo = _unitOfWork.Repository<Promotion>();
             var entity = await repo.GetByIdAsync(id, includeProperties: "ServicePlans");
-            if (entity == null) throw new Exception("Promotion not found");
+            if (entity == null) throw new NotFoundException("Promotion not found");
 
             _mapper.Map(dto, entity);
 

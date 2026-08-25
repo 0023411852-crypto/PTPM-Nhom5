@@ -4,6 +4,7 @@ using CloudService.Application.DTOs.NewsArticles;
 using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
 using CloudService.Domain.Interfaces;
+using CloudService.Domain.Exceptions;
 
 namespace CloudService.Application.Services
 {
@@ -78,7 +79,7 @@ namespace CloudService.Application.Services
         {
             var repo = _unitOfWork.Repository<NewsArticle>();
             var entity = await repo.GetByIdAsync(id);
-            if (entity == null) throw new Exception("Article not found");
+            if (entity == null) throw new NotFoundException("Article not found");
 
             _mapper.Map(dto, entity);
             repo.Update(entity);

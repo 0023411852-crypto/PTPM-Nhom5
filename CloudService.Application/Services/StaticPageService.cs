@@ -4,6 +4,7 @@ using CloudService.Application.DTOs.StaticPages;
 using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
 using CloudService.Domain.Interfaces;
+using CloudService.Domain.Exceptions;
 
 namespace CloudService.Application.Services
 {
@@ -68,7 +69,7 @@ namespace CloudService.Application.Services
         {
             var repo = _unitOfWork.Repository<StaticPage>();
             var entity = await repo.GetByIdAsync(id);
-            if (entity == null) throw new Exception("Static page not found");
+            if (entity == null) throw new NotFoundException("Static page not found");
 
             _mapper.Map(dto, entity);
             repo.Update(entity);

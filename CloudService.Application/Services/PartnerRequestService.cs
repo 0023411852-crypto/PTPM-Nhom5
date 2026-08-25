@@ -4,6 +4,7 @@ using CloudService.Application.DTOs.PartnerRequests;
 using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
 using CloudService.Domain.Interfaces;
+using CloudService.Domain.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace CloudService.Application.Services
             var userRepo = _unitOfWork.Repository<AppUser>();
             var user = await userRepo.GetByIdAsync(userId);
             if (user == null)
-                throw new Exception("User not found");
+                throw new NotFoundException("User not found");
 
             var entity = new PartnerRequest
             {
@@ -81,7 +82,7 @@ namespace CloudService.Application.Services
             var entity = await repo.GetByIdAsync(id);
             if (entity == null)
             {
-                throw new Exception("Partner Request not found");
+                throw new NotFoundException("Partner Request not found");
             }
 
             entity.Status = dto.Status;

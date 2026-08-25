@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AutoMapper;
-using CloudService.Application.Common;
 using CloudService.Application.DTOs.SupportTickets;
 using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
@@ -96,7 +93,7 @@ namespace CloudService.Application.Services
         public async Task<TicketReplyDto> ReplyToTicketAsync(Guid userId, Guid ticketId, CreateTicketReplyDto dto, bool isAdmin)
         {
             var ticket = await _ticketRepository.GetByIdAsync(ticketId);
-            if (ticket == null) throw new Exception("Ticket not found");
+            if (ticket == null) throw new NotFoundException("Ticket not found");
             
             if (!isAdmin && ticket.CustomerId != userId)
             {

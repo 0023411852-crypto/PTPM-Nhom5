@@ -144,13 +144,13 @@ namespace CloudService.Application.Services
         {
             var planRepo = _unitOfWork.Repository<ServicePlan>();
             var plan = await planRepo.GetByIdAsync(dto.ServicePlanId);
-            if (plan == null) throw new Exception("Service Plan not found");
+            if (plan == null) throw new NotFoundException("Service Plan not found");
 
             var priceRepo = _unitOfWork.Repository<PlanPrice>();
             var planPrice = await priceRepo.GetByIdAsync(dto.PlanPriceId);
-            if (planPrice == null) throw new Exception("Plan Price not found");
+            if (planPrice == null) throw new NotFoundException("Plan Price not found");
             if (planPrice.ServicePlanId != dto.ServicePlanId)
-                throw new Exception("Plan Price does not belong to the selected Service Plan");
+                throw new ValidationException("Plan Price does not belong to the selected Service Plan");
 
             // Validate and apply promotion if provided
             Promotion? promotion = null;
@@ -161,22 +161,22 @@ namespace CloudService.Application.Services
                 promotion = await promoRepo.GetByIdAsync(dto.PromotionId.Value, includeProperties: "ServicePlans");
                 
                 if (promotion == null)
-                    throw new Exception("Promotion not found");
+                    throw new NotFoundException("Promotion not found");
                 
                 if (!promotion.IsActive)
-                    throw new Exception("Promotion is not active");
+                    throw new ValidationException("Promotion is not active");
                 
                 if (promotion.EndDate.HasValue && promotion.EndDate < DateTime.UtcNow)
-                    throw new Exception("Promotion has expired");
+                    throw new ValidationException("Promotion has expired");
                 
                 if (promotion.StartDate > DateTime.UtcNow)
-                    throw new Exception("Promotion has not started yet");
+                    throw new ValidationException("Promotion has not started yet");
                 
                 // Check if promotion applies to this plan
                 if (promotion.ServicePlans != null && promotion.ServicePlans.Any())
                 {
                     if (!promotion.ServicePlans.Any(p => p.Id == dto.ServicePlanId))
-                        throw new Exception("Promotion does not apply to this service plan");
+                        throw new ValidationException("Promotion does not apply to this service plan");
                 }
 
                 // Calculate discount
