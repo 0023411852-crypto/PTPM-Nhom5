@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import { css } from "styled-system/css";
 
 async function getStaticPages() {
   try {
@@ -19,27 +20,65 @@ export default async function Footer() {
   const staticPages = await getStaticPages();
 
   return (
-    <footer className="bg-inverse-surface dark:bg-surface-container-lowest w-full py-xl border-t border-outline-variant dark:border-outline no shadows">
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-lg px-gutter max-w-container-max mx-auto">
-        <div className="col-span-2 lg:col-span-2">
-          <span className="font-headline-md text-headline-md font-bold text-primary-fixed dark:text-primary flex items-center gap-2 mb-md">
+    <footer className={css({
+      backgroundColor: "inverse-surface",
+      width: "full",
+      paddingY: "xl",
+      borderTop: "1px solid",
+      borderColor: "outline-variant",
+    })}>
+      <div className={css({
+        display: "grid",
+        gridTemplateColumns: { base: "2", md: "4", lg: "6" },
+        gap: "lg",
+        paddingX: "gutter",
+        maxWidth: "container-max",
+        marginX: "auto",
+      })}>
+        <div className={css({
+          gridColumn: { base: "span-2", lg: "span-2" },
+        })}>
+          <span className={css({
+            fontSize: "headline-md",
+            fontWeight: "bold",
+            color: "primary-fixed",
+            display: "flex",
+            alignItems: "center",
+            gap: "2",
+            marginBottom: "md",
+          })}>
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
               cloud
             </span>
             CloudNova
           </span>
-          <p className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant mb-lg">
+          <p className={css({
+            fontSize: "body-sm",
+            color: "surface-variant",
+            marginBottom: "lg",
+          })}>
             © 2024 CloudNova Infrastructure. All rights reserved.
           </p>
         </div>
         <div>
-          <h4 className="font-label-caps text-label-caps text-surface-variant dark:text-on-surface-variant mb-md opacity-70">
+          <h4 className={css({
+            fontSize: "label-caps",
+            fontWeight: "label-caps",
+            color: "surface-variant",
+            marginBottom: "md",
+            opacity: "0.7",
+          })}>
             Company
           </h4>
-          <ul className="space-y-sm">
+          <ul className={css({ display: "flex", flexDirection: "column", gap: "sm" })}>
             <li>
               <Link
-                className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant hover:text-white transition-colors hover:underline"
+                className={css({
+                  fontSize: "body-sm",
+                  color: "surface-variant",
+                  _hover: { color: "white", textDecoration: "underline" },
+                  transition: "colors",
+                })}
                 href="/about"
               >
                 Về chúng tôi
@@ -47,7 +86,12 @@ export default async function Footer() {
             </li>
             <li>
               <Link
-                className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant hover:text-white transition-colors hover:underline"
+                className={css({
+                  fontSize: "body-sm",
+                  color: "surface-variant",
+                  _hover: { color: "white", textDecoration: "underline" },
+                  transition: "colors",
+                })}
                 href="/news"
               >
                 Tin tức
@@ -55,7 +99,12 @@ export default async function Footer() {
             </li>
             <li>
               <Link
-                className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant hover:text-white transition-colors hover:underline"
+                className={css({
+                  fontSize: "body-sm",
+                  color: "surface-variant",
+                  _hover: { color: "white", textDecoration: "underline" },
+                  transition: "colors",
+                })}
                 href="/lien-he"
               >
                 Liên hệ
@@ -64,15 +113,26 @@ export default async function Footer() {
           </ul>
         </div>
         <div>
-          <h4 className="font-label-caps text-label-caps text-surface-variant dark:text-on-surface-variant mb-md opacity-70">
+          <h4 className={css({
+            fontSize: "label-caps",
+            fontWeight: "label-caps",
+            color: "surface-variant",
+            marginBottom: "md",
+            opacity: "0.7",
+          })}>
             Chính sách & Pháp lý
           </h4>
-          <ul className="space-y-sm">
+          <ul className={css({ display: "flex", flexDirection: "column", gap: "sm" })}>
             {staticPages.length > 0 ? (
                 staticPages.map((page: any) => (
                     <li key={page.id}>
                       <Link
-                        className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant hover:text-white transition-colors hover:underline"
+                        className={css({
+                          fontSize: "body-sm",
+                          color: "surface-variant",
+                          _hover: { color: "white", textDecoration: "underline" },
+                          transition: "colors",
+                        })}
                         href={`/${page.slug}`}
                       >
                         {page.title}
@@ -83,7 +143,12 @@ export default async function Footer() {
                 <>
                     <li>
                       <Link
-                        className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant hover:text-white transition-colors hover:underline"
+                        className={css({
+                          fontSize: "body-sm",
+                          color: "surface-variant",
+                          _hover: { color: "white", textDecoration: "underline" },
+                          transition: "colors",
+                        })}
                         href="/dieu-khoan"
                       >
                         Điều khoản
@@ -91,7 +156,12 @@ export default async function Footer() {
                     </li>
                     <li>
                       <Link
-                        className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant hover:text-white transition-colors hover:underline"
+                        className={css({
+                          fontSize: "body-sm",
+                          color: "surface-variant",
+                          _hover: { color: "white", textDecoration: "underline" },
+                          transition: "colors",
+                        })}
                         href="/bao-mat"
                       >
                         Bảo mật
@@ -99,7 +169,12 @@ export default async function Footer() {
                     </li>
                     <li>
                       <Link
-                        className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant hover:text-white transition-colors hover:underline"
+                        className={css({
+                          fontSize: "body-sm",
+                          color: "surface-variant",
+                          _hover: { color: "white", textDecoration: "underline" },
+                          transition: "colors",
+                        })}
                         href="/sla"
                       >
                         SLA
@@ -110,13 +185,24 @@ export default async function Footer() {
           </ul>
         </div>
         <div>
-          <h4 className="font-label-caps text-label-caps text-surface-variant dark:text-on-surface-variant mb-md opacity-70">
+          <h4 className={css({
+            fontSize: "label-caps",
+            fontWeight: "label-caps",
+            color: "surface-variant",
+            marginBottom: "md",
+            opacity: "0.7",
+          })}>
             Resources
           </h4>
-          <ul className="space-y-sm">
+          <ul className={css({ display: "flex", flexDirection: "column", gap: "sm" })}>
             <li>
               <Link
-                className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant hover:text-white transition-colors hover:underline"
+                className={css({
+                  fontSize: "body-sm",
+                  color: "surface-variant",
+                  _hover: { color: "white", textDecoration: "underline" },
+                  transition: "colors",
+                })}
                 href="/huong-dan"
               >
                 Hướng dẫn
@@ -124,7 +210,12 @@ export default async function Footer() {
             </li>
             <li>
               <Link
-                className="font-body-sm text-body-sm text-surface-variant dark:text-on-surface-variant hover:text-white transition-colors hover:underline"
+                className={css({
+                  fontSize: "body-sm",
+                  color: "surface-variant",
+                  _hover: { color: "white", textDecoration: "underline" },
+                  transition: "colors",
+                })}
                 href="/api-docs"
               >
                 API Documentation
