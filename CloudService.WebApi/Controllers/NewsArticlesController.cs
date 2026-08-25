@@ -28,6 +28,12 @@ namespace CloudService.WebApi.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id, [FromQuery] bool onlyPublished = true)
         {
+            // Enforce onlyPublished=true for anonymous/public requests to prevent draft access
+            if (!User.Identity?.IsAuthenticated ?? true)
+            {
+                onlyPublished = true;
+            }
+            
             var result = await _service.GetByIdAsync(id, onlyPublished);
             if (result == null) return NotFound();
             return Ok(result);
