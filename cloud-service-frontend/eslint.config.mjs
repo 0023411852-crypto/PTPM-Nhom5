@@ -15,6 +15,9 @@ const eslintConfig = defineConfig([
     // Ignore auto-generated styled-system files
     "styled-system/**",
     "strip_layout.js",
+    // Ignore utility scripts
+    "*.js",
+    "!src/**/*.js",
   ]),
 ]);
 
