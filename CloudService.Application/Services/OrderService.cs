@@ -262,7 +262,7 @@ namespace CloudService.Application.Services
                         ServiceName = existingService.ServiceName,
                         VpsIP = existingService.VpsIP,
                         VpsUser = existingService.VpsUser,
-                        VpsPassword = existingService.VpsPassword,
+                        VpsPassword = "********", // Masked for security
                         ExpiryDate = existingService.ExpiryDate
                     };
                 }
@@ -302,7 +302,7 @@ namespace CloudService.Application.Services
                 ServiceName = newService.ServiceName,
                 VpsIP = newService.VpsIP,
                 VpsUser = newService.VpsUser,
-                VpsPassword = newService.VpsPassword,
+                VpsPassword = "********", // Masked for security
                 ExpiryDate = newService.ExpiryDate
             };
         }

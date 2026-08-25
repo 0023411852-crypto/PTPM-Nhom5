@@ -26,9 +26,9 @@ namespace CloudService.WebApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(Guid id)
+        public async Task<IActionResult> GetById(Guid id, [FromQuery] bool onlyPublished = true)
         {
-            var result = await _service.GetByIdAsync(id);
+            var result = await _service.GetByIdAsync(id, onlyPublished);
             if (result == null) return NotFound();
             return Ok(result);
         }

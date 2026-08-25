@@ -50,11 +50,18 @@ namespace CloudService.Application.Services
             return new PagedResponse<NewsArticleDto>(dtos, totalRecords, filter.PageNumber, filter.PageSize);
         }
 
-        public async Task<NewsArticleDto?> GetByIdAsync(Guid id)
+        public async Task<NewsArticleDto?> GetByIdAsync(Guid id, bool onlyPublished = false)
         {
             var repo = _unitOfWork.Repository<NewsArticle>();
-            var entity = await repo.GetByIdAsync(id);
+            var query = repo.GetQueryable();
+            var entity = query.FirstOrDefault(x => x.Id == id);
+            
             if (entity == null) return null;
+            
+            // For public access, only return published articles
+            if (onlyPublished && !entity.IsPublished)
+                return null;
+                
             return _mapper.Map<NewsArticleDto>(entity);
         }
 

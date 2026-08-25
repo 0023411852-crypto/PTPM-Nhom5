@@ -18,17 +18,20 @@ namespace CloudService.Application.Services
         private readonly IGenericRepository<TicketReply> _replyRepository;
         private readonly IMapper _mapper;
         private readonly IEventDispatcher _eventDispatcher;
+        private readonly IUnitOfWork _unitOfWork;
 
         public SupportTicketService(
             IGenericRepository<SupportTicket> ticketRepository,
             IGenericRepository<TicketReply> replyRepository,
             IMapper mapper,
-            IEventDispatcher eventDispatcher)
+            IEventDispatcher eventDispatcher,
+            IUnitOfWork unitOfWork)
         {
             _ticketRepository = ticketRepository;
             _replyRepository = replyRepository;
             _mapper = mapper;
             _eventDispatcher = eventDispatcher;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<PagedResponse<SupportTicketDto>> GetAllTicketsAsync(PaginationFilter filter)
@@ -84,6 +87,7 @@ namespace CloudService.Application.Services
             };
 
             await _ticketRepository.AddAsync(ticket);
+            await _unitOfWork.SaveChangesAsync();
             await _eventDispatcher.DispatchAsync(new CloudService.Domain.Events.SupportTicketCreatedEvent(customerId, ticket.Id, ticket.Title));
 
             return _mapper.Map<SupportTicketDto>(ticket);
@@ -113,6 +117,7 @@ namespace CloudService.Application.Services
             };
 
             await _replyRepository.AddAsync(reply);
+            await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<TicketReplyDto>(reply);
         }
 
@@ -123,6 +128,7 @@ namespace CloudService.Application.Services
             
             ticket.Status = "Closed";
             _ticketRepository.Update(ticket);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
     }

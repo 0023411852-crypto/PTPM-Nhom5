@@ -227,39 +227,64 @@ namespace CloudService.WebApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> SeedVipData()
         {
-            // Seed 3 Users
+            // Seed 3 Users (idempotent - check if users already exist)
             var role = _context.Roles.FirstOrDefault(r => r.Name == "Customer");
             if (role == null) return BadRequest("Customer role not found");
 
-            var users = new List<CloudService.Domain.Entities.AppUser>
+            var vipEmails = new[] { "nguyenvana@techcore.vn", "tranthib@dataflow.corp", "lehoangc@fintech.asia" };
+            var existingUsers = _context.AppUsers.Where(u => vipEmails.Contains(u.Email)).ToList();
+            
+            if (existingUsers.Count == vipEmails.Length)
             {
-                new CloudService.Domain.Entities.AppUser
+                return Ok("VIP data already seeded");
+            }
+
+            var users = new List<CloudService.Domain.Entities.AppUser>();
+            foreach (var email in vipEmails)
+            {
+                if (!existingUsers.Any(u => u.Email == email))
                 {
-                    FullName = "Nguyễn Văn A",
-                    Email = "nguyenvana@techcore.vn",
-                    Company = "TechCore Vietnam",
-                    AvatarUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDFXW_lRzyL1X9Z8mY_hX3fQ3_XlX6XvKkL_K8K9L_L8L9K_K8L9K_K8L9K",
-                    RoleId = role.Id
-                },
-                new CloudService.Domain.Entities.AppUser
-                {
-                    FullName = "Trần Thị B",
-                    Email = "tranthib@dataflow.corp",
-                    Company = "DataFlow Corp",
-                    AvatarUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDFXW_lRzyL1X9Z8mY_hX3fQ3_XlX6XvKkL_K8K9L_L8L9K_K8L9K_K8L9K",
-                    RoleId = role.Id
-                },
-                new CloudService.Domain.Entities.AppUser
-                {
-                    FullName = "Lê Hoàng C",
-                    Email = "lehoangc@fintech.asia",
-                    Company = "Fintech Asia",
-                    AvatarUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDFXW_lRzyL1X9Z8mY_hX3fQ3_XlX6XvKkL_K8K9L_L8L9K_K8L9K_K8L9K",
-                    RoleId = role.Id
+                    if (email == "nguyenvana@techcore.vn")
+                    {
+                        users.Add(new CloudService.Domain.Entities.AppUser
+                        {
+                            FullName = "Nguyễn Văn A",
+                            Email = email,
+                            Company = "TechCore Vietnam",
+                            AvatarUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDFXW_lRzyL1X9Z8mY_hX3fQ3_XlX6XvKkL_K8K9L_L8L9K_K8L9K_K8L9K",
+                            RoleId = role.Id
+                        });
+                    }
+                    else if (email == "tranthib@dataflow.corp")
+                    {
+                        users.Add(new CloudService.Domain.Entities.AppUser
+                        {
+                            FullName = "Trần Thị B",
+                            Email = email,
+                            Company = "DataFlow Corp",
+                            AvatarUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDFXW_lRzyL1X9Z8mY_hX3fQ3_XlX6XvKkL_K8K9L_L8L9K_K8L9K_K8L9K",
+                            RoleId = role.Id
+                        });
+                    }
+                    else if (email == "lehoangc@fintech.asia")
+                    {
+                        users.Add(new CloudService.Domain.Entities.AppUser
+                        {
+                            FullName = "Lê Hoàng C",
+                            Email = email,
+                            Company = "Fintech Asia",
+                            AvatarUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDFXW_lRzyL1X9Z8mY_hX3fQ3_XlX6XvKkL_K8K9L_L8L9K_K8L9K_K8L9K",
+                            RoleId = role.Id
+                        });
+                    }
                 }
-            };
-            _context.AppUsers.AddRange(users);
-            await _context.SaveChangesAsync();
+            }
+
+            if (users.Any())
+            {
+                _context.AppUsers.AddRange(users);
+                await _context.SaveChangesAsync();
+            }
 
             // Seed Orders
             var plans = _context.ServicePlans.ToList();
@@ -345,6 +370,7 @@ namespace CloudService.WebApi.Controllers
         }
 
         [HttpPost("reviews")]
+        [Authorize]
         public async Task<IActionResult> CreateReview([FromBody] CloudService.Application.DTOs.Users.CreateReviewDto dto)
         {
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
