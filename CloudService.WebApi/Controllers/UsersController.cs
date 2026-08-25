@@ -292,6 +292,9 @@ namespace CloudService.WebApi.Controllers
 
             // Seed Orders (idempotent - check if orders already exist for these users)
             var plans = _context.ServicePlans.ToList();
+            if (plans.Count == 0)
+                return BadRequest("Không thể seed VIP data khi chưa có service plan.");
+
             var planMax = plans.FirstOrDefault(p => p.Name.Contains("Enterprise")) ?? plans.First();
             var planGPU = plans.FirstOrDefault(p => p.Name.Contains("Business")) ?? plans.First();
             var planPro = plans.FirstOrDefault(p => p.Name.Contains("Pro")) ?? plans.First();

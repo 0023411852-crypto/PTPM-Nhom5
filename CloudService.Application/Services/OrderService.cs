@@ -268,10 +268,13 @@ namespace CloudService.Application.Services
                 }
             }
 
-            order.Status = OrderStatus.Completed;
-            orderRepo.Update(order);
+            await using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                order.Status = OrderStatus.Completed;
+                orderRepo.Update(order);
 
-            var serviceRepo = _unitOfWork.Repository<CustomerService>();
+                var serviceRepo = _unitOfWork.Repository<CustomerService>();
 
             // Generate demo credentials (randomized for demo environment)
             var random = new Random();
@@ -291,10 +294,11 @@ namespace CloudService.Application.Services
                 Status = "Active"
             };
 
-            await serviceRepo.AddAsync(newService);
-            await _unitOfWork.SaveChangesAsync();
+                await serviceRepo.AddAsync(newService);
+                await _unitOfWork.SaveChangesAsync();
+                await transaction.CommitAsync();
 
-            return new DemoPaymentResultDto
+                return new DemoPaymentResultDto
             {
                 OrderId = order.Id,
                 Status = order.Status.ToString(),
@@ -303,8 +307,14 @@ namespace CloudService.Application.Services
                 VpsIP = newService.VpsIP,
                 VpsUser = newService.VpsUser,
                 VpsPassword = "********", // Masked for security
-                ExpiryDate = newService.ExpiryDate
-            };
+                    ExpiryDate = newService.ExpiryDate
+                };
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         private static string GenerateRandomPassword(int length = 16)

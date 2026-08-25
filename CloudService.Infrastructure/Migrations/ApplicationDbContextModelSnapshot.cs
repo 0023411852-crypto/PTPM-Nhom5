@@ -191,6 +191,10 @@ namespace CloudService.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OrderId")
+                        .IsUnique()
+                        .HasFilter("[OrderId] IS NOT NULL");
+
                     b.ToTable("CustomerReviews");
                 });
 
@@ -239,7 +243,8 @@ namespace CloudService.Infrastructure.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.HasIndex("OrderId");
+                    b.HasIndex("OrderId")
+                        .IsUnique();
 
                     b.ToTable("CustomerServices");
                 });

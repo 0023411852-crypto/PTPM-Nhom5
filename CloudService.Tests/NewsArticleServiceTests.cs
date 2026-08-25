@@ -38,7 +38,7 @@ namespace CloudService.Tests
         {
             var articleId = Guid.NewGuid();
             var dto = new UpdateNewsArticleDto { Title = "Updated Title" };
-            _articleRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((NewsArticle?)null);
+            _articleRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), "")).ReturnsAsync((NewsArticle?)null);
 
             Func<Task> act = async () => await _articleService.UpdateAsync(articleId, dto);
 

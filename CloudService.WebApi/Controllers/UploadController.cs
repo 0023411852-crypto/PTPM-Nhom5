@@ -128,9 +128,20 @@ namespace CloudService.WebApi.Controllers
                 fileSize = (file.Length / 1024.0 / 1024.0).ToString("0.##") + " MB";
             }
 
-            var mediaFile = await _mediaService.AddMediaFileAsync(file.FileName, fileUrl, fileSize, fileType);
+            try
+            {
+                var mediaFile = await _mediaService.AddMediaFileAsync(file.FileName, fileUrl, fileSize, fileType);
+                return Ok(new { url = fileUrl, media = mediaFile });
+            }
+            catch
+            {
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
 
-            return Ok(new { url = fileUrl, media = mediaFile });
+                throw;
+            }
         }
 
         [HttpDelete("{id}")]
