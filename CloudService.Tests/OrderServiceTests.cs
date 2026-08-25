@@ -59,7 +59,7 @@ namespace CloudService.Tests
         }
 
         [Fact]
-        public async Task CreateOrderAsync_ShouldThrowException_WhenPlanDoesNotExist()
+        public async Task CreateOrderAsync_ShouldThrowNotFoundException_WhenPlanDoesNotExist()
         {
             var userId = Guid.NewGuid();
             _planRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), "")).ReturnsAsync((ServicePlan?)null);
@@ -68,7 +68,7 @@ namespace CloudService.Tests
 
             Func<Task> act = async () => await _orderService.CreateOrderAsync(userId, dto);
 
-            await act.Should().ThrowAsync<Exception>().WithMessage("Service Plan not found");
+            await act.Should().ThrowAsync<NotFoundException>().WithMessage("Service Plan not found");
         }
 
         [Fact]
