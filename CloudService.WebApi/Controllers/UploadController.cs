@@ -79,6 +79,15 @@ namespace CloudService.WebApi.Controllers
                 {
                     // MP4: starts with ftyp (66 74 79 70)
                     if (buffer[4] == 0x66 && buffer[5] == 0x74 && buffer[6] == 0x79 && buffer[7] == 0x70) isValidMime = true;
+                    // MOV: starts with moov (6D 6F 6F 76) or wide/ftyp
+                    else if ((buffer[4] == 0x6D && buffer[5] == 0x6F && buffer[6] == 0x6F && buffer[7] == 0x76) ||
+                             (buffer[4] == 0x77 && buffer[5] == 0x69 && buffer[6] == 0x64 && buffer[7] == 0x65) ||
+                             (buffer[4] == 0x66 && buffer[5] == 0x74 && buffer[6] == 0x79 && buffer[7] == 0x70)) isValidMime = true;
+                    // AVI: RIFF ... AVI (52 49 46 46 ... 41 56 49 20)
+                    else if (buffer[0] == 0x52 && buffer[1] == 0x49 && buffer[2] == 0x46 && buffer[3] == 0x46 &&
+                             buffer[8] == 0x41 && buffer[9] == 0x56 && buffer[10] == 0x49 && buffer[11] == 0x20) isValidMime = true;
+                    // MKV: EBML header (1A 45 DF A3)
+                    else if (buffer[0] == 0x1A && buffer[1] == 0x45 && buffer[2] == 0xDF && buffer[3] == 0xA3) isValidMime = true;
                 }
                 else if (fileType == "Tài liệu")
                 {
@@ -86,6 +95,10 @@ namespace CloudService.WebApi.Controllers
                     if (buffer[0] == 0x25 && buffer[1] == 0x50 && buffer[2] == 0x44 && buffer[3] == 0x46) isValidMime = true;
                     // DOCX/XLSX: 50 4B 03 04 (ZIP signature)
                     else if (buffer[0] == 0x50 && buffer[1] == 0x4B && buffer[2] == 0x03 && buffer[3] == 0x04) isValidMime = true;
+                    // DOC (old format): D0 CF 11 E0
+                    else if (buffer[0] == 0xD0 && buffer[1] == 0xCF && buffer[2] == 0x11 && buffer[3] == 0xE0) isValidMime = true;
+                    // XLS (old format): D0 CF 11 E0 (same as DOC, need additional check for file type)
+                    else if (buffer[0] == 0xD0 && buffer[1] == 0xCF && buffer[2] == 0x11 && buffer[3] == 0xE0) isValidMime = true;
                 }
                 
                 if (!isValidMime)
