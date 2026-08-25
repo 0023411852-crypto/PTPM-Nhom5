@@ -21,13 +21,14 @@ namespace CloudService.Application.Services
         public async Task<PagedResponse<PromotionDto>> GetAllAsync(PaginationFilter filter, bool onlyActive = false)
         {
             var repo = _unitOfWork.Repository<Promotion>();
-            var allData = await repo.GetAllAsync(includeProperties: "ServicePlans");
+            var allData = repo.GetQueryable(includeProperties: "ServicePlans");
 
             if (onlyActive)
             {
                 allData = allData.Where(x => x.IsActive && (x.EndDate == null || x.EndDate > DateTime.UtcNow));
             }
 
+            var totalRecords = allData.Count();
             var pagedData = allData
                 .OrderByDescending(x => x.IsFeatured)
                 .ThenByDescending(x => x.StartDate)
@@ -36,7 +37,7 @@ namespace CloudService.Application.Services
                 .ToList();
 
             var dtos = _mapper.Map<List<PromotionDto>>(pagedData);
-            return new PagedResponse<PromotionDto>(dtos, allData.Count(), filter.PageNumber, filter.PageSize);
+            return new PagedResponse<PromotionDto>(dtos, totalRecords, filter.PageNumber, filter.PageSize);
         }
 
         public async Task<PromotionDto?> GetByIdAsync(Guid id)
@@ -54,7 +55,7 @@ namespace CloudService.Application.Services
             if (dto.ServicePlanIds != null && dto.ServicePlanIds.Any())
             {
                 var planRepo = _unitOfWork.Repository<ServicePlan>();
-                var allPlans = await planRepo.GetAllAsync();
+                var allPlans = planRepo.GetQueryable();
                 entity.ServicePlans = allPlans.Where(p => dto.ServicePlanIds.Contains(p.Id)).ToList();
             }
 
@@ -74,7 +75,7 @@ namespace CloudService.Application.Services
             if (dto.ServicePlanIds != null)
             {
                 var planRepo = _unitOfWork.Repository<ServicePlan>();
-                var allPlans = await planRepo.GetAllAsync();
+                var allPlans = planRepo.GetQueryable();
                 var selectedPlans = allPlans.Where(p => dto.ServicePlanIds.Contains(p.Id)).ToList();
                 
                 // Xóa chỉ những plan không còn trong danh sách mới

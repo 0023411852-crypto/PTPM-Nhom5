@@ -24,15 +24,15 @@ namespace CloudService.Application.Services
 
         public async Task<object> GetDashboardStatsAsync()
         {
-            var users = await _userRepo.GetAllAsync();
-            var orders = await _orderRepo.GetAllAsync();
-            var tickets = await _ticketRepo.GetAllAsync();
+            var usersQuery = _userRepo.GetQueryable();
+            var ordersQuery = _orderRepo.GetQueryable();
+            var ticketsQuery = _ticketRepo.GetQueryable();
 
-            var totalUsers = users.Count();
-            var totalOrders = orders.Count();
-            var pendingOrders = orders.Count(o => o.Status == CloudService.Domain.Enums.OrderStatus.Pending);
-            var openTickets = tickets.Count(t => t.Status == "Open");
-            var totalRevenue = orders.Where(o => o.Status == CloudService.Domain.Enums.OrderStatus.Completed).Sum(o => o.TotalAmount);
+            var totalUsers = usersQuery.Count();
+            var totalOrders = ordersQuery.Count();
+            var pendingOrders = ordersQuery.Count(o => o.Status == CloudService.Domain.Enums.OrderStatus.Pending);
+            var openTickets = ticketsQuery.Count(t => t.Status == "Open");
+            var totalRevenue = ordersQuery.Where(o => o.Status == CloudService.Domain.Enums.OrderStatus.Completed).Sum(o => o.TotalAmount);
 
             return new 
             {
@@ -46,8 +46,8 @@ namespace CloudService.Application.Services
 
         public async Task<CloudService.Application.DTOs.Admin.RevenueReportDto> GetRevenueReportAsync(string period)
         {
-            var users = await _userRepo.GetAllAsync();
-            var orders = (await _orderRepo.GetAllAsync("ServicePlan,ServicePlan.Category")).ToList();
+            var usersQuery = _userRepo.GetQueryable();
+            var ordersQuery = _orderRepo.GetQueryable("ServicePlan,ServicePlan.Category");
 
             var now = DateTime.UtcNow;
             DateTime currentStart, previousStart, previousEnd;
@@ -72,11 +72,11 @@ namespace CloudService.Application.Services
                 previousEnd = currentStart.AddTicks(-1);
             }
 
-            var currentOrders = orders.Where(o => o.OrderDate >= currentStart && o.OrderDate <= now).ToList();
-            var previousOrders = orders.Where(o => o.OrderDate >= previousStart && o.OrderDate <= previousEnd).ToList();
+            var currentOrders = ordersQuery.Where(o => o.OrderDate >= currentStart && o.OrderDate <= now).ToList();
+            var previousOrders = ordersQuery.Where(o => o.OrderDate >= previousStart && o.OrderDate <= previousEnd).ToList();
             
-            var currentUsers = users.Where(u => u.CreatedAt >= currentStart && u.CreatedAt <= now).ToList();
-            var previousUsers = users.Where(u => u.CreatedAt >= previousStart && u.CreatedAt <= previousEnd).ToList();
+            var currentUsers = usersQuery.Where(u => u.CreatedAt >= currentStart && u.CreatedAt <= now).ToList();
+            var previousUsers = usersQuery.Where(u => u.CreatedAt >= previousStart && u.CreatedAt <= previousEnd).ToList();
 
             var currentCompletedOrders = currentOrders.Where(o => o.Status == CloudService.Domain.Enums.OrderStatus.Completed).ToList();
             var previousCompletedOrders = previousOrders.Where(o => o.Status == CloudService.Domain.Enums.OrderStatus.Completed).ToList();

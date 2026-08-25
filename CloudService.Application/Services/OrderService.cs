@@ -109,7 +109,7 @@ namespace CloudService.Application.Services
         public async Task<byte[]> ExportAllOrdersCsvAsync()
         {
             var repo = _unitOfWork.Repository<OrderRequest>();
-            var orders = (await repo.GetAllAsync())
+            var orders = repo.GetQueryable()
                 .OrderByDescending(x => x.OrderDate)
                 .ToList();
 

@@ -24,7 +24,7 @@ namespace CloudService.Application.Services
         public async Task<PagedResponse<MediaFileDto>> GetMediaFilesAsync(PaginationFilter filter, string? fileType, string? search)
         {
             var repo = _unitOfWork.Repository<MediaFile>();
-            var allData = await repo.GetAllAsync();
+            var allData = repo.GetQueryable();
 
             if (!string.IsNullOrEmpty(fileType) && fileType != "Loại tệp: Tất cả" && fileType != "Tất cả")
             {
