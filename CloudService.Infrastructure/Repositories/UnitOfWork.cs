@@ -1,5 +1,6 @@
 using CloudService.Domain.Interfaces;
 using CloudService.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CloudService.Infrastructure.Repositories
 {
@@ -7,6 +8,7 @@ namespace CloudService.Infrastructure.Repositories
     {
         private readonly ApplicationDbContext _context;
         private readonly Dictionary<Type, object> _repositories;
+        private IDbContextTransaction? _transaction;
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -31,8 +33,38 @@ namespace CloudService.Infrastructure.Repositories
             return await _context.SaveChangesAsync();
         }
 
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            if (_transaction == null)
+            {
+                _transaction = await _context.Database.BeginTransactionAsync();
+            }
+            return _transaction;
+        }
+
+        public async Task CommitTransactionAsync()
+        {
+            if (_transaction != null)
+            {
+                await _transaction.CommitAsync();
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+        }
+
+        public async Task RollbackTransactionAsync()
+        {
+            if (_transaction != null)
+            {
+                await _transaction.RollbackAsync();
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+        }
+
         public void Dispose()
         {
+            _transaction?.Dispose();
             _context.Dispose();
         }
     }
