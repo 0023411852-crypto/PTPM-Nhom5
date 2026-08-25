@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { api } from '@/lib/api';
 
 export default function RegisterPage() {
     const [showPassword, setShowPassword] = useState(false);
@@ -13,7 +15,7 @@ export default function RegisterPage() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     
-    const router = require('next/navigation').useRouter();
+    const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,24 +28,11 @@ export default function RegisterPage() {
 
         setLoading(true);
         try {
-            const res = await fetch("/api/Auth/register", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email, password, fullName: fullname }),
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                alert('Đăng ký tài khoản thành công! Bạn có thể đăng nhập ngay bây giờ.');
-                router.push('/login');
-            } else {
-                setError(data.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.');
-            }
-        } catch (err) {
-            setError('Đã xảy ra lỗi kết nối. Vui lòng thử lại sau.');
+            await api.post('/Auth/register', { email, password, fullName: fullname });
+            alert('Đăng ký tài khoản thành công! Bạn có thể đăng nhập ngay bây giờ.');
+            router.push('/login');
+        } catch (err: any) {
+            setError(err.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.');
         } finally {
             setLoading(false);
         }

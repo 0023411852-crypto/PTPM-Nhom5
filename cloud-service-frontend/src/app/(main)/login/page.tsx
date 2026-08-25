@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { api, clearAuthTokens } from '@/lib/api';
 
 export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
@@ -27,45 +28,32 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            // Gọi API thật tới Backend
-            const res = await fetch("/api/Auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email, password }),
-            });
+            const data = await api.post<{ token: string; refreshToken: string; role: string; fullName: string }>('/Auth/login', { email, password });
 
-            const data = await res.json();
+            // Save to localStorage
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("refreshToken", data.refreshToken);
+            localStorage.setItem("role", data.role);
+            localStorage.setItem("fullName", data.fullName);
+            window.dispatchEvent(new Event("authChanged"));
 
-            if (res.ok) {
-                // Save to localStorage
-                localStorage.setItem("token", data.token);
-                localStorage.setItem("refreshToken", data.refreshToken);
-                localStorage.setItem("role", data.role);
-                localStorage.setItem("fullName", data.fullName);
-                window.dispatchEvent(new Event("authChanged"));
-
-                if (remember) {
-                    localStorage.setItem('rememberedEmail', email);
-                } else {
-                    localStorage.removeItem('rememberedEmail');
-                }
-
-                // Role check
-                if (data.role === "Admin") {
-                    router.push("/admin");
-                } else if (data.role === "Editor") {
-                    router.push("/editor");
-                } else {
-                    // Mặc định các role khác (như Customer) sẽ vào trang Quản lý cá nhân của khách hàng
-                    router.push("/client");
-                }
+            if (remember) {
+                localStorage.setItem('rememberedEmail', email);
             } else {
-                setError(data.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
+                localStorage.removeItem('rememberedEmail');
             }
-        } catch (err) {
-            setError("Đã xảy ra lỗi kết nối. Vui lòng thử lại sau.");
+
+            // Role check
+            if (data.role === "Admin") {
+                router.push("/admin");
+            } else if (data.role === "Editor") {
+                router.push("/editor");
+            } else {
+                // Mặc định các role khác (như Customer) sẽ vào trang Quản lý cá nhân của khách hàng
+                router.push("/client");
+            }
+        } catch (err: any) {
+            setError(err.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
         } finally {
             setLoading(false);
         }
