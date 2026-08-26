@@ -12,7 +12,6 @@ namespace CloudService.Application.Services
 {
     public class OrderService : IOrderService
     {
-        private const decimal VatRate = 0.10m;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
@@ -224,7 +223,7 @@ namespace CloudService.Application.Services
         private static decimal CalculateTotal(PlanPrice planPrice)
         {
             var subtotal = planPrice.Price + planPrice.SetupFee;
-            return Math.Round(subtotal * (1 + VatRate), 2, MidpointRounding.AwayFromZero);
+            return Math.Round(subtotal, 2, MidpointRounding.AwayFromZero);
         }
 
         public async Task<DemoPaymentResultDto?> ConfirmDemoPaymentAsync(Guid orderId, Guid requesterId)
