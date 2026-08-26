@@ -81,7 +81,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={css({
+    <nav className={`nova-nav ${css({
       position: "fixed",
       top: "0",
       width: "full",
@@ -92,7 +92,7 @@ export default function Navbar() {
       borderBottom: "1px solid",
       borderColor: "outline-variant",
       transition: "all 0.3s",
-    })}>
+    })}`}>
       <div className={css({
         display: "flex",
         justifyContent: "space-between",
@@ -102,20 +102,20 @@ export default function Navbar() {
         maxWidth: "container-max",
         marginX: "auto",
       })}>
-        <div className={css({ display: "flex", alignItems: "center", gap: "md" })}>
+      <div className={css({ display: "flex", alignItems: "center", gap: "md" })}>
           <img
             alt="CloudNova Logo"
             className={css({ height: "8", width: "auto", display: "none" })}
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKrfk0eJeszZLwtqDno7rdyXBneiyQM6WsPvsv4bHPfxMXlTylmZic2igXetLUOB4oENHvJrWHHYUrSkhf0-O8_3y-XHCCMoeDPODRovjqq-yBniIDRhUm_4gatrTi3QE-MaRV4srUZl0h6XWQ5Xhwq2nTeaRV56LQ57nT8K4y68V9V5xitmKYQY6rCxne-0X7_4UdyBxLKzLZ54TNUBFKeZbioUrRT2epoyIMI3BRNgDoBPL4VQ"
           />
-          <Link href="/" className={css({
+          <Link href="/" className={`nova-brand ${css({
             fontSize: "headline-md",
             fontWeight: "bold",
             color: "primary",
             display: "flex",
             alignItems: "center",
             gap: "2",
-          })}>
+          })}`}>
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
               cloud
             </span>
