@@ -103,10 +103,10 @@ export default function AdminReportsPage() {
     let gradientStr = "";
     let currentPerc = 0;
     report.serviceBreakdown.forEach((item, index) => {
-        let start = currentPerc;
+        const start = currentPerc;
         let end = currentPerc + item.percentage;
         if (index === report.serviceBreakdown.length - 1) end = 100; // ensure fills up to 100
-        let color = colorMap[item.colorClass] || 'var(--color-primary)';
+        const color = colorMap[item.colorClass] || 'var(--color-primary)';
         gradientStr += `${color} ${start}% ${end}%, `;
         currentPerc = end;
     });

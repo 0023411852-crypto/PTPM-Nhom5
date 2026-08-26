@@ -2,6 +2,7 @@
 
 import React, { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Modal from '@/components/admin/Modal';
 
 type ServiceFeature = {
@@ -405,7 +406,7 @@ export default function AdminServiceCategoriesPage() {
                 )}
               </div>
               <p className="text-[12px] text-on-surface-variant mt-2 italic">
-                * Lưu ý: Để thêm, sửa, hoặc xóa gói dịch vụ khỏi danh mục này, vui lòng truy cập menu <a href="/admin/services" className="text-primary hover:underline font-medium">Gói Dịch Vụ</a> ở menu bên trái.
+                * Lưu ý: Để thêm, sửa, hoặc xóa gói dịch vụ khỏi danh mục này, vui lòng truy cập menu <Link href="/admin/services" className="text-primary hover:underline font-medium">Gói Dịch Vụ</Link> ở menu bên trái.
               </p>
             </div>
           )}
