@@ -30,6 +30,8 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<OrderDto>> GetUserOrdersAsync(Guid userId, PaginationFilter filter)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<OrderRequest>();
             var query = repo.GetQueryable().Where(x => x.UserId == userId);
 
@@ -49,7 +51,7 @@ namespace CloudService.Application.Services
                 var reviewRepo = _unitOfWork.Repository<CustomerReview>();
                 var reviewedOrderIds = reviewRepo.GetQueryable()
                     .Where(r => r.OrderId.HasValue && orderIds.Contains(r.OrderId.Value))
-                    .Select(r => r.OrderId.Value)
+                    .Select(r => r.OrderId!.Value)
                     .ToList();
 
                 foreach (var dto in dtos)
@@ -91,6 +93,8 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<OrderDto>> GetAllOrdersAsync(PaginationFilter filter)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<OrderRequest>();
             var query = repo.GetQueryable();
             
@@ -108,6 +112,8 @@ namespace CloudService.Application.Services
 
         public async Task<byte[]> ExportAllOrdersCsvAsync()
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<OrderRequest>();
             var orders = repo.GetQueryable()
                 .OrderByDescending(x => x.OrderDate)

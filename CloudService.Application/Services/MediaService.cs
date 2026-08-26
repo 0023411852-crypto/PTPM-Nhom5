@@ -23,6 +23,8 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<MediaFileDto>> GetMediaFilesAsync(PaginationFilter filter, string? fileType, string? search)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<MediaFile>();
             var allData = repo.GetQueryable();
 

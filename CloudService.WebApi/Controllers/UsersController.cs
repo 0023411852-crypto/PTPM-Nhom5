@@ -201,6 +201,8 @@ namespace CloudService.WebApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetTopVipCustomers([FromQuery] int limit = 3)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var usersWithSpending = _context.AppUsers
                 .Where(u => u.IsActive && u.Company != null)
                 .Select(u => new
@@ -377,6 +379,8 @@ namespace CloudService.WebApi.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetReviews([FromQuery] int page = 1, [FromQuery] int pageSize = 3)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var query = _context.CustomerReviews.Where(r => r.IsVisible).OrderBy(r => r.SortOrder);
             var totalCount = query.Count();
             var items = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();

@@ -111,6 +111,8 @@ namespace CloudService.Tests
         [Fact]
         public async Task LogoutAsync_ShouldRevokeSession()
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var hashedToken = "hashed_token_here"; // Mock hash
             var session = new UserSession { RefreshTokenHash = hashedToken, IsRevoked = false };
             _sessionRepoMock.Setup(r => r.GetAllAsync("")).ReturnsAsync(new List<UserSession> { session }.AsQueryable());

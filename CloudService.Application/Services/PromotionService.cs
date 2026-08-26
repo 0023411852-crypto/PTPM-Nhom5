@@ -21,6 +21,8 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<PromotionDto>> GetAllAsync(PaginationFilter filter, bool onlyActive = false)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<Promotion>();
             var allData = repo.GetQueryable(includeProperties: "ServicePlans");
 

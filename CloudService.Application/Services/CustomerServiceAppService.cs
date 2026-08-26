@@ -24,6 +24,8 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<CustomerServiceDto>> GetMyServicesAsync(Guid customerId, PaginationFilter filter)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var query = _repository.GetQueryable().Where(x => x.CustomerId == customerId);
             
             var totalCount = query.Count();
@@ -41,6 +43,8 @@ namespace CloudService.Application.Services
 
         public async Task<CustomerServiceDto?> GetServiceByIdAsync(Guid id, Guid customerId)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var entity = _repository.GetQueryable()
                 .FirstOrDefault(x => x.Id == id && x.CustomerId == customerId);
             if (entity == null) return null;

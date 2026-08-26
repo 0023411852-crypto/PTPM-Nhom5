@@ -64,6 +64,8 @@ namespace CloudService.Application.Services
 
         public async Task<AffiliateApplicationDto?> GetByUserIdAsync(Guid userId)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<AffiliateApplication>();
             var entity = repo.GetQueryable().FirstOrDefault(x => x.UserId == userId);
             

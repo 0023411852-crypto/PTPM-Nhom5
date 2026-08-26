@@ -3,6 +3,7 @@ using CloudService.Application.DTOs.ServiceFeatures;
 using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
 using CloudService.Domain.Interfaces;
+using CloudService.Domain.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,6 +43,8 @@ namespace CloudService.Application.Services
 
         public async Task<IEnumerable<ServiceFeatureDto>> GetByCategoryIdAsync(Guid categoryId)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<ServiceFeature>();
             var features = repo.GetQueryable()
                 .Where(f => f.ServiceCategoryId == categoryId)
@@ -60,7 +63,7 @@ namespace CloudService.Application.Services
         {
             var repo = _unitOfWork.Repository<ServiceFeature>();
             var feature = await repo.GetByIdAsync(id);
-            if (feature == null) return null;
+            if (feature == null) throw new NotFoundException("Service feature not found");
 
             _mapper.Map(dto, feature);
             feature.UpdatedAt = DateTime.UtcNow;

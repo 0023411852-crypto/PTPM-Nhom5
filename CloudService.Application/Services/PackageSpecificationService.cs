@@ -3,6 +3,7 @@ using CloudService.Application.DTOs.PackageSpecifications;
 using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
 using CloudService.Domain.Interfaces;
+using CloudService.Domain.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,6 +43,8 @@ namespace CloudService.Application.Services
 
         public async Task<IEnumerable<PackageSpecificationDto>> GetByPlanIdAsync(Guid planId)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<PackageSpecification>();
             var specs = repo.GetQueryable()
                 .Where(p => p.ServicePlanId == planId)
@@ -60,7 +63,7 @@ namespace CloudService.Application.Services
         {
             var repo = _unitOfWork.Repository<PackageSpecification>();
             var spec = await repo.GetByIdAsync(id);
-            if (spec == null) return null;
+            if (spec == null) throw new NotFoundException("Package specification not found");
 
             _mapper.Map(dto, spec);
             spec.UpdatedAt = DateTime.UtcNow;

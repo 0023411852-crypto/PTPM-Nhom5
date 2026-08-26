@@ -35,6 +35,8 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<SupportTicketDto>> GetAllTicketsAsync(PaginationFilter filter)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var query = _ticketRepository.GetQueryable();
             var totalCount = query.Count();
 
@@ -50,6 +52,8 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<SupportTicketDto>> GetMyTicketsAsync(Guid customerId, PaginationFilter filter)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var query = _ticketRepository.GetQueryable().Where(x => x.CustomerId == customerId);
             var totalCount = query.Count();
 
@@ -66,6 +70,8 @@ namespace CloudService.Application.Services
 
         public async Task<SupportTicketDto?> GetTicketByIdAsync(Guid id, Guid? customerId = null)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var query = _ticketRepository.GetQueryable();
             var entity = customerId.HasValue 
                 ? query.FirstOrDefault(x => x.Id == id && x.CustomerId == customerId.Value)

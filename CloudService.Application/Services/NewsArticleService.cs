@@ -21,6 +21,8 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<NewsArticleDto>> GetAllAsync(PaginationFilter filter, bool onlyPublished = false, string search = "")
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<NewsArticle>();
             var query = repo.GetQueryable("Author");
             
@@ -53,6 +55,8 @@ namespace CloudService.Application.Services
 
         public async Task<NewsArticleDto?> GetByIdAsync(Guid id, bool onlyPublished = false)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<NewsArticle>();
             var query = repo.GetQueryable();
             var entity = query.FirstOrDefault(x => x.Id == id);
