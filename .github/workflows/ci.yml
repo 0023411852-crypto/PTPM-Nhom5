@@ -95,7 +95,7 @@ jobs:
         with:
           host: ${{ secrets.AZURE_HOST }}
           username: ${{ secrets.AZURE_USER }}
-          key: ${{ secrets.AZURE_SSH_PRIVATE_KEY }}
+          key: ${{ secrets.AZURE_PASSWORD }}
           script: |
             # Deploy đúng repository 1111 vào thư mục riêng trên VPS.
             APP_DIR="/home/azureuser/1111"
