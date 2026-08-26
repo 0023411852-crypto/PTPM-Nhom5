@@ -22,21 +22,23 @@ namespace CloudService.Application.Services
         public async Task<PagedResponse<StaticPageDto>> GetAllAsync(PaginationFilter filter, bool onlyPublished = false)
         {
             var repo = _unitOfWork.Repository<StaticPage>();
-            var allData = await repo.GetAllAsync();
-            
-            if (onlyPublished)
+            var totalCount = await repo.CountAsync(
+                query => onlyPublished ? query.Where(x => x.IsPublished) : query);
+            var pagedData = await repo.ToListAsync(query =>
             {
-                allData = allData.Where(x => x.IsPublished);
-            }
+                if (onlyPublished)
+                {
+                    query = query.Where(x => x.IsPublished);
+                }
 
-            var pagedData = allData
-                .OrderByDescending(x => x.CreatedAt)
-                .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
+                return query
+                    .OrderByDescending(x => x.CreatedAt)
+                    .Skip((filter.PageNumber - 1) * filter.PageSize)
+                    .Take(filter.PageSize);
+            });
 
             var dtos = _mapper.Map<List<StaticPageDto>>(pagedData);
-            return new PagedResponse<StaticPageDto>(dtos, allData.Count(), filter.PageNumber, filter.PageSize);
+            return new PagedResponse<StaticPageDto>(dtos, totalCount, filter.PageNumber, filter.PageSize);
         }
 
         public async Task<StaticPageDto?> GetByIdAsync(Guid id)
@@ -50,8 +52,8 @@ namespace CloudService.Application.Services
         public async Task<StaticPageDto?> GetBySlugAsync(string slug)
         {
             var repo = _unitOfWork.Repository<StaticPage>();
-            var allData = await repo.GetAllAsync();
-            var entity = allData.FirstOrDefault(x => x.Slug.ToLower() == slug.ToLower() && x.IsPublished);
+            var entity = await repo.FirstOrDefaultAsync(
+                x => x.Slug == slug && x.IsPublished);
             if (entity == null) return null;
             return _mapper.Map<StaticPageDto>(entity);
         }

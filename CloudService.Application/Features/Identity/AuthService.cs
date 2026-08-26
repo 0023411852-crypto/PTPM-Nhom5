@@ -45,8 +45,7 @@ namespace CloudService.Application.Services
         public async Task<AuthResponse> LoginAsync(LoginRequest request)
         {
             var userRepo = _unitOfWork.Repository<AppUser>();
-            var allUsers = await userRepo.GetAllAsync();
-            var user = allUsers.FirstOrDefault(u => u.Email == request.Email);
+            var user = await userRepo.FirstOrDefaultAsync(u => u.Email == request.Email);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
@@ -91,16 +90,13 @@ namespace CloudService.Application.Services
         public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
         {
             var userRepo = _unitOfWork.Repository<AppUser>();
-            var allUsers = await userRepo.GetAllAsync();
-            
-            if (allUsers.Any(u => u.Email == request.Email))
+            if (await userRepo.FirstOrDefaultAsync(u => u.Email == request.Email) != null)
             {
                 throw new ConflictException("Email đã tồn tại trong hệ thống");
             }
 
             var roleRepo = _unitOfWork.Repository<Role>();
-            var roles = await roleRepo.GetAllAsync();
-            var customerRole = roles.FirstOrDefault(r => r.Name == "Customer");
+            var customerRole = await roleRepo.FirstOrDefaultAsync(r => r.Name == "Customer");
 
             if (customerRole == null)
             {
@@ -153,8 +149,8 @@ namespace CloudService.Application.Services
             var hashedToken = HashToken(request.RefreshToken);
             
             var repo = _unitOfWork.Repository<UserSession>();
-            var sessions = await repo.GetAllAsync();
-            var session = sessions.FirstOrDefault(s => s.RefreshTokenHash == hashedToken && !s.IsRevoked);
+            var session = await repo.FirstOrDefaultAsync(
+                s => s.RefreshTokenHash == hashedToken && !s.IsRevoked);
 
             if (session == null)
                 throw new UnauthorizedException("Phiên đăng nhập hoặc token không hợp lệ.");
@@ -217,8 +213,7 @@ namespace CloudService.Application.Services
             
             var hashedToken = HashToken(refreshToken);
             var repo = _unitOfWork.Repository<UserSession>();
-            var sessions = await repo.GetAllAsync();
-            var session = sessions.FirstOrDefault(s => s.RefreshTokenHash == hashedToken);
+            var session = await repo.FirstOrDefaultAsync(s => s.RefreshTokenHash == hashedToken);
             
             if (session != null)
             {

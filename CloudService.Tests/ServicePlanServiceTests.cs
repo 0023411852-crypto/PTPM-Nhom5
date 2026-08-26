@@ -57,7 +57,8 @@ namespace CloudService.Tests
         {
             var planId = Guid.NewGuid();
             var dto = new UpdateServicePlanDto { Name = "Updated Plan" };
-            _planRepoMock.Setup(r => r.GetAllAsync(It.IsAny<string>())).ReturnsAsync(new List<ServicePlan>().AsQueryable());
+            _planRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<string>()))
+                .ReturnsAsync((ServicePlan?)null);
 
             Func<Task> act = async () => await _servicePlanService.UpdateAsync(planId, dto);
 
@@ -72,7 +73,8 @@ namespace CloudService.Tests
             var plan = new ServicePlan { Id = planId, CategoryId = categoryId };
             var dto = new UpdateServicePlanDto { CategoryId = Guid.NewGuid(), Name = "Updated Plan" };
             
-            _planRepoMock.Setup(r => r.GetAllAsync(It.IsAny<string>())).ReturnsAsync(new List<ServicePlan> { plan }.AsQueryable());
+            _planRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<string>()))
+                .ReturnsAsync(plan);
             _categoryRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), "")).ReturnsAsync((ServiceCategory?)null);
 
             Func<Task> act = async () => await _servicePlanService.UpdateAsync(planId, dto);

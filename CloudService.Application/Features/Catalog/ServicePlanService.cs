@@ -24,18 +24,13 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<ServicePlanDto>> GetAllAsync(PaginationFilter filter)
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<ServicePlan>();
-            var query = repo.GetQueryable("Prices,Category,PackageSpecifications");
-            
-            var totalRecords = query.Count();
-
-            var pagedData = query
+            var totalRecords = await repo.CountAsync(query => query);
+            var pagedData = await repo.ToListAsync(query => query
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
+                .Take(filter.PageSize),
+                includeProperties: "Prices,Category,PackageSpecifications");
 
             foreach (var plan in pagedData.Where(plan => string.IsNullOrWhiteSpace(plan.QRCodeBase64)))
             {
@@ -51,8 +46,7 @@ namespace CloudService.Application.Services
         public async Task<ServicePlanDto?> GetByIdAsync(Guid id)
         {
             var repo = _unitOfWork.Repository<ServicePlan>();
-            var allData = await repo.GetAllAsync(includeProperties: "Prices,Category,PackageSpecifications");
-            var entity = allData.FirstOrDefault(x => x.Id == id);
+            var entity = await repo.GetByIdAsync(id, includeProperties: "Prices,Category,PackageSpecifications");
             if (entity == null) return null;
             return _mapper.Map<ServicePlanDto>(entity);
         }
@@ -74,8 +68,7 @@ namespace CloudService.Application.Services
         public async Task<ServicePlanDto> UpdateAsync(Guid id, UpdateServicePlanDto dto)
         {
             var repo = _unitOfWork.Repository<ServicePlan>();
-            var allData = await repo.GetAllAsync(includeProperties: "Prices,Category,PackageSpecifications");
-            var entity = allData.FirstOrDefault(x => x.Id == id);
+            var entity = await repo.GetByIdAsync(id, includeProperties: "Prices,Category,PackageSpecifications");
             if (entity == null) throw new NotFoundException("Plan not found");
 
             var catRepo = _unitOfWork.Repository<ServiceCategory>();
@@ -167,8 +160,7 @@ namespace CloudService.Application.Services
         public async Task<ServicePlanDto?> RegenerateQrCodeAsync(Guid id)
         {
             var repo = _unitOfWork.Repository<ServicePlan>();
-            var allData = await repo.GetAllAsync(includeProperties: "Prices,Category,PackageSpecifications");
-            var entity = allData.FirstOrDefault(x => x.Id == id);
+            var entity = await repo.GetByIdAsync(id, includeProperties: "Prices,Category,PackageSpecifications");
             if (entity == null) return null;
 
             entity.QRCodeBase64 = _qrCodeService.GenerateQRCodeBase64(BuildQrPayload(entity));

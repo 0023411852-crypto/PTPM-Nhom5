@@ -30,18 +30,13 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<OrderDto>> GetUserOrdersAsync(Guid userId, PaginationFilter filter)
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<OrderRequest>();
-            var query = repo.GetQueryable().Where(x => x.UserId == userId);
-
-            var totalRecords = query.Count();
-
-            var pagedData = query
+            var totalRecords = await repo.CountAsync(query => query.Where(x => x.UserId == userId));
+            var pagedData = await repo.ToListAsync(query => query
+                .Where(x => x.UserId == userId)
                 .OrderByDescending(x => x.OrderDate)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
+                .Take(filter.PageSize));
 
             var dtos = _mapper.Map<List<OrderDto>>(pagedData);
 
@@ -66,9 +61,10 @@ namespace CloudService.Application.Services
         public async Task<OrderDetailDto?> GetOrderDetailAsync(Guid orderId, Guid requesterId, bool isAdmin)
         {
             var repo = _unitOfWork.Repository<OrderRequest>();
-            var orders = await repo.GetAllAsync(includeProperties: "ServicePlan,ServicePlan.Category,PlanPrice,Promotion");
-            var order = orders.FirstOrDefault(item => item.Id == orderId);
-            if (order == null || (!isAdmin && order.UserId != requesterId)) return null;
+            var order = await repo.FirstOrDefaultAsync(
+                item => item.Id == orderId && (isAdmin || item.UserId == requesterId),
+                includeProperties: "ServicePlan,ServicePlan.Category,PlanPrice,Promotion");
+            if (order == null) return null;
 
             return new OrderDetailDto
             {
@@ -93,18 +89,12 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<OrderDto>> GetAllOrdersAsync(PaginationFilter filter)
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<OrderRequest>();
-            var query = repo.GetQueryable();
-            
-            var totalRecords = query.Count();
-
-            var pagedData = query
+            var totalRecords = await repo.CountAsync(query => query);
+            var pagedData = await repo.ToListAsync(query => query
                 .OrderByDescending(x => x.OrderDate)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
+                .Take(filter.PageSize));
 
             var dtos = _mapper.Map<List<OrderDto>>(pagedData);
             return new PagedResponse<OrderDto>(dtos, totalRecords, filter.PageNumber, filter.PageSize);
@@ -112,12 +102,9 @@ namespace CloudService.Application.Services
 
         public async Task<byte[]> ExportAllOrdersCsvAsync()
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<OrderRequest>();
-            var orders = repo.GetQueryable()
-                .OrderByDescending(x => x.OrderDate)
-                .ToList();
+            var orders = await repo.ToListAsync(query => query
+                .OrderByDescending(x => x.OrderDate));
 
             var builder = new StringBuilder();
             builder.Append('\uFEFF');

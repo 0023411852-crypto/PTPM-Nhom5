@@ -28,8 +28,8 @@ namespace CloudService.Application.EventHandlers
         private async Task RevokeSessionsAsync(Guid userId, string reason)
         {
             var repo = _unitOfWork.Repository<UserSession>();
-            var allSessions = await repo.GetAllAsync();
-            var activeSessions = allSessions.Where(s => s.UserId == userId && !s.IsRevoked).ToList();
+            var activeSessions = await repo.ToListAsync(
+                query => query.Where(s => s.UserId == userId && !s.IsRevoked));
             
             foreach(var session in activeSessions)
             {
