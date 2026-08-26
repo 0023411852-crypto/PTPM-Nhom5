@@ -80,8 +80,3 @@ temp_*
 # Node modules (for frontend)
 node_modules/
 .next/
-
-# Local SQLite runtime database
-CloudService.WebApi/*.db
-CloudService.WebApi/*.db-shm
-CloudService.WebApi/*.db-wal

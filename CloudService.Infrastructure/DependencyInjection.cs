@@ -12,19 +12,7 @@ namespace CloudService.Infrastructure
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
-            {
-                var provider = configuration["Database:Provider"] ?? "SqlServer";
-                var connectionString = configuration.GetConnectionString("DefaultConnection");
-
-                if (string.Equals(provider, "Sqlite", StringComparison.OrdinalIgnoreCase))
-                {
-                    options.UseSqlite(connectionString);
-                }
-                else
-                {
-                    options.UseSqlServer(connectionString);
-                }
-            });
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
