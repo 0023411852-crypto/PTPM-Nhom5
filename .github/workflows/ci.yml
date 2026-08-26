@@ -79,7 +79,10 @@ jobs:
         docker compose -f docker-compose.production.yml config
 
     - name: "📦 Build Docker images"
-      run: docker compose build
+      run: |
+        MSSQL_SA_PASSWORD='TestStrong!Passw0rd' \
+        JWT_SECRET='test-only-jwt-secret-with-enough-length' \
+        docker compose build
 
   deploy:
     name: "🚀 Deploy to VPS"
