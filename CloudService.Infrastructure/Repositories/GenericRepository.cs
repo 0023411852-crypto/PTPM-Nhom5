@@ -71,6 +71,11 @@ namespace CloudService.Infrastructure.Repositories
             return queryBuilder(GetQueryable(includeProperties).AsNoTracking()).ToListAsync();
         }
 
+        public Task<List<TResult>> SelectToListAsync<TResult>(Func<IQueryable<T>, IQueryable<TResult>> queryBuilder, string includeProperties = "")
+        {
+            return queryBuilder(GetQueryable(includeProperties).AsNoTracking()).ToListAsync();
+        }
+
         public async Task AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);

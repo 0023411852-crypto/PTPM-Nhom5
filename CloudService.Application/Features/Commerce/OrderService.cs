@@ -1,5 +1,6 @@
 using AutoMapper;
 using System.Text;
+using System.Security.Cryptography;
 using CloudService.Application.Common;
 using CloudService.Application.DTOs.Orders;
 using CloudService.Application.Interfaces;
@@ -43,10 +44,10 @@ namespace CloudService.Application.Services
             {
                 var orderIds = dtos.Select(d => d.Id).ToList();
                 var reviewRepo = _unitOfWork.Repository<CustomerReview>();
-                var reviewedOrderIds = reviewRepo.GetQueryable()
-                    .Where(r => r.OrderId.HasValue && orderIds.Contains(r.OrderId.Value))
-                    .Select(r => r.OrderId!.Value)
-                    .ToList();
+                var reviewedOrderIds = await reviewRepo.SelectToListAsync(
+                    query => query
+                        .Where(r => r.OrderId.HasValue && orderIds.Contains(r.OrderId.Value))
+                        .Select(r => r.OrderId!.Value));
 
                 foreach (var dto in dtos)
                 {
@@ -101,25 +102,34 @@ namespace CloudService.Application.Services
 
         public async Task<byte[]> ExportAllOrdersCsvAsync()
         {
+            const int batchSize = 500;
             var repo = _unitOfWork.Repository<OrderRequest>();
-            var orders = await repo.ToListAsync(query => query
-                .OrderByDescending(x => x.OrderDate));
-
             var builder = new StringBuilder();
             builder.Append('\uFEFF');
             builder.AppendLine("Id,UserId,ServicePlanId,PlanPriceId,TotalAmount,Status,OrderDate");
-            foreach (var order in orders)
+
+            for (var skip = 0; ; skip += batchSize)
             {
-                builder.AppendLine(string.Join(",", new[]
+                var orders = await repo.ToListAsync(query => query
+                    .OrderByDescending(x => x.OrderDate)
+                    .Skip(skip)
+                    .Take(batchSize));
+                if (orders.Count == 0)
+                    break;
+
+                foreach (var order in orders)
                 {
-                    EscapeCsv(order.Id.ToString()),
-                    EscapeCsv(order.UserId.ToString()),
-                    EscapeCsv(order.ServicePlanId.ToString()),
-                    EscapeCsv(order.PlanPriceId.ToString()),
-                    EscapeCsv(order.TotalAmount.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                    EscapeCsv(order.Status.ToString()),
-                    EscapeCsv(order.OrderDate.ToString("O"))
-                }));
+                    builder.AppendLine(string.Join(",", new[]
+                    {
+                        EscapeCsv(order.Id.ToString()),
+                        EscapeCsv(order.UserId.ToString()),
+                        EscapeCsv(order.ServicePlanId.ToString()),
+                        EscapeCsv(order.PlanPriceId.ToString()),
+                        EscapeCsv(order.TotalAmount.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                        EscapeCsv(order.Status.ToString()),
+                        EscapeCsv(order.OrderDate.ToString("O"))
+                    }));
+                }
             }
 
             return Encoding.UTF8.GetBytes(builder.ToString());
@@ -141,6 +151,8 @@ namespace CloudService.Application.Services
             var priceRepo = _unitOfWork.Repository<PlanPrice>();
             var planPrice = await priceRepo.GetByIdAsync(dto.PlanPriceId);
             if (planPrice == null) throw new NotFoundException("Plan Price not found");
+            if (planPrice.Price < 0 || planPrice.SetupFee < 0)
+                throw new ValidationException("Price and setup fee must be non-negative");
             if (planPrice.ServicePlanId != dto.ServicePlanId)
                 throw new ValidationException("Plan Price does not belong to the selected Service Plan");
 
@@ -157,6 +169,8 @@ namespace CloudService.Application.Services
                 
                 if (!promotion.IsActive)
                     throw new ValidationException("Promotion is not active");
+                if (promotion.DiscountPercentage < 0 || promotion.DiscountPercentage > 100)
+                    throw new ValidationException("Promotion discount must be between 0 and 100 percent");
                 
                 if (promotion.EndDate.HasValue && promotion.EndDate < DateTime.UtcNow)
                     throw new ValidationException("Promotion has expired");
@@ -313,11 +327,10 @@ namespace CloudService.Application.Services
         private static string GenerateRandomPassword(int length = 16)
         {
             const string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
-            var random = new Random();
             var result = new char[length];
             for (int i = 0; i < length; i++)
             {
-                result[i] = chars[random.Next(chars.Length)];
+                result[i] = chars[RandomNumberGenerator.GetInt32(chars.Length)];
             }
             return new string(result);
         }

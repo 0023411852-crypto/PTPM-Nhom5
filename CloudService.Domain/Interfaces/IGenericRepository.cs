@@ -1,5 +1,7 @@
 using System.Linq.Expressions;
 
+
+
 namespace CloudService.Domain.Interfaces
 {
     public interface IGenericRepository<T> where T : class
@@ -10,6 +12,7 @@ namespace CloudService.Domain.Interfaces
         IQueryable<T> GetQueryable(string includeProperties = "");
         Task<int> CountAsync(Func<IQueryable<T>, IQueryable<T>> queryBuilder, string includeProperties = "");
         Task<List<T>> ToListAsync(Func<IQueryable<T>, IQueryable<T>> queryBuilder, string includeProperties = "");
+        Task<List<TResult>> SelectToListAsync<TResult>(Func<IQueryable<T>, IQueryable<TResult>> queryBuilder, string includeProperties = "");
         Task AddAsync(T entity);
         void Update(T entity);
         void Delete(T entity);
