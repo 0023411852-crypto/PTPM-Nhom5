@@ -2,16 +2,28 @@
 
 import React, { useEffect, useState } from 'react';
 
+type TicketReply = {
+    id: string;
+    userId: string;
+    message: string;
+};
+
+type SupportTicket = {
+    id: string;
+    title: string;
+    status: string;
+    description: string;
+    createdAt: string;
+    customerId: string;
+    replies?: TicketReply[];
+};
+
 export default function AdminTicketsPage() {
-    const [tickets, setTickets] = useState<any[]>([]);
+    const [tickets, setTickets] = useState<SupportTicket[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedTicket, setSelectedTicket] = useState<any>(null);
+    const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
     const [replyMessage, setReplyMessage] = useState('');
     const [isReplying, setIsReplying] = useState(false);
-
-    useEffect(() => {
-        fetchTickets();
-    }, []);
 
     const fetchTickets = async () => {
         try {
@@ -27,6 +39,10 @@ export default function AdminTicketsPage() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchTickets();
+    }, []);
 
     const handleSelectTicket = async (id: string) => {
         try {
@@ -146,7 +162,7 @@ export default function AdminTicketsPage() {
                             </div>
 
                             {/* Replies */}
-                            {selectedTicket.replies?.map((reply: any) => {
+                            {selectedTicket.replies?.map((reply) => {
                                 const isAdminReply = reply.userId !== selectedTicket.customerId;
                                 return (
                                 <div key={reply.id} className={`p-md rounded-xl max-w-[80%] ${isAdminReply ? 'bg-primary text-on-primary rounded-tr-none self-end ml-auto' : 'bg-surface border border-outline-variant rounded-tl-none self-start'}`}>

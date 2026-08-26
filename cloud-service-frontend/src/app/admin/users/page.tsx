@@ -2,8 +2,25 @@
 
 import React, { useEffect, useState } from 'react';
 
+type UserRecord = {
+    id: string;
+    email: string;
+    fullName: string;
+    roleName?: string;
+    isActive: boolean;
+    createdAt: string;
+    pendingDeletionAt?: string | null;
+};
+
+type UserActivity = {
+    id: string;
+    action: string;
+    createdAt?: string;
+    description?: string;
+};
+
 export default function AdminUsersPage() {
-    const [users, setUsers] = useState<any[]>([]);
+    const [users, setUsers] = useState<UserRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [pageNumber, setPageNumber] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -18,7 +35,7 @@ export default function AdminUsersPage() {
     });
 
     const [isActivitiesModalOpen, setIsActivitiesModalOpen] = useState(false);
-    const [selectedUserActivities, setSelectedUserActivities] = useState<any[]>([]);
+    const [selectedUserActivities, setSelectedUserActivities] = useState<UserActivity[]>([]);
     const [selectedUserName, setSelectedUserName] = useState('');
     const [loadingActivities, setLoadingActivities] = useState(false);
 

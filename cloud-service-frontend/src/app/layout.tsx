@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 
 import "./globals.css";
 import "../index.css";
+import "../../styled-system/styles.css";
 
 const inter = Inter({
   subsets: ["latin"],

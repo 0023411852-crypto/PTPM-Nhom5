@@ -156,3 +156,95 @@ body {
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
 }
+
+/* Runtime compatibility for the generated Panda utility classes. */
+@layer overrides {
+  h1.fs_display-lg {
+    font-family: Geist, Inter, sans-serif;
+    font-size: 48px;
+    line-height: 56px;
+    font-weight: 700;
+  }
+
+  p.fs_body-lg {
+    font-size: 18px;
+    line-height: 28px;
+  }
+
+  .grid-tc_1 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .grid-tc_2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid-tc_3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .grid-tc_4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .grid-tc_6 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  @media screen and (min-width: 48rem) {
+    .md\:grid-tc_3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .md\:grid-tc_4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media screen and (min-width: 64rem) {
+    .lg\:grid-tc_2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .lg\:grid-tc_6 {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  h1.fs_display-lg {
+    font-size: 38px;
+    line-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Final cascade guard: keep semantic utilities deterministic across Panda/Tailwind layers. */
+.d_none { display: none !important; }
+.fs_display-lg { font-family: Geist, Inter, sans-serif !important; font-size: 48px !important; line-height: 56px !important; font-weight: 700 !important; }
+.fs_body-lg { font-size: 18px !important; line-height: 28px !important; }
+.grid-tc_1 { grid-template-columns: minmax(0, 1fr) !important; }
+.grid-tc_2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+.grid-tc_3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+.grid-tc_4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+.grid-tc_6 { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
+@media screen and (min-width: 48rem) {
+  .md\:grid-tc_3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .md\:grid-tc_4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+}
+@media screen and (min-width: 64rem) {
+  .lg\:grid-tc_2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .lg\:grid-tc_6 { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 767px) {
+  .fs_display-lg { font-size: 38px !important; line-height: 44px !important; }
+}

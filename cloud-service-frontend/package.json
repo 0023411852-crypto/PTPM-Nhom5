@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "panda build && next build",
+    "build": "panda codegen && panda cssgen && next build",
     "start": "next start",
     "lint": "eslint",
-    "panda": "panda"
+    "panda": "panda codegen && panda cssgen"
   },
   "dependencies": {
     "@pandacss/dev": "^1.12.0",

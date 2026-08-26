@@ -204,7 +204,7 @@ export interface UtilityValues {
 	srOnly: boolean;
 	debug: boolean;
 	containerName: CssProperties["containerName"];
-	colorPalette: "current" | "black" | "white" | "transparent" | "rose" | "pink" | "fuchsia" | "purple" | "violet" | "indigo" | "blue" | "sky" | "cyan" | "teal" | "emerald" | "green" | "lime" | "yellow" | "amber" | "orange" | "red" | "neutral" | "stone" | "zinc" | "gray" | "slate";
+	colorPalette: "current" | "black" | "transparent" | "rose" | "pink" | "fuchsia" | "purple" | "violet" | "indigo" | "blue" | "sky" | "cyan" | "teal" | "emerald" | "green" | "lime" | "yellow" | "amber" | "orange" | "red" | "neutral" | "stone" | "zinc" | "gray" | "slate" | "inverse-on-surface" | "secondary" | "outline" | "surface-container-high" | "on-error-container" | "on-background" | "surface-container-low" | "surface-container-highest" | "tertiary" | "primary-fixed-dim" | "surface-dim" | "on-tertiary-container" | "secondary-fixed-dim" | "on-surface" | "surface-container-lowest" | "background" | "surface-container" | "primary-fixed" | "tertiary-fixed-dim" | "on-secondary" | "surface-variant" | "secondary-fixed" | "inverse-primary" | "surface" | "tertiary-fixed" | "tertiary-container" | "on-tertiary-fixed" | "error" | "on-tertiary-fixed-variant" | "on-tertiary" | "on-primary-container" | "primary" | "inverse-surface" | "surface-bright" | "on-secondary-fixed" | "on-primary-fixed" | "outline-variant" | "on-primary-fixed-variant" | "primary-container" | "surface-tint" | "error-container" | "on-secondary-fixed-variant" | "on-surface-variant" | "secondary-container" | "on-primary" | "on-secondary-container" | "on-error" | "white";
 	textStyle: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "6xl" | "7xl" | "8xl" | "9xl";
 }
 
