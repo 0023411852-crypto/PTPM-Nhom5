@@ -21,14 +21,14 @@ namespace CloudService.Application.Services
             _mapper = mapper;
         }
 
-        private static string GenerateRandomPassword(int length = 16)
+        private static string GenerateRandomPassword(int length = 20)
         {
             const string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
-            var random = new Random();
+            var bytes = RandomNumberGenerator.GetBytes(length);
             var result = new char[length];
             for (int i = 0; i < length; i++)
             {
-                result[i] = chars[random.Next(chars.Length)];
+                result[i] = chars[bytes[i] % chars.Length];
             }
             return new string(result);
         }
@@ -37,16 +37,12 @@ namespace CloudService.Application.Services
         {
             var repo = _unitOfWork.Repository<AffiliateApplication>();
             var userRepo = _unitOfWork.Repository<AppUser>();
-            var query = repo.GetQueryable();
-            var allUsers = await userRepo.GetAllAsync();
-
-            var totalCount = query.Count();
-
-            var pagedData = query
+            var totalCount = await repo.CountAsync(query => query);
+            var pagedData = await repo.ToListAsync(query => query
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
+                .Take(filter.PageSize));
+            var allUsers = await userRepo.GetAllAsync();
 
             var dtos = _mapper.Map<List<AffiliateApplicationDto>>(pagedData);
             foreach (var dto in dtos)
@@ -105,13 +101,14 @@ namespace CloudService.Application.Services
             return _mapper.Map<AffiliateApplicationDto>(entity);
         }
 
-        public async Task<AffiliateApplicationDto> AdminCreatePartnerAsync(AdminCreatePartnerDto dto)
+        public async Task<AdminCreatePartnerResultDto> AdminCreatePartnerAsync(AdminCreatePartnerDto dto)
         {
             var userRepo = _unitOfWork.Repository<AppUser>();
             var allUsers = await userRepo.GetAllAsync();
             var existingUser = allUsers.FirstOrDefault(u => u.Email == dto.Email);
 
             AppUser userToUse;
+            string? temporaryPassword = null;
             if (existingUser != null)
             {
                 userToUse = existingUser;
@@ -122,13 +119,13 @@ namespace CloudService.Application.Services
                 var roles = await roleRepo.GetAllAsync();
                 var customerRole = roles.FirstOrDefault(r => r.Name == "Customer");
 
-                var tempPassword = GenerateRandomPassword();
+                temporaryPassword = GenerateRandomPassword();
                 userToUse = new AppUser
                 {
                     Email = dto.Email,
                     FullName = dto.FullName,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword),
-                    RoleId = customerRole!.Id,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(temporaryPassword),
+                    RoleId = customerRole?.Id ?? throw new InvalidOperationException("Customer role is not configured."),
                     IsActive = true
                 };
                 await userRepo.AddAsync(userToUse);
@@ -157,8 +154,13 @@ namespace CloudService.Application.Services
             var resultDto = _mapper.Map<AffiliateApplicationDto>(entity);
             resultDto.FullName = userToUse.FullName;
             resultDto.Email = userToUse.Email;
-            
-            return resultDto;
+
+            return new AdminCreatePartnerResultDto
+            {
+                Application = resultDto,
+                TemporaryPassword = temporaryPassword,
+                RequiresPasswordSetup = temporaryPassword != null
+            };
         }
 
         public async Task SeedDataAsync()

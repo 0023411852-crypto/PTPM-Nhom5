@@ -43,13 +43,10 @@ namespace CloudService.Application.Services
 
         public async Task<IEnumerable<ServiceFeatureDto>> GetByCategoryIdAsync(Guid categoryId)
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<ServiceFeature>();
-            var features = repo.GetQueryable()
+            var features = await repo.ToListAsync(query => query
                 .Where(f => f.ServiceCategoryId == categoryId)
-                .OrderBy(f => f.DisplayOrder)
-                .ToList();
+                .OrderBy(f => f.DisplayOrder));
             return _mapper.Map<IEnumerable<ServiceFeatureDto>>(features);
         }
 

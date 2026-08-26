@@ -56,6 +56,16 @@ namespace CloudService.Infrastructure.Repositories
             return query;
         }
 
+        public Task<int> CountAsync(Func<IQueryable<T>, IQueryable<T>> queryBuilder, string includeProperties = "")
+        {
+            return queryBuilder(GetQueryable(includeProperties).AsNoTracking()).CountAsync();
+        }
+
+        public Task<List<T>> ToListAsync(Func<IQueryable<T>, IQueryable<T>> queryBuilder, string includeProperties = "")
+        {
+            return queryBuilder(GetQueryable(includeProperties).AsNoTracking()).ToListAsync();
+        }
+
         public async Task AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);

@@ -49,7 +49,7 @@ namespace CloudService.Tests
         public async Task GetByIdAsync_ShouldReturnNull_WhenArticleDoesNotExist()
         {
             var articleId = Guid.NewGuid();
-            _articleRepoMock.Setup(r => r.GetQueryable(It.IsAny<string>())).Returns(new List<NewsArticle>().AsQueryable());
+            _articleRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), "")).ReturnsAsync((NewsArticle?)null);
 
             var result = await _articleService.GetByIdAsync(articleId);
 
@@ -61,7 +61,7 @@ namespace CloudService.Tests
         {
             var articleId = Guid.NewGuid();
             var article = new NewsArticle { Id = articleId, IsPublished = false };
-            _articleRepoMock.Setup(r => r.GetQueryable(It.IsAny<string>())).Returns(new List<NewsArticle> { article }.AsQueryable());
+            _articleRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), "")).ReturnsAsync(article);
 
             var result = await _articleService.GetByIdAsync(articleId, onlyPublished: true);
 
@@ -73,7 +73,7 @@ namespace CloudService.Tests
         {
             var articleId = Guid.NewGuid();
             var article = new NewsArticle { Id = articleId, IsPublished = true, Title = "Test Article" };
-            _articleRepoMock.Setup(r => r.GetQueryable(It.IsAny<string>())).Returns(new List<NewsArticle> { article }.AsQueryable());
+            _articleRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), "")).ReturnsAsync(article);
             _mapperMock.Setup(m => m.Map<NewsArticleDto>(It.IsAny<NewsArticle>())).Returns(new NewsArticleDto { Id = articleId, Title = "Test Article" });
 
             var result = await _articleService.GetByIdAsync(articleId, onlyPublished: true);

@@ -76,7 +76,7 @@ export default function TopCustomersPage() {
 
     const fetchReviews = (pageToFetch: number) => {
         setLoadingReviews(true);
-        fetch(`/api/Users/reviews?page=${pageToFetch}&pageSize=3`)
+        fetch(`/api/Reviews?page=${pageToFetch}&pageSize=3`)
             .then(res => res.json())
             .then(data => {
                 setReviews(data.items);
@@ -124,7 +124,7 @@ export default function TopCustomersPage() {
 
         setReviewSubmitting(true);
         try {
-            const response = await fetch('/api/Users/reviews', {
+            const response = await fetch('/api/Reviews', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

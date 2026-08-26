@@ -43,13 +43,10 @@ namespace CloudService.Application.Services
 
         public async Task<IEnumerable<PackageSpecificationDto>> GetByPlanIdAsync(Guid planId)
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<PackageSpecification>();
-            var specs = repo.GetQueryable()
+            var specs = await repo.ToListAsync(query => query
                 .Where(p => p.ServicePlanId == planId)
-                .OrderBy(p => p.DisplayOrder)
-                .ToList();
+                .OrderBy(p => p.DisplayOrder));
             return _mapper.Map<IEnumerable<PackageSpecificationDto>>(specs);
         }
 
