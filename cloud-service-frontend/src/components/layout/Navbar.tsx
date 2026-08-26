@@ -290,7 +290,7 @@ export default function Navbar() {
               })}>
                 Đăng nhập
               </Link>
-              <Link href="/register" className={css({
+              <Link href="/register" className={`nova-header-register ${css({
                 fontSize: "label-caps",
                 fontWeight: "label-caps",
                 backgroundColor: "primary",
@@ -303,7 +303,7 @@ export default function Navbar() {
                 cursor: "pointer",
                 _active: { scale: "0.95" },
                 transitionDuration: "200ms",
-              })}>
+              })}`}>
                 Đăng ký ngay
               </Link>
             </>

@@ -387,5 +387,5 @@ body {
 html, body { max-width: 100%; overflow-x: hidden; }
 img, svg, video { max-width: 100%; }
 @media (max-width: 767px) {
-  .nova-nav a[href="/register"] { max-width: 7.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-inline: .65rem !important; font-size: .68rem !important; }
+  .nova-nav .nova-header-register { display: none !important; }
 }
