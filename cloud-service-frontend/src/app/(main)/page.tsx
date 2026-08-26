@@ -335,7 +335,7 @@ void main() {
 
   return (
     <>
-      <main className={`nova-home ${css({ paddingTop: "16" })}`}>
+      <main className={css({ paddingTop: "16" })}>
         <section className={css({
           position: "relative",
           minHeight: "90vh",

@@ -14,7 +14,6 @@ export default function Navbar() {
   const [cartCount, setCartCount] = React.useState(0);
   const [showDropdown, setShowDropdown] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
-  const mobileMenuRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     const syncAuthState = () => {
@@ -50,31 +49,6 @@ export default function Navbar() {
     };
   }, []);
 
-  React.useEffect(() => {
-    if (!isMobileMenuOpen) return;
-
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node;
-      if (mobileMenuRef.current?.contains(target)) return;
-      setIsMobileMenuOpen(false);
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsMobileMenuOpen(false);
-    };
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isMobileMenuOpen]);
-
   const handleLogout = () => {
     ["token", "refreshToken", "role", "fullName", "avatarUrl", "avatar"].forEach((key) => {
       localStorage.removeItem(key);
@@ -107,7 +81,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={`nova-nav ${css({
+    <nav className={css({
       position: "fixed",
       top: "0",
       width: "full",
@@ -118,7 +92,7 @@ export default function Navbar() {
       borderBottom: "1px solid",
       borderColor: "outline-variant",
       transition: "all 0.3s",
-    })}`}>
+    })}>
       <div className={css({
         display: "flex",
         justifyContent: "space-between",
@@ -128,20 +102,20 @@ export default function Navbar() {
         maxWidth: "container-max",
         marginX: "auto",
       })}>
-      <div className={css({ display: "flex", alignItems: "center", gap: "md" })}>
+        <div className={css({ display: "flex", alignItems: "center", gap: "md" })}>
           <img
             alt="CloudNova Logo"
             className={css({ height: "8", width: "auto", display: "none" })}
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKrfk0eJeszZLwtqDno7rdyXBneiyQM6WsPvsv4bHPfxMXlTylmZic2igXetLUOB4oENHvJrWHHYUrSkhf0-O8_3y-XHCCMoeDPODRovjqq-yBniIDRhUm_4gatrTi3QE-MaRV4srUZl0h6XWQ5Xhwq2nTeaRV56LQ57nT8K4y68V9V5xitmKYQY6rCxne-0X7_4UdyBxLKzLZ54TNUBFKeZbioUrRT2epoyIMI3BRNgDoBPL4VQ"
           />
-          <Link href="/" className={`nova-brand ${css({
+          <Link href="/" className={css({
             fontSize: "headline-md",
             fontWeight: "bold",
             color: "primary",
             display: "flex",
             alignItems: "center",
             gap: "2",
-          })}`}>
+          })}>
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
               cloud
             </span>
@@ -316,7 +290,7 @@ export default function Navbar() {
               })}>
                 Đăng nhập
               </Link>
-              <Link href="/register" className={`nova-header-register ${css({
+              <Link href="/register" className={css({
                 fontSize: "label-caps",
                 fontWeight: "label-caps",
                 backgroundColor: "primary",
@@ -329,19 +303,13 @@ export default function Navbar() {
                 cursor: "pointer",
                 _active: { scale: "0.95" },
                 transitionDuration: "200ms",
-              })}`}>
+              })}>
                 Đăng ký ngay
               </Link>
             </>
           )}
           
-          <button
-            type="button"
-            aria-label={isMobileMenuOpen ? "Đóng menu" : "Mở menu"}
-            aria-expanded={isMobileMenuOpen}
-            data-mobile-menu-toggle="true"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={css({
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className={css({
             display: { base: "block", md: "none" },
             color: "on-surface",
             marginLeft: "2",
@@ -353,10 +321,8 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Menu Overlay */}
-      <div
-        ref={mobileMenuRef}
-        aria-hidden={!isMobileMenuOpen}
-        className={`nova-mobile-menu ${isMobileMenuOpen ? "is-open" : ""} ${css({
+      {isMobileMenuOpen && (
+        <div className={css({
           display: { base: "flex", md: "none" },
           position: "absolute",
           top: "full",
@@ -371,7 +337,7 @@ export default function Navbar() {
           flexDirection: "column",
           gap: "4",
           zIndex: "40",
-        })}`}>
+        })}>
           <Link onClick={() => setIsMobileMenuOpen(false)} className={getLinkClass("/")} href="/">Trang chủ</Link>
           <Link onClick={() => setIsMobileMenuOpen(false)} className={getLinkClass("/services")} href="/services">Dịch vụ</Link>
           <Link onClick={() => setIsMobileMenuOpen(false)} className={getLinkClass("/partners")} href="/partners">Đối tác</Link>
@@ -418,6 +384,7 @@ export default function Navbar() {
             </div>
           )}
         </div>
+      )}
     </nav>
   );
 }
