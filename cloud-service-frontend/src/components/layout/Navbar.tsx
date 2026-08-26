@@ -14,6 +14,7 @@ export default function Navbar() {
   const [cartCount, setCartCount] = React.useState(0);
   const [showDropdown, setShowDropdown] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const mobileMenuRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     const syncAuthState = () => {
@@ -48,6 +49,31 @@ export default function Navbar() {
       window.removeEventListener("cartUpdated", syncCartState);
     };
   }, []);
+
+  React.useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (mobileMenuRef.current?.contains(target)) return;
+      setIsMobileMenuOpen(false);
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsMobileMenuOpen(false);
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMobileMenuOpen]);
 
   const handleLogout = () => {
     ["token", "refreshToken", "role", "fullName", "avatarUrl", "avatar"].forEach((key) => {
@@ -309,7 +335,13 @@ export default function Navbar() {
             </>
           )}
           
-          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className={css({
+          <button
+            type="button"
+            aria-label={isMobileMenuOpen ? "Đóng menu" : "Mở menu"}
+            aria-expanded={isMobileMenuOpen}
+            data-mobile-menu-toggle="true"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className={css({
             display: { base: "block", md: "none" },
             color: "on-surface",
             marginLeft: "2",
@@ -321,8 +353,10 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div className={css({
+      <div
+        ref={mobileMenuRef}
+        aria-hidden={!isMobileMenuOpen}
+        className={`nova-mobile-menu ${isMobileMenuOpen ? "is-open" : ""} ${css({
           display: { base: "flex", md: "none" },
           position: "absolute",
           top: "full",
@@ -337,7 +371,7 @@ export default function Navbar() {
           flexDirection: "column",
           gap: "4",
           zIndex: "40",
-        })}>
+        })}`}>
           <Link onClick={() => setIsMobileMenuOpen(false)} className={getLinkClass("/")} href="/">Trang chủ</Link>
           <Link onClick={() => setIsMobileMenuOpen(false)} className={getLinkClass("/services")} href="/services">Dịch vụ</Link>
           <Link onClick={() => setIsMobileMenuOpen(false)} className={getLinkClass("/partners")} href="/partners">Đối tác</Link>
@@ -384,7 +418,6 @@ export default function Navbar() {
             </div>
           )}
         </div>
-      )}
     </nav>
   );
 }

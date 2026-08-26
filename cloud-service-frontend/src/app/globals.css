@@ -311,6 +311,26 @@ body {
 .nova-nav a:not(.nova-brand):hover { color: var(--nova-blue) !important; }
 .nova-nav a:not(.nova-brand):hover::after { opacity: 1; transform: scaleX(1); }
 
+.nova-mobile-menu {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-0.75rem);
+  transform-origin: top;
+  pointer-events: none;
+  transition: opacity .22s ease, transform .22s ease, visibility .22s ease;
+}
+
+.nova-mobile-menu.is-open {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nova-mobile-menu { transition: none; }
+}
+
 .nova-home {
   background:
     radial-gradient(circle at 90% 4%, rgba(34, 211, 238, .13), transparent 24rem),
