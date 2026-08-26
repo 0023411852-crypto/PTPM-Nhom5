@@ -122,20 +122,32 @@ if (app.Configuration.GetValue<bool>("Database:AutoMigrate"))
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<CloudService.Infrastructure.Data.ApplicationDbContext>();
-    db.Database.Migrate();
+    var databaseProvider = app.Configuration["Database:Provider"] ?? "SqlServer";
+    if (string.Equals(databaseProvider, "Sqlite", StringComparison.OrdinalIgnoreCase))
+    {
+        db.Database.EnsureCreated();
+    }
+    else
+    {
+        db.Database.Migrate();
+    }
+
     CloudService.WebApi.DataSeeder.SeedData(db);
 }
 
 app.UseMiddleware<CloudService.WebApi.Middlewares.ExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsEnvironment("Local"))
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseStaticFiles();
 
