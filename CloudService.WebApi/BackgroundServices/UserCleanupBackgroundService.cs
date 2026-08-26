@@ -28,20 +28,34 @@ namespace CloudService.WebApi.BackgroundServices
                     var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                     var userRepo = unitOfWork.Repository<AppUser>();
                     
-                    var allUsers = await userRepo.GetAllAsync();
                     var thresholdDate = DateTime.UtcNow.AddDays(-3);
+                    const int batchSize = 500;
+                    var totalDeleted = 0;
 
-                    var usersToDelete = allUsers.Where(u => u.PendingDeletionAt.HasValue && u.PendingDeletionAt.Value <= thresholdDate).ToList();
-
-                    if (usersToDelete.Any())
+                    while (!stoppingToken.IsCancellationRequested)
                     {
+                        var usersToDelete = await userRepo.ToListAsync(query => query
+                            .Where(u => u.PendingDeletionAt.HasValue && u.PendingDeletionAt.Value <= thresholdDate)
+                            .OrderBy(u => u.PendingDeletionAt)
+                            .Take(batchSize));
+
+                        if (usersToDelete.Count == 0)
+                            break;
+
                         foreach (var user in usersToDelete)
                         {
                             userRepo.Delete(user);
-                            _logger.LogInformation($"Deleted user {user.Id} due to pending deletion expiration.");
                         }
-                        
+
                         await unitOfWork.SaveChangesAsync();
+                        totalDeleted += usersToDelete.Count;
+                    }
+
+                    if (totalDeleted > 0)
+                    {
+                        _logger.LogInformation(
+                            "Deleted {DeletedCount} users due to pending deletion expiration.",
+                            totalDeleted);
                     }
                 }
                 catch (Exception ex)

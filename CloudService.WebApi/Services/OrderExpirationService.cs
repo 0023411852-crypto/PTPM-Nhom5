@@ -45,14 +45,18 @@ namespace CloudService.WebApi.Services
 
             var expirationTime = DateTime.UtcNow.AddHours(-24);
 
-            var allOrders = await orderRepo.GetAllAsync();
-            var expiredOrders = allOrders
-                .Where(o => o.Status == OrderStatus.Pending && o.OrderDate < expirationTime)
-                .ToList();
+            const int batchSize = 500;
+            var totalCancelled = 0;
 
-            if (expiredOrders.Any())
+            while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation($"Found {expiredOrders.Count} expired orders to cancel.");
+                var expiredOrders = await orderRepo.ToListAsync(query => query
+                    .Where(o => o.Status == OrderStatus.Pending && o.OrderDate < expirationTime)
+                    .OrderBy(o => o.OrderDate)
+                    .Take(batchSize));
+
+                if (expiredOrders.Count == 0)
+                    break;
 
                 foreach (var order in expiredOrders)
                 {
@@ -62,7 +66,12 @@ namespace CloudService.WebApi.Services
                 }
 
                 await unitOfWork.SaveChangesAsync();
-                _logger.LogInformation($"Successfully cancelled {expiredOrders.Count} expired orders.");
+                totalCancelled += expiredOrders.Count;
+
+                _logger.LogInformation(
+                    "Cancelled batch of {BatchCount} expired orders; total cancelled this run: {TotalCancelled}.",
+                    expiredOrders.Count,
+                    totalCancelled);
             }
         }
     }
