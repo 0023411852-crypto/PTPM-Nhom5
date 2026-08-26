@@ -4,5 +4,6 @@ namespace CloudService.Domain.Interfaces
     {
         IGenericRepository<T> Repository<T>() where T : class;
         Task<int> SaveChangesAsync();
+        Task<IUnitOfWorkTransaction> BeginTransactionAsync();
     }
 }

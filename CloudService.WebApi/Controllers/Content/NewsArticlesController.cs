@@ -21,6 +21,12 @@ namespace CloudService.WebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter, [FromQuery] bool onlyPublished = true, [FromQuery] string search = "")
         {
+            // Anonymous/public requests must never be able to list unpublished articles.
+            if (!User.Identity?.IsAuthenticated ?? true)
+            {
+                onlyPublished = true;
+            }
+
             var result = await _service.GetAllAsync(filter, onlyPublished, search);
             return Ok(result);
         }

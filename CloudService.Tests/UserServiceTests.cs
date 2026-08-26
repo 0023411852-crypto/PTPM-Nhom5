@@ -151,7 +151,7 @@ namespace CloudService.Tests
             
             var otherUserId = Guid.NewGuid();
             var otherUser = new AppUser { Id = otherUserId, Email = "used@example.com" };
-            _userRepoMock.Setup(r => r.GetAllAsync("")).ReturnsAsync(new List<AppUser> { user, otherUser }.AsQueryable());
+            _userRepoMock.Setup(r => r.GetQueryable("")).Returns(new List<AppUser> { user, otherUser }.AsQueryable());
 
             var dto = new UpdateProfileDto { FullName = "New Name", Email = "used@example.com" };
             Func<Task> act = async () => await _userService.UpdateProfileAsync(userId, dto);

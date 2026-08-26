@@ -22,30 +22,31 @@ namespace CloudService.Application.Services
         public async Task<PagedResponse<NewsArticleDto>> GetAllAsync(PaginationFilter filter, bool onlyPublished = false, string search = "")
         {
             var repo = _unitOfWork.Repository<NewsArticle>();
-            var query = repo.GetQueryable("Author");
-            
-            if (onlyPublished)
+            var normalizedSearch = search?.Trim().ToLower();
+            Func<IQueryable<NewsArticle>, IQueryable<NewsArticle>> filterQuery = query =>
             {
-                query = query.Where(x => x.IsPublished);
-            }
+                if (onlyPublished)
+                {
+                    query = query.Where(x => x.IsPublished);
+                }
 
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var normalizedSearch = search.Trim().ToLower();
-                query = query.Where(x =>
-                    x.Title.ToLower().Contains(normalizedSearch) ||
-                    x.Content.ToLower().Contains(normalizedSearch) ||
-                    x.Slug.ToLower().Contains(normalizedSearch) ||
-                    x.Category.ToLower().Contains(normalizedSearch));
-            }
+                if (!string.IsNullOrWhiteSpace(normalizedSearch))
+                {
+                    query = query.Where(x =>
+                        x.Title.ToLower().Contains(normalizedSearch) ||
+                        x.Content.ToLower().Contains(normalizedSearch) ||
+                        x.Slug.ToLower().Contains(normalizedSearch) ||
+                        x.Category.ToLower().Contains(normalizedSearch));
+                }
 
-            var totalRecords = query.Count();
+                return query;
+            };
 
-            var pagedData = query
+            var totalRecords = await repo.CountAsync(filterQuery, "Author");
+            var pagedData = await repo.ToListAsync(query => filterQuery(query)
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
+                .Take(filter.PageSize), "Author");
 
             var dtos = _mapper.Map<List<NewsArticleDto>>(pagedData);
             return new PagedResponse<NewsArticleDto>(dtos, totalRecords, filter.PageNumber, filter.PageSize);
@@ -54,15 +55,12 @@ namespace CloudService.Application.Services
         public async Task<NewsArticleDto?> GetByIdAsync(Guid id, bool onlyPublished = false)
         {
             var repo = _unitOfWork.Repository<NewsArticle>();
-            var query = repo.GetQueryable();
-            var entity = query.FirstOrDefault(x => x.Id == id);
-            
-            if (entity == null) return null;
-            
-            // For public access, only return published articles
-            if (onlyPublished && !entity.IsPublished)
+            var entity = await repo.GetByIdAsync(id);
+            if (entity == null || (onlyPublished && !entity.IsPublished))
+            {
                 return null;
-                
+            }
+
             return _mapper.Map<NewsArticleDto>(entity);
         }
 

@@ -45,7 +45,7 @@ namespace CloudService.Tests
         public async Task CreateAsync_ShouldThrowNotFoundException_WhenCategoryDoesNotExist()
         {
             var dto = new CreateServicePlanDto { CategoryId = Guid.NewGuid(), Name = "Test Plan" };
-            _categoryRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((ServiceCategory?)null);
+            _categoryRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), "")).ReturnsAsync((ServiceCategory?)null);
 
             Func<Task> act = async () => await _servicePlanService.CreateAsync(dto);
 
@@ -73,7 +73,7 @@ namespace CloudService.Tests
             var dto = new UpdateServicePlanDto { CategoryId = Guid.NewGuid(), Name = "Updated Plan" };
             
             _planRepoMock.Setup(r => r.GetAllAsync(It.IsAny<string>())).ReturnsAsync(new List<ServicePlan> { plan }.AsQueryable());
-            _categoryRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((ServiceCategory?)null);
+            _categoryRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), "")).ReturnsAsync((ServiceCategory?)null);
 
             Func<Task> act = async () => await _servicePlanService.UpdateAsync(planId, dto);
 

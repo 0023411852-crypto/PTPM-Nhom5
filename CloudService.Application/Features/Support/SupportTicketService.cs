@@ -35,14 +35,11 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<SupportTicketDto>> GetAllTicketsAsync(PaginationFilter filter)
         {
-            var query = _ticketRepository.GetQueryable();
-            var totalCount = query.Count();
-
-            var paginatedItems = query
+            var totalCount = await _ticketRepository.CountAsync(query => query);
+            var paginatedItems = await _ticketRepository.ToListAsync(query => query
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
+                .Take(filter.PageSize));
 
             var dtos = _mapper.Map<List<SupportTicketDto>>(paginatedItems);
             return new PagedResponse<SupportTicketDto>(dtos, totalCount, filter.PageNumber, filter.PageSize);
@@ -50,29 +47,24 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<SupportTicketDto>> GetMyTicketsAsync(Guid customerId, PaginationFilter filter)
         {
-            var query = _ticketRepository.GetQueryable().Where(x => x.CustomerId == customerId);
-            var totalCount = query.Count();
-
-            var paginatedItems = query
+            var totalCount = await _ticketRepository.CountAsync(query => query.Where(x => x.CustomerId == customerId));
+            var paginatedItems = await _ticketRepository.ToListAsync(query => query
+                .Where(x => x.CustomerId == customerId)
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
+                .Take(filter.PageSize));
 
             var dtos = _mapper.Map<List<SupportTicketDto>>(paginatedItems);
-
             return new PagedResponse<SupportTicketDto>(dtos, totalCount, filter.PageNumber, filter.PageSize);
         }
 
         public async Task<SupportTicketDto?> GetTicketByIdAsync(Guid id, Guid? customerId = null)
         {
-            var query = _ticketRepository.GetQueryable();
-            var entity = customerId.HasValue 
-                ? query.FirstOrDefault(x => x.Id == id && x.CustomerId == customerId.Value)
-                : query.FirstOrDefault(x => x.Id == id);
-                
-            if (entity == null) return null;
-            return _mapper.Map<SupportTicketDto>(entity);
+            var entities = await _ticketRepository.ToListAsync(query => customerId.HasValue
+                ? query.Where(x => x.Id == id && x.CustomerId == customerId.Value)
+                : query.Where(x => x.Id == id));
+            var entity = entities.FirstOrDefault();
+            return entity == null ? null : _mapper.Map<SupportTicketDto>(entity);
         }
 
         public async Task<SupportTicketDto> CreateTicketAsync(Guid customerId, CreateSupportTicketDto dto)

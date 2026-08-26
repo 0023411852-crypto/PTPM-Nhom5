@@ -47,7 +47,7 @@ namespace CloudService.Tests
             var userId = Guid.NewGuid();
             var ticketId = Guid.NewGuid();
             var dto = new CreateTicketReplyDto { Message = "Test reply" };
-            _ticketRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((SupportTicket?)null);
+            _ticketRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), "")).ReturnsAsync((SupportTicket?)null);
 
             Func<Task> act = async () => await _ticketService.ReplyToTicketAsync(userId, ticketId, dto, false);
 
@@ -58,7 +58,7 @@ namespace CloudService.Tests
         public async Task CloseTicketAsync_ShouldReturnFalse_WhenTicketDoesNotExist()
         {
             var ticketId = Guid.NewGuid();
-            _ticketRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((SupportTicket?)null);
+            _ticketRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), "")).ReturnsAsync((SupportTicket?)null);
 
             var result = await _ticketService.CloseTicketAsync(ticketId);
 
@@ -84,7 +84,7 @@ namespace CloudService.Tests
             var ticketId = Guid.NewGuid();
             var ticket = new SupportTicket { Id = ticketId, Status = "Closed", CustomerId = userId };
             var dto = new CreateTicketReplyDto { Message = "Test reply" };
-            _ticketRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync(ticket);
+            _ticketRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), "")).ReturnsAsync(ticket);
 
             Func<Task> act = async () => await _ticketService.ReplyToTicketAsync(userId, ticketId, dto, false);
 

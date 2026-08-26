@@ -24,6 +24,8 @@ namespace CloudService.Application.Services
 
         public async Task<object> GetDashboardStatsAsync()
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var usersQuery = _userRepo.GetQueryable();
             var ordersQuery = _orderRepo.GetQueryable();
             var ticketsQuery = _ticketRepo.GetQueryable();
@@ -46,6 +48,8 @@ namespace CloudService.Application.Services
 
         public async Task<CloudService.Application.DTOs.Admin.RevenueReportDto> GetRevenueReportAsync(string period)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var usersQuery = _userRepo.GetQueryable();
             var ordersQuery = _orderRepo.GetQueryable("ServicePlan,ServicePlan.Category");
 

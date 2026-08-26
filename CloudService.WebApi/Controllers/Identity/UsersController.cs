@@ -201,6 +201,8 @@ namespace CloudService.WebApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetTopVipCustomers([FromQuery] int limit = 3)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var usersWithSpending = _context.AppUsers
                 .Where(u => u.IsActive && u.Company != null)
                 .Select(u => new
@@ -292,6 +294,9 @@ namespace CloudService.WebApi.Controllers
 
             // Seed Orders (idempotent - check if orders already exist for these users)
             var plans = _context.ServicePlans.ToList();
+            if (plans.Count == 0)
+                return BadRequest("Không thể seed VIP data khi chưa có service plan.");
+
             var planMax = plans.FirstOrDefault(p => p.Name.Contains("Enterprise")) ?? plans.First();
             var planGPU = plans.FirstOrDefault(p => p.Name.Contains("Business")) ?? plans.First();
             var planPro = plans.FirstOrDefault(p => p.Name.Contains("Pro")) ?? plans.First();
@@ -370,68 +375,5 @@ namespace CloudService.WebApi.Controllers
             return Ok("Seeded successfully");
         }
 
-        [HttpGet("reviews")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetReviews([FromQuery] int page = 1, [FromQuery] int pageSize = 3)
-        {
-            var query = _context.CustomerReviews.Where(r => r.IsVisible).OrderBy(r => r.SortOrder);
-            var totalCount = query.Count();
-            var items = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-            
-            return Ok(new
-            {
-                TotalCount = totalCount,
-                Page = page,
-                PageSize = pageSize,
-                HasNextPage = (page * pageSize) < totalCount,
-                Items = items
-            });
-        }
-
-        [HttpPost("reviews")]
-        [Authorize]
-        public async Task<IActionResult> CreateReview([FromBody] CloudService.Application.DTOs.Users.CreateReviewDto dto)
-        {
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!Guid.TryParse(userIdStr, out var userId)) return Unauthorized();
-
-            var user = await _context.AppUsers.FindAsync(userId);
-            if (user == null) return NotFound("User not found");
-
-            // Option: Verify if OrderId belongs to user and is Completed
-            if (dto.OrderId.HasValue)
-            {
-                var order = await _context.OrderRequests.FindAsync(dto.OrderId.Value);
-                if (order == null || order.UserId != userId || order.Status != CloudService.Domain.Enums.OrderStatus.Completed)
-                {
-                    return BadRequest("Bạn chỉ có thể đánh giá những đơn hàng đã hoàn thành của mình.");
-                }
-
-                // Check if already reviewed
-                var existingReview = _context.CustomerReviews.FirstOrDefault(r => r.OrderId == dto.OrderId.Value);
-                if (existingReview != null)
-                {
-                    return BadRequest("Bạn đã đánh giá đơn hàng này rồi.");
-                }
-            }
-
-            var review = new CloudService.Domain.Entities.CustomerReview
-            {
-                UserId = userId,
-                OrderId = dto.OrderId,
-                Rating = dto.Rating,
-                Content = dto.Content,
-                ReviewerName = user.FullName,
-                ReviewerTitle = user.Company ?? "Khách hàng",
-                ReviewerAvatar = user.AvatarUrl ?? "https://ui-avatars.com/api/?name=" + Uri.EscapeDataString(user.FullName),
-                IsVisible = true, // Auto visible for simplicity, could be false to require admin approval
-                SortOrder = 0
-            };
-
-            _context.CustomerReviews.Add(review);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Cảm ơn bạn đã gửi đánh giá!" });
-        }
     }
 }

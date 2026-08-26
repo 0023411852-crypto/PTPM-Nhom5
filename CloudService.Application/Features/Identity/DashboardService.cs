@@ -24,6 +24,8 @@ namespace CloudService.Application.Services
 
         public async Task<EditorDashboardStatsDto> GetEditorStatsAsync()
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var stats = new EditorDashboardStatsDto();
 
             var articleRepo = _unitOfWork.Repository<NewsArticle>();

@@ -60,7 +60,7 @@ namespace CloudService.Tests
         public async Task DeleteAsync_ShouldReturnFalse_WhenPromotionDoesNotExist()
         {
             var promotionId = Guid.NewGuid();
-            _promotionRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Promotion?)null);
+            _promotionRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), "")).ReturnsAsync((Promotion?)null);
 
             var result = await _promotionService.DeleteAsync(promotionId);
 

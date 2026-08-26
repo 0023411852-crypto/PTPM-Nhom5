@@ -30,6 +30,8 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<OrderDto>> GetUserOrdersAsync(Guid userId, PaginationFilter filter)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<OrderRequest>();
             var query = repo.GetQueryable().Where(x => x.UserId == userId);
 
@@ -49,7 +51,7 @@ namespace CloudService.Application.Services
                 var reviewRepo = _unitOfWork.Repository<CustomerReview>();
                 var reviewedOrderIds = reviewRepo.GetQueryable()
                     .Where(r => r.OrderId.HasValue && orderIds.Contains(r.OrderId.Value))
-                    .Select(r => r.OrderId.Value)
+                    .Select(r => r.OrderId!.Value)
                     .ToList();
 
                 foreach (var dto in dtos)
@@ -91,6 +93,8 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<OrderDto>> GetAllOrdersAsync(PaginationFilter filter)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<OrderRequest>();
             var query = repo.GetQueryable();
             
@@ -108,6 +112,8 @@ namespace CloudService.Application.Services
 
         public async Task<byte[]> ExportAllOrdersCsvAsync()
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<OrderRequest>();
             var orders = repo.GetQueryable()
                 .OrderByDescending(x => x.OrderDate)
@@ -268,10 +274,13 @@ namespace CloudService.Application.Services
                 }
             }
 
-            order.Status = OrderStatus.Completed;
-            orderRepo.Update(order);
+            await using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                order.Status = OrderStatus.Completed;
+                orderRepo.Update(order);
 
-            var serviceRepo = _unitOfWork.Repository<CustomerService>();
+                var serviceRepo = _unitOfWork.Repository<CustomerService>();
 
             // Generate demo credentials (randomized for demo environment)
             var random = new Random();
@@ -291,10 +300,11 @@ namespace CloudService.Application.Services
                 Status = "Active"
             };
 
-            await serviceRepo.AddAsync(newService);
-            await _unitOfWork.SaveChangesAsync();
+                await serviceRepo.AddAsync(newService);
+                await _unitOfWork.SaveChangesAsync();
+                await transaction.CommitAsync();
 
-            return new DemoPaymentResultDto
+                return new DemoPaymentResultDto
             {
                 OrderId = order.Id,
                 Status = order.Status.ToString(),
@@ -303,8 +313,14 @@ namespace CloudService.Application.Services
                 VpsIP = newService.VpsIP,
                 VpsUser = newService.VpsUser,
                 VpsPassword = "********", // Masked for security
-                ExpiryDate = newService.ExpiryDate
-            };
+                    ExpiryDate = newService.ExpiryDate
+                };
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         private static string GenerateRandomPassword(int length = 16)

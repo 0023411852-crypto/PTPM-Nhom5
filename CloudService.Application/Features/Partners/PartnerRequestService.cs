@@ -48,6 +48,8 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<PartnerRequestDto>> GetAllAsync(PaginationFilter filter, string search = "", string status = "")
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<PartnerRequest>();
             var query = repo.GetQueryable();
 
@@ -113,6 +115,8 @@ namespace CloudService.Application.Services
 
         public async Task<byte[]> ExportToExcelAsync(string search = "", string status = "")
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<PartnerRequest>();
             var query = repo.GetQueryable();
 

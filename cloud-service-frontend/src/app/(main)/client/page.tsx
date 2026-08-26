@@ -307,7 +307,7 @@ export default function ClientPortalPage() {
         
         setSubmittingReview(true);
         try {
-            const res = await fetch('/api/Users/reviews', {
+            const res = await fetch('/api/Reviews', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',

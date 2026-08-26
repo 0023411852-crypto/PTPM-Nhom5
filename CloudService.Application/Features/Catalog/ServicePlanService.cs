@@ -24,6 +24,8 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<ServicePlanDto>> GetAllAsync(PaginationFilter filter)
         {
+            // This method currently uses synchronous IQueryable operations.
+            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<ServicePlan>();
             var query = repo.GetQueryable("Prices,Category,PackageSpecifications");
             

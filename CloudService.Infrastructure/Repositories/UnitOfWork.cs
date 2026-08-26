@@ -31,6 +31,12 @@ namespace CloudService.Infrastructure.Repositories
             return await _context.SaveChangesAsync();
         }
 
+        public async Task<IUnitOfWorkTransaction> BeginTransactionAsync()
+        {
+            var transaction = await _context.Database.BeginTransactionAsync();
+            return new EfUnitOfWorkTransaction(transaction);
+        }
+
         public void Dispose()
         {
             _context.Dispose();
