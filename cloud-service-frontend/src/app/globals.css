@@ -348,44 +348,6 @@ body {
 .nova-home [class*="borderRadius_xl"] { border-color: var(--nova-line) !important; }
 
 @media (max-width: 767px) {
-  .nova-nav > div {
-    height: 4.25rem !important;
-    padding-inline: 1rem !important;
-  }
-
-  .nova-home > section:first-of-type {
-    min-height: auto !important;
-    align-items: flex-start !important;
-    padding-top: 2.5rem !important;
-    padding-bottom: 3.5rem !important;
-  }
-
-  .nova-home > section:first-of-type > div:nth-child(2) {
-    grid-template-columns: minmax(0, 1fr) !important;
-    gap: 2rem !important;
-  }
-
-  .nova-home > section:first-of-type h1 {
-    max-width: 100% !important;
-    font-size: clamp(2.35rem, 11vw, 3rem) !important;
-    line-height: 1.08 !important;
-    letter-spacing: -.055em !important;
-  }
-
-  .nova-home > section:first-of-type p {
-    max-width: 100% !important;
-    font-size: 1rem !important;
-    line-height: 1.6 !important;
-  }
-
-  .nova-home > section:first-of-type a {
-    min-height: 2.75rem;
-  }
-}
-
-/* Mobile viewport safety — presentation only. */
-html, body { max-width: 100%; overflow-x: hidden; }
-img, svg, video { max-width: 100%; }
-@media (max-width: 767px) {
-  .nova-nav a[href="/register"] { max-width: 7.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-inline: .65rem !important; font-size: .68rem !important; }
+  .nova-nav > div { height: 4.25rem !important; }
+  .nova-home h1 { letter-spacing: -.055em !important; }
 }
