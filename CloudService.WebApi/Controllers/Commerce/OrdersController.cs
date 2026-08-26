@@ -161,7 +161,11 @@ namespace CloudService.WebApi.Controllers
         {
             try
             {
-                var result = await _orderService.DeleteOrderAsync(id);
+                var requesterIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!Guid.TryParse(requesterIdValue, out var requesterId))
+                    return Unauthorized();
+
+                var result = await _orderService.DeleteOrderAsync(id, requesterId, User.IsInRole("Admin"));
                 if (!result) return NotFound(new { message = "Order not found" });
                 return Ok(new { message = "Order deleted successfully" });
             }

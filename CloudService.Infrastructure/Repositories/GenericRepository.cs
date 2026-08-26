@@ -32,6 +32,11 @@ namespace CloudService.Infrastructure.Repositories
             return await query.FirstOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id);
         }
 
+        public async Task<T?> FirstOrDefaultAsync(System.Linq.Expressions.Expression<Func<T, bool>> predicate, string includeProperties = "")
+        {
+            return await GetQueryable(includeProperties).AsNoTracking().FirstOrDefaultAsync(predicate);
+        }
+
         public async Task<IEnumerable<T>> GetAllAsync(string includeProperties = "")
         {
             IQueryable<T> query = _dbSet;

@@ -246,8 +246,9 @@ namespace CloudService.Application.Services
                 throw new UnauthorizedException("Demo Payment đang bị tắt trên hệ thống.");
 
             var orderRepo = _unitOfWork.Repository<OrderRequest>();
-            var orders = await orderRepo.GetAllAsync(includeProperties: "ServicePlan");
-            var order = orders.FirstOrDefault(x => x.Id == orderId && x.UserId == requesterId);
+            var order = await orderRepo.FirstOrDefaultAsync(
+                x => x.Id == orderId && x.UserId == requesterId,
+                includeProperties: "ServicePlan");
             if (order == null || order.Status == OrderStatus.Cancelled)
                 return null;
 
@@ -255,8 +256,8 @@ namespace CloudService.Application.Services
             if (order.Status == OrderStatus.Completed)
             {
                 var existingServiceRepo = _unitOfWork.Repository<CustomerService>();
-                var existingService = (await existingServiceRepo.GetAllAsync())
-                    .FirstOrDefault(x => x.OrderId == order.Id);
+                var existingService = await existingServiceRepo.FirstOrDefaultAsync(
+                    x => x.OrderId == order.Id);
 
                 if (existingService != null)
                 {
@@ -335,10 +336,11 @@ namespace CloudService.Application.Services
             return new string(result);
         }
 
-        public async Task<bool> DeleteOrderAsync(Guid orderId)
+        public async Task<bool> DeleteOrderAsync(Guid orderId, Guid requesterId, bool isAdmin)
         {
             var repo = _unitOfWork.Repository<OrderRequest>();
-            var order = await repo.GetByIdAsync(orderId);
+            var order = await repo.FirstOrDefaultAsync(
+                x => x.Id == orderId && (isAdmin || x.UserId == requesterId));
             if (order == null) return false;
 
             repo.Delete(order);
