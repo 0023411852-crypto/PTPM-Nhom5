@@ -42,12 +42,13 @@ namespace CloudService.Application.Services
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize));
-            var allUsers = await userRepo.GetAllAsync();
+            var userIds = pagedData.Select(application => application.UserId).Distinct().ToList();
+            var users = await userRepo.ToListAsync(query => query.Where(user => userIds.Contains(user.Id)));
 
             var dtos = _mapper.Map<List<AffiliateApplicationDto>>(pagedData);
             foreach (var dto in dtos)
             {
-                var user = allUsers.FirstOrDefault(u => u.Id == dto.UserId);
+                var user = users.FirstOrDefault(u => u.Id == dto.UserId);
                 if (user != null)
                 {
                     dto.FullName = user.FullName;
@@ -60,10 +61,8 @@ namespace CloudService.Application.Services
 
         public async Task<AffiliateApplicationDto?> GetByUserIdAsync(Guid userId)
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<AffiliateApplication>();
-            var entity = repo.GetQueryable().FirstOrDefault(x => x.UserId == userId);
+            var entity = await repo.FirstOrDefaultAsync(x => x.UserId == userId);
             
             if (entity == null) return null;
             return _mapper.Map<AffiliateApplicationDto>(entity);
@@ -72,8 +71,7 @@ namespace CloudService.Application.Services
         public async Task<AffiliateApplicationDto> CreateAsync(Guid userId, CreateAffiliateApplicationDto dto)
         {
             var repo = _unitOfWork.Repository<AffiliateApplication>();
-            var query = repo.GetQueryable();
-            if (query.Any(x => x.UserId == userId))
+            if (await repo.FirstOrDefaultAsync(x => x.UserId == userId) != null)
             {
                 throw new ConflictException("You have already applied for the affiliate program.");
             }
@@ -104,8 +102,7 @@ namespace CloudService.Application.Services
         public async Task<AdminCreatePartnerResultDto> AdminCreatePartnerAsync(AdminCreatePartnerDto dto)
         {
             var userRepo = _unitOfWork.Repository<AppUser>();
-            var allUsers = await userRepo.GetAllAsync();
-            var existingUser = allUsers.FirstOrDefault(u => u.Email == dto.Email);
+            var existingUser = await userRepo.FirstOrDefaultAsync(u => u.Email == dto.Email);
 
             AppUser userToUse;
             string? temporaryPassword = null;
@@ -116,8 +113,7 @@ namespace CloudService.Application.Services
             else
             {
                 var roleRepo = _unitOfWork.Repository<Role>();
-                var roles = await roleRepo.GetAllAsync();
-                var customerRole = roles.FirstOrDefault(r => r.Name == "Customer");
+                var customerRole = await roleRepo.FirstOrDefaultAsync(r => r.Name == "Customer");
 
                 temporaryPassword = GenerateRandomPassword();
                 userToUse = new AppUser
@@ -133,9 +129,7 @@ namespace CloudService.Application.Services
             }
 
             var appRepo = _unitOfWork.Repository<AffiliateApplication>();
-            var existingApps = await appRepo.GetAllAsync();
-            
-            if (existingApps.Any(a => a.UserId == userToUse.Id))
+            if (await appRepo.FirstOrDefaultAsync(a => a.UserId == userToUse.Id) != null)
             {
                 throw new ConflictException("Người dùng này đã là đối tác.");
             }

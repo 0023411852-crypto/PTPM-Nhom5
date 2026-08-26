@@ -48,31 +48,12 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<PartnerRequestDto>> GetAllAsync(PaginationFilter filter, string search = "", string status = "")
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<PartnerRequest>();
-            var query = repo.GetQueryable();
-
-            if (!string.IsNullOrEmpty(search))
-            {
-                var searchLower = search.ToLower();
-                query = query.Where(x => x.FullName.ToLower().Contains(searchLower) || 
-                                         x.Email.ToLower().Contains(searchLower) || 
-                                         x.WebsiteUrl.ToLower().Contains(searchLower));
-            }
-
-            if (!string.IsNullOrEmpty(status))
-            {
-                query = query.Where(x => x.Status == status);
-            }
-
-            var totalCount = query.Count();
-
-            var pagedData = query
+            var totalCount = await repo.CountAsync(query => ApplyFilters(query, search, status));
+            var pagedData = await repo.ToListAsync(query => ApplyFilters(query, search, status)
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
+                .Take(filter.PageSize));
 
             var dtos = pagedData.Select(MapToDto).ToList();
             return new PagedResponse<PartnerRequestDto>(dtos, totalCount, filter.PageNumber, filter.PageSize);
@@ -96,6 +77,22 @@ namespace CloudService.Application.Services
             return MapToDto(entity);
         }
 
+        private static IQueryable<PartnerRequest> ApplyFilters(IQueryable<PartnerRequest> query, string search, string status)
+        {
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchLower = search.ToLower();
+                query = query.Where(x => x.FullName.ToLower().Contains(searchLower)
+                    || x.Email.ToLower().Contains(searchLower)
+                    || x.WebsiteUrl.ToLower().Contains(searchLower));
+            }
+
+            if (!string.IsNullOrWhiteSpace(status))
+                query = query.Where(x => x.Status == status);
+
+            return query;
+        }
+
         private PartnerRequestDto MapToDto(PartnerRequest entity)
         {
             return new PartnerRequestDto
@@ -115,25 +112,9 @@ namespace CloudService.Application.Services
 
         public async Task<byte[]> ExportToExcelAsync(string search = "", string status = "")
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<PartnerRequest>();
-            var query = repo.GetQueryable();
-
-            if (!string.IsNullOrEmpty(search))
-            {
-                var searchLower = search.ToLower();
-                query = query.Where(x => x.FullName.ToLower().Contains(searchLower) || 
-                                         x.Email.ToLower().Contains(searchLower) || 
-                                         x.WebsiteUrl.ToLower().Contains(searchLower));
-            }
-
-            if (!string.IsNullOrEmpty(status))
-            {
-                query = query.Where(x => x.Status == status);
-            }
-
-            var exportData = query.OrderByDescending(x => x.CreatedAt).ToList();
+            var exportData = await repo.ToListAsync(query => ApplyFilters(query, search, status)
+                .OrderByDescending(x => x.CreatedAt));
 
             using var workbook = new ClosedXML.Excel.XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Partner Requests");

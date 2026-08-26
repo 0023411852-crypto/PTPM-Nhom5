@@ -125,25 +125,30 @@ namespace CloudService.WebApi.Controllers
             var unitOfWork = HttpContext.RequestServices.GetService(typeof(CloudService.Domain.Interfaces.IUnitOfWork)) as CloudService.Domain.Interfaces.IUnitOfWork;
             if (unitOfWork == null) return BadRequest("UnitOfWork not available.");
 
-            var users = await unitOfWork.Repository<CloudService.Domain.Entities.AppUser>().GetAllAsync();
-            var plans = await unitOfWork.Repository<CloudService.Domain.Entities.ServicePlan>().GetAllAsync();
-            var planPrices = await unitOfWork.Repository<CloudService.Domain.Entities.PlanPrice>().GetAllAsync();
+            var userRepo = unitOfWork.Repository<CloudService.Domain.Entities.AppUser>();
+            var planRepo = unitOfWork.Repository<CloudService.Domain.Entities.ServicePlan>();
+            var priceRepo = unitOfWork.Repository<CloudService.Domain.Entities.PlanPrice>();
+            var userIds = await userRepo.SelectToListAsync(query => query.Select(user => user.Id));
+            var planIds = await planRepo.SelectToListAsync(query => query.Select(plan => plan.Id));
+            var priceIds = await priceRepo.SelectToListAsync(query => query.Select(price => price.Id));
 
-            if (!users.Any() || !plans.Any() || !planPrices.Any())
+            if (userIds.Count == 0 || planIds.Count == 0 || priceIds.Count == 0)
                 return BadRequest("Not enough data to seed orders. Ensure users, plans, and prices exist.");
 
             var random = new Random();
             for (int i = 0; i < 15; i++)
             {
-                var user = users.ElementAt(random.Next(users.Count()));
-                var plan = plans.ElementAt(random.Next(plans.Count()));
-                var price = planPrices.Where(p => p.ServicePlanId == plan.Id).FirstOrDefault() 
-                            ?? planPrices.ElementAt(random.Next(planPrices.Count()));
+                var userId = userIds[random.Next(userIds.Count)];
+                var planId = planIds[random.Next(planIds.Count)];
+                var price = await priceRepo.FirstOrDefaultAsync(price => price.ServicePlanId == planId)
+                    ?? await priceRepo.GetByIdAsync(priceIds[random.Next(priceIds.Count)]);
+                if (price == null)
+                    continue;
 
                 var order = new CloudService.Domain.Entities.OrderRequest
                 {
-                    UserId = user.Id,
-                    ServicePlanId = plan.Id,
+                    UserId = userId,
+                    ServicePlanId = planId,
                     PlanPriceId = price.Id,
                     TotalAmount = price.Price + price.SetupFee,
                     Status = random.Next(2) == 0 ? CloudService.Domain.Enums.OrderStatus.Completed : CloudService.Domain.Enums.OrderStatus.Pending,

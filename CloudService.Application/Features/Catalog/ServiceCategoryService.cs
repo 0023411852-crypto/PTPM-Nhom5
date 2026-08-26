@@ -21,18 +21,12 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<ServiceCategoryDto>> GetAllAsync(PaginationFilter filter)
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<ServiceCategory>();
-            var query = repo.GetQueryable("ServiceFeatures");
-            
-            var totalRecords = query.Count();
-
-            var pagedData = query
+            var totalRecords = await repo.CountAsync(query => query, "ServiceFeatures");
+            var pagedData = await repo.ToListAsync(query => query
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
+                .Take(filter.PageSize), "ServiceFeatures");
 
             var dtos = _mapper.Map<List<ServiceCategoryDto>>(pagedData);
             return new PagedResponse<ServiceCategoryDto>(dtos, totalRecords, filter.PageNumber, filter.PageSize);

@@ -21,23 +21,17 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<PromotionDto>> GetAllAsync(PaginationFilter filter, bool onlyActive = false)
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
             var repo = _unitOfWork.Repository<Promotion>();
-            var allData = repo.GetQueryable(includeProperties: "ServicePlans");
-
-            if (onlyActive)
-            {
-                allData = allData.Where(x => x.IsActive && (x.EndDate == null || x.EndDate > DateTime.UtcNow));
-            }
-
-            var totalRecords = allData.Count();
-            var pagedData = allData
+            var totalRecords = await repo.CountAsync(query => onlyActive
+                ? query.Where(x => x.IsActive && (x.EndDate == null || x.EndDate > DateTime.UtcNow))
+                : query, "ServicePlans");
+            var pagedData = await repo.ToListAsync(query => (onlyActive
+                    ? query.Where(x => x.IsActive && (x.EndDate == null || x.EndDate > DateTime.UtcNow))
+                    : query)
                 .OrderByDescending(x => x.IsFeatured)
                 .ThenByDescending(x => x.StartDate)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
+                .Take(filter.PageSize), "ServicePlans");
 
             var dtos = _mapper.Map<List<PromotionDto>>(pagedData);
             return new PagedResponse<PromotionDto>(dtos, totalRecords, filter.PageNumber, filter.PageSize);
@@ -58,8 +52,8 @@ namespace CloudService.Application.Services
             if (dto.ServicePlanIds != null && dto.ServicePlanIds.Any())
             {
                 var planRepo = _unitOfWork.Repository<ServicePlan>();
-                var allPlans = planRepo.GetQueryable();
-                entity.ServicePlans = allPlans.Where(p => dto.ServicePlanIds.Contains(p.Id)).ToList();
+                entity.ServicePlans = await planRepo.ToListAsync(query => query
+                    .Where(p => dto.ServicePlanIds.Contains(p.Id)));
             }
 
             await _unitOfWork.Repository<Promotion>().AddAsync(entity);
@@ -78,8 +72,8 @@ namespace CloudService.Application.Services
             if (dto.ServicePlanIds != null)
             {
                 var planRepo = _unitOfWork.Repository<ServicePlan>();
-                var allPlans = planRepo.GetQueryable();
-                var selectedPlans = allPlans.Where(p => dto.ServicePlanIds.Contains(p.Id)).ToList();
+                var selectedPlans = await planRepo.ToListAsync(query => query
+                    .Where(p => dto.ServicePlanIds.Contains(p.Id)));
                 
                 // Xóa chỉ những plan không còn trong danh sách mới
                 var plansToRemove = entity.ServicePlans
