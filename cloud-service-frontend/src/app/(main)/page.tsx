@@ -3,7 +3,6 @@
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { css } from "styled-system/css";
 
 export default function Home() {
   const shaderCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -335,271 +334,86 @@ void main() {
 
   return (
     <>
-      <main className={css({ paddingTop: "16" })}>
-        <section className={css({
-          position: "relative",
-          minHeight: "90vh",
-          display: "flex",
-          alignItems: "center",
-          overflow: "hidden",
-        })}>
-          <div className={css({
-            position: "absolute",
-            inset: "0",
-            width: "full",
-            height: "full",
-            opacity: "0.2",
-            pointerEvents: "none",
-          })} style={{ display: "block" }}>
+      <main className="pt-16">
+        <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+          <div className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" style={{ display: "block" }}>
             <canvas ref={shaderCanvasRef} style={{ display: "block", width: "100%", height: "100%" }} />
           </div>
 
-          <div className={css({
-            maxWidth: "container-max",
-            marginX: "auto",
-            paddingX: "gutter",
-            width: "full",
-            display: "grid",
-            gridTemplateColumns: { base: "1", lg: "2" },
-            gap: "2xl",
-            position: "relative",
-            zIndex: "10",
-          })}>
-            <div className={css({
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              gap: "lg",
-              paddingY: "2xl",
-            })}>
-              <div className={css({
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "2",
-                paddingX: "3",
-                paddingY: "1",
-                borderRadius: "full",
-                backgroundColor: "surface-container-high",
-                border: "1px solid",
-                borderColor: "outline-variant",
-                width: "fit",
-              })}>
-                <span className="material-symbols-outlined" style={{ fontSize: "16px", color: "primary" }}>rocket_launch</span>
-                <span className={css({
-                  fontSize: "label-caps",
-                  fontWeight: "label-caps",
-                  color: "on-surface",
-                })}>Khuyến mãi lên đến 30%</span>
+          <div className="max-w-[var(--spacing-container-max)] mx-auto px-gutter w-full grid grid-cols-1 lg:grid-cols-2 gap-2xl relative z-10 py-16 mt-16 items-start">
+            <div className="flex flex-col justify-center gap-lg py-12 px-6 md:p-10 bg-white/70 backdrop-blur-xl rounded-3xl border border-white/50 shadow-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-high border border-outline-variant w-fit">
+                <span className="material-symbols-outlined" style={{ fontSize: "16px", color: "var(--color-primary)" }}>rocket_launch</span>
+                <span className="text-[length:var(--text-label-caps)] font-semibold text-on-surface">Khuyến mãi lên đến 30%</span>
               </div>
-              <h1 className={css({
-                fontSize: "display-lg",
-                color: "on-background",
-                whiteSpace: "pre-wrap",
-              })}>
+              <h1 className="text-[length:var(--text-display-lg)] font-bold text-on-background whitespace-pre-wrap">
                 {slogan}
               </h1>
-              <p className={css({
-                fontSize: "body-lg",
-                color: "on-surface-variant",
-                maxWidth: "36rem",
-              })}>
+              <p className="text-[length:var(--text-body-lg)] text-on-surface-variant max-w-[42rem]">
                 Triển khai VPS, Hosting, Domain và các giải pháp Cloud trên nền tảng hạ tầng ổn định, bảo mật và sẵn
                 sàng mở rộng.
               </p>
-              <div className={css({
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "md",
-                marginTop: "sm",
-              })}>
-                <Link href="/pricing" className={css({
-                  backgroundColor: "primary",
-                  color: "white",
-                  fontSize: "label-caps",
-                  fontWeight: "label-caps",
-                  paddingX: "6",
-                  paddingY: "3",
-                  borderRadius: "lg",
-                  _hover: { backgroundColor: "primary-container" },
-                  transition: "colors",
-                  boxShadow: "sm",
-                  _active: { scale: "0.95" },
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "2",
-                })}>
+              <div className="flex flex-col sm:flex-row gap-md mt-sm">
+                <Link href="/pricing" className="bg-primary text-white text-[length:var(--text-label-caps)] font-semibold px-6 py-4 rounded-xl hover:bg-primary-container transition-colors shadow-lg shadow-primary/30 active:scale-95 flex justify-center items-center gap-2 duration-200 w-full sm:w-auto">
                   Bắt đầu ngay
                   <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>arrow_forward</span>
                 </Link>
-                <Link href="/services" className={css({
-                  backgroundColor: "surface-container-lowest",
-                  color: "primary",
-                  border: "1px solid",
-                  borderColor: "outline-variant",
-                  fontSize: "label-caps",
-                  fontWeight: "label-caps",
-                  paddingX: "6",
-                  paddingY: "3",
-                  borderRadius: "lg",
-                  _hover: { borderColor: "primary" },
-                  transition: "colors",
-                  _active: { scale: "0.95" },
-                  display: "inline-flex",
-                  alignItems: "center",
-                })}>
+                <Link href="/services" className="hidden sm:inline-flex justify-center bg-surface-container-lowest text-primary border-2 border-outline-variant text-[length:var(--text-label-caps)] font-semibold px-6 py-4 rounded-xl hover:border-primary transition-colors active:scale-95 items-center duration-200">
                   Khám phá dịch vụ
                 </Link>
               </div>
-              <div className={css({
-                display: "flex",
-                alignItems: "center",
-                gap: "xl",
-                marginTop: "lg",
-                paddingTop: "lg",
-                borderTop: "1px solid",
-                borderColor: "outline-variant",
-              })}>
+              <div className="flex items-center gap-xl mt-lg pt-lg border-t border-outline-variant">
                 <div>
-                  <p className={css({ fontSize: "headline-md", color: "on-background" })}>99.9%</p>
-                  <p className={css({ fontSize: "label-caps", fontWeight: "label-caps", color: "on-surface-variant" })}>Uptime SLA</p>
+                  <p className="text-[length:var(--text-headline-md)] font-semibold text-on-background">99.9%</p>
+                  <p className="text-[length:var(--text-label-caps)] font-semibold text-on-surface-variant">Uptime SLA</p>
                 </div>
                 <div>
-                  <p className={css({ fontSize: "headline-md", color: "on-background" })}>24/7</p>
-                  <p className={css({ fontSize: "label-caps", fontWeight: "label-caps", color: "on-surface-variant" })}>Support</p>
+                  <p className="text-[length:var(--text-headline-md)] font-semibold text-on-background">24/7</p>
+                  <p className="text-[length:var(--text-label-caps)] font-semibold text-on-surface-variant">Support</p>
                 </div>
                 <div>
-                  <p className={css({ fontSize: "headline-md", color: "on-background" })}>10Gbps</p>
-                  <p className={css({ fontSize: "label-caps", fontWeight: "label-caps", color: "on-surface-variant" })}>Network</p>
+                  <p className="text-[length:var(--text-headline-md)] font-semibold text-on-background">10Gbps</p>
+                  <p className="text-[length:var(--text-label-caps)] font-semibold text-on-surface-variant">Network</p>
                 </div>
               </div>
             </div>
 
-            <div className={css({
-              position: "relative",
-              height: { base: "400px", lg: "600px" },
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            })}>
-              <div className={css({
-                position: "absolute",
-                inset: "0",
-                background: "linear-gradient(to top right, surface-tint/10, transparent)",
-                borderRadius: "full",
-                blur: "3xl",
-              })}></div>
-              <div ref={threeContainerRef} className={css({
-                width: "full",
-                height: "full",
-                position: "relative",
-                zIndex: "10",
-              })} style={{ display: "block" }}></div>
+            <div className="relative h-[400px] lg:h-[600px] flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full blur-3xl" style={{ background: "linear-gradient(to top right, var(--color-surface-tint) 10%, transparent)" }}></div>
+              <div ref={threeContainerRef} className="w-full h-full relative z-10" style={{ display: "block" }}></div>
             </div>
           </div>
         </section>
 
-        <section className={css({
-          paddingY: "2xl",
-          paddingX: "gutter",
-          backgroundColor: "background",
-        })}>
-          <div className={css({
-            maxWidth: "container-max",
-            marginX: "auto",
-          })}>
-            <div className={css({
-              display: "flex",
-              alignItems: "flex-end",
-              justifyContent: "space-between",
-              gap: "md",
-              marginBottom: "lg",
-            })}>
+        <section className="py-2xl px-gutter bg-background">
+          <div className="max-w-[var(--spacing-container-max)] mx-auto">
+            <div className="flex items-end justify-between gap-md mb-lg">
               <div>
-                <p className={css({
-                  fontSize: "label-caps",
-                  fontWeight: "label-caps",
-                  color: "primary",
-                })}>Dịch vụ nổi bật</p>
-                <h2 className={css({
-                  fontSize: "headline-lg",
-                  color: "on-background",
-                })}>Gói Cloud được quan tâm</h2>
+                <p className="text-[length:var(--text-label-caps)] font-semibold text-primary">Dịch vụ nổi bật</p>
+                <h2 className="text-[length:var(--text-headline-lg)] font-bold text-on-background">Gói Cloud được quan tâm</h2>
               </div>
-              <Link href="/pricing" className={css({
-                color: "primary",
-                fontSize: "body-sm",
-                fontWeight: "semibold",
-                _hover: { textDecoration: "underline" },
-              })}>Xem bảng giá</Link>
+              <Link href="/pricing" className="text-primary text-[length:var(--text-body-sm)] font-semibold hover:underline">Xem bảng giá</Link>
             </div>
             {featuredPlans.length > 0 ? (
-              <div className={css({
-                display: "grid",
-                gridTemplateColumns: { base: "1", md: "3" },
-                gap: "lg",
-              })}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-lg">
                 {featuredPlans.map((plan) => (
-                  <Link href="/pricing" key={plan.id} className={css({ display: "block", height: "full" })}>
-                    <article className={css({
-                      backgroundColor: "surface",
-                      borderRadius: "xl",
-                      border: "1px solid",
-                      borderColor: "outline-variant",
-                      padding: "lg",
-                      boxShadow: "sm",
-                      _hover: { borderColor: "primary", boxShadow: "md" },
-                      transition: "all",
-                      display: "flex",
-                      flexDirection: "column",
-                      height: "full",
-                    })}>
-                      <p className={css({
-                        fontSize: "label-caps",
-                        fontWeight: "label-caps",
-                        color: "primary",
-                      })}>{plan.category?.name || "Cloud"}</p>
-                      <h3 className={css({
-                        fontSize: "headline-md",
-                        color: "on-surface",
-                        marginTop: "sm",
-                        _groupHover: { color: "primary" },
-                        transition: "colors",
-                      })}>{plan.name}</h3>
+                  <Link href="/pricing" key={plan.id} className="block h-full group">
+                    <article className="bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group-hover:border-primary">
+                      <p className="text-[length:var(--text-label-caps)] font-semibold text-primary">{plan.category?.name || "Cloud"}</p>
+                      <h3 className="text-[length:var(--text-headline-md)] font-semibold text-on-surface mt-sm group-hover:text-primary transition-colors">{plan.name}</h3>
                       <p 
-                        className={css({
-                          fontSize: "body-sm",
-                          color: "on-surface-variant",
-                          marginTop: "sm",
-                          overflow: "hidden",
-                          display: "-webkit-box",
-                          flexGrow: "1",
-                        })}
-                        style={{ WebkitLineClamp: "2", WebkitBoxOrient: "vertical" }}
+                        className="text-[length:var(--text-body-sm)] text-on-surface-variant mt-sm overflow-hidden flex-grow line-clamp-2"
+                        style={{ WebkitBoxOrient: "vertical" }}
                       >{plan.description}</p>
-                      <div className={css({
-                        marginTop: "lg",
-                        display: "flex",
-                        alignItems: "flex-end",
-                        justifyContent: "space-between",
-                        borderTop: "1px solid",
-                        borderColor: "outline-variant/50",
-                        paddingTop: "md",
-                      })}>
+                      <div className="mt-lg flex items-end justify-between border-t border-outline-variant/50 pt-md">
                         <div>
-                            <p className={css({
-                              fontSize: "body-sm",
-                              color: "on-surface-variant",
-                              marginBottom: "1",
-                            })}>Giá từ</p>
-                            <p className={css({
-                              fontSize: "headline-sm",
-                              color: "on-surface",
-                            })}>{plan.prices?.[0]?.price?.toLocaleString("vi-VN") || "Liên hệ"} đ</p>
+                            <p className="text-[length:var(--text-body-sm)] text-on-surface-variant mb-1">Giá từ</p>
+                            <p className="text-[length:var(--text-headline-md)] font-semibold text-on-surface">{plan.prices?.[0]?.price?.toLocaleString("vi-VN") || "Liên hệ"} đ</p>
                         </div>
                         <span className="material-symbols-outlined" style={{
-                          color: "primary",
-                          backgroundColor: "primary-container/50",
-                          borderRadius: "full",
+                          color: "var(--color-primary)",
+                          backgroundColor: "var(--color-primary-container-low)",
+                          borderRadius: "9999px",
                           padding: "8px",
                         }}>arrow_forward</span>
                       </div>
@@ -607,180 +421,60 @@ void main() {
                   </Link>
                 ))}
               </div>
-            ) : <p className={css({ color: "on-surface-variant" })}>Chưa có gói dịch vụ nổi bật.</p>}
+            ) : <p className="text-on-surface-variant">Chưa có gói dịch vụ nổi bật.</p>}
           </div>
         </section>
 
-        <section className={css({
-          paddingY: "2xl",
-          paddingX: "gutter",
-          backgroundColor: "surface-container-lowest",
-        })}>
-          <div className={css({
-            maxWidth: "container-max",
-            marginX: "auto",
-            display: "grid",
-            gridTemplateColumns: { base: "1", lg: "2" },
-            gap: "lg",
-          })}>
-            <div className={css({
-              backgroundColor: "primary-container/30",
-              borderRadius: "xl",
-              padding: "lg",
-              border: "1px solid",
-              borderColor: "primary/20",
-            })}>
-              <p className={css({
-                fontSize: "label-caps",
-                fontWeight: "label-caps",
-                color: "primary",
-              })}>Khuyến mãi đang chạy</p>
-              <div className={css({
-                marginTop: "md",
-                display: "flex",
-                flexDirection: "column",
-                gap: "md",
-              })}>
+        <section className="py-2xl px-gutter bg-surface-container-lowest">
+          <div className="max-w-[var(--spacing-container-max)] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-lg">
+            <div className="bg-primary-container/30 rounded-2xl p-lg border border-primary/20 shadow-inner">
+              <p className="text-[length:var(--text-label-caps)] font-semibold text-primary">Khuyến mãi đang chạy</p>
+              <div className="mt-md flex flex-col gap-md">
                 {activePromotions.length > 0 ? activePromotions.map((promotion) => (
-                  <div key={promotion.id} className={css({
-                    backgroundColor: "surface",
-                    borderRadius: "lg",
-                    padding: "md",
-                    border: "1px solid",
-                    borderColor: "outline-variant",
-                  })}>
-                    <div className={css({
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: "md",
-                    })}>
-                      <h3 className={css({
-                        fontSize: "headline-sm",
-                        color: "on-surface",
-                      })}>{promotion.title}</h3>
-                      <span className={css({
-                        color: "primary",
-                        fontWeight: "semibold",
-                        whiteSpace: "nowrap",
-                      })}>-{promotion.discountPercentage}%</span>
+                  <div key={promotion.id} className="bg-surface rounded-lg p-md border border-outline-variant">
+                    <div className="flex items-center justify-between gap-md">
+                      <h3 className="text-[length:var(--text-headline-md)] font-semibold text-on-surface">{promotion.title}</h3>
+                      <span className="text-primary font-semibold whitespace-nowrap">-{promotion.discountPercentage}%</span>
                     </div>
-                    <p className={css({
-                      fontSize: "body-sm",
-                      color: "on-surface-variant",
-                      marginTop: "xs",
-                    })}>{promotion.description}</p>
+                    <p className="text-[length:var(--text-body-sm)] text-on-surface-variant mt-xs">{promotion.description}</p>
                   </div>
-                )) : <p className={css({ color: "on-surface-variant" })}>Hiện chưa có chương trình khuyến mãi.</p>}
+                )) : <p className="text-on-surface-variant">Hiện chưa có chương trình khuyến mãi.</p>}
               </div>
             </div>
-            <div className={css({
-              backgroundColor: "surface",
-              borderRadius: "xl",
-              padding: "lg",
-              border: "1px solid",
-              borderColor: "outline-variant",
-            })}>
-              <div className={css({
-                display: "flex",
-                alignItems: "flex-end",
-                justifyContent: "space-between",
-                gap: "md",
-              })}>
+            <div className="bg-surface rounded-2xl p-lg border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-end justify-between gap-md">
                 <div>
-                  <p className={css({
-                    fontSize: "label-caps",
-                    fontWeight: "label-caps",
-                    color: "primary",
-                  })}>Tin tức mới nhất</p>
-                  <h2 className={css({
-                    fontSize: "headline-md",
-                    color: "on-surface",
-                  })}>CloudNova Insights</h2>
+                  <p className="text-[length:var(--text-label-caps)] font-semibold text-primary">Tin tức mới nhất</p>
+                  <h2 className="text-[length:var(--text-headline-md)] font-semibold text-on-surface">CloudNova Insights</h2>
                 </div>
-                <Link href="/news" className={css({
-                  color: "primary",
-                  fontSize: "body-sm",
-                  fontWeight: "semibold",
-                  _hover: { textDecoration: "underline" },
-                })}>Xem tất cả</Link>
+                <Link href="/news" className="text-primary text-[length:var(--text-body-sm)] font-semibold hover:underline">Xem tất cả</Link>
               </div>
-              <div className={css({
-                marginTop: "md",
-                display: "flex",
-                flexDirection: "column",
-                gap: "md",
-              })}>
+              <div className="mt-md flex flex-col gap-md">
                 {latestNews.length > 0 ? latestNews.map((article) => (
-                  <Link key={article.id} href={`/news/${article.id}`} className={css({
-                    display: "block",
-                    borderBottom: "1px solid",
-                    borderColor: "outline-variant",
-                    paddingBottom: "md",
-                    _last: { border: "0", paddingBottom: "0" },
-                    _hover: { color: "primary" },
-                  })}>
-                    <p className={css({
-                      fontSize: "label-caps",
-                      fontWeight: "label-caps",
-                      color: "secondary",
-                    })}>{article.category || "Tin tức"}</p>
-                    <h3 className={css({
-                      fontSize: "body-md",
-                      fontWeight: "semibold",
-                      color: "on-surface",
-                      marginTop: "xs",
-                    })}>{article.title}</h3>
-                    <p className={css({
-                      fontSize: "body-sm",
-                      color: "on-surface-variant",
-                      marginTop: "xs",
-                    })}>{new Date(article.createdAt).toLocaleDateString("vi-VN")}</p>
+                  <Link key={article.id} href={`/news/${article.id}`} className="block border-b border-outline-variant pb-md last:border-0 last:pb-0 hover:text-primary transition-colors">
+                    <p className="text-[length:var(--text-label-caps)] font-semibold text-secondary">{article.category || "Tin tức"}</p>
+                    <h3 className="text-[length:var(--text-body-md)] font-semibold text-on-surface mt-xs">{article.title}</h3>
+                    <p className="text-[length:var(--text-body-sm)] text-on-surface-variant mt-xs">{new Date(article.createdAt).toLocaleDateString("vi-VN")}</p>
                   </Link>
-                )) : <p className={css({ color: "on-surface-variant" })}>Chưa có bài viết mới.</p>}
+                )) : <p className="text-on-surface-variant">Chưa có bài viết mới.</p>}
               </div>
             </div>
           </div>
         </section>
 
-        <section className={css({
-          paddingY: "xl",
-          backgroundColor: "surface-container-lowest",
-          borderTop: "1px solid",
-          borderBottom: "1px solid",
-          borderColor: "outline-variant",
-        })}>
-          <div className={css({
-            maxWidth: "container-max",
-            marginX: "auto",
-            paddingX: "gutter",
-            display: "flex",
-            flexDirection: { base: "column", md: "row" },
-            justifyContent: "center",
-            alignItems: "center",
-            gap: { base: "xl", md: "3xl" },
-            opacity: "0.6",
-          })}>
-            <div className={css({ display: "flex", alignItems: "center", gap: "2" })}>
+        <section className="py-xl bg-surface-container-lowest border-t border-b border-outline-variant">
+          <div className="max-w-[var(--spacing-container-max)] mx-auto px-gutter flex flex-col md:flex-row justify-center items-center gap-xl md:gap-3xl opacity-60">
+            <div className="flex items-center gap-2">
               <span className="material-symbols-outlined" style={{ fontSize: "32px" }}>verified</span>
-              <span className={css({
-                fontSize: "label-caps",
-                fontWeight: "label-caps",
-              })}>99.9% SLA</span>
+              <span className="text-[length:var(--text-label-caps)] font-semibold">99.9% SLA</span>
             </div>
-            <div className={css({ display: "flex", alignItems: "center", gap: "2" })}>
+            <div className="flex items-center gap-2">
               <span className="material-symbols-outlined" style={{ fontSize: "32px" }}>monitoring</span>
-              <span className={css({
-                fontSize: "label-caps",
-                fontWeight: "label-caps",
-              })}>24/7 Monitoring</span>
+              <span className="text-[length:var(--text-label-caps)] font-semibold">24/7 Monitoring</span>
             </div>
-            <div className={css({ display: "flex", alignItems: "center", gap: "2" })}>
+            <div className="flex items-center gap-2">
               <span className="material-symbols-outlined" style={{ fontSize: "32px" }}>security</span>
-              <span className={css({
-                fontSize: "label-caps",
-                fontWeight: "label-caps",
-              })}>Secure Infrastructure</span>
+              <span className="text-[length:var(--text-label-caps)] font-semibold">Secure Infrastructure</span>
             </div>
           </div>
         </section>

@@ -760,7 +760,7 @@ export default function ClientPortalPage() {
 
             {selectedOrder && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-md backdrop-blur-sm">
-                    <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-surface shadow-xl">
+                    <div className="flex max-h-[90vh] w-full max-w-[56rem] flex-col overflow-hidden rounded-2xl bg-surface shadow-xl">
                         <div className="flex items-center justify-between border-b border-outline-variant p-xl">
                             <div>
                                 <p className="font-label-caps text-label-caps uppercase tracking-wider text-primary">Chi tiết đơn hàng</p>
@@ -816,7 +816,7 @@ export default function ClientPortalPage() {
             {/* Review Modal */}
             {reviewOrderId && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-md bg-black/50 backdrop-blur-sm">
-                    <div className="bg-surface rounded-2xl w-full max-w-lg shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+                    <div className="bg-surface rounded-2xl w-full max-w-[32rem] shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
                         <div className="p-xl border-b border-outline-variant flex justify-between items-center">
                             <h2 className="font-headline-sm text-headline-sm text-on-surface">Đánh giá đơn hàng #{reviewOrderId.substring(0, 8)}</h2>
                             <button onClick={() => setReviewOrderId(null)} className="text-on-surface-variant hover:text-on-surface transition-colors">

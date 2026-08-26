@@ -59,7 +59,7 @@ export default function AdminSettingsPage() {
     if (loading) return <div>Đang tải...</div>;
 
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-[56rem] mx-auto">
             <div className="flex justify-between items-center mb-xl">
                 <div>
                     <h1 className="font-display-sm text-display-sm text-on-surface mb-xs">Cấu hình Hệ thống</h1>

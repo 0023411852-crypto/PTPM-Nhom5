@@ -3,7 +3,6 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { css } from "styled-system/css";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -14,6 +13,17 @@ export default function Navbar() {
   const [cartCount, setCartCount] = React.useState(0);
   const [showDropdown, setShowDropdown] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isMobileMenuOpen]);
 
   React.useEffect(() => {
     const syncAuthState = () => {
@@ -60,69 +70,28 @@ export default function Navbar() {
 
   const getLinkClass = (path: string) => {
     if (pathname === path) {
-      return css({
-        color: "primary",
-        borderBottom: "2px solid",
-        borderColor: "primary",
-        fontSize: "label-caps",
-        fontWeight: "label-caps",
-        transition: "colors",
-        paddingBottom: "1",
-      });
+      return "text-primary border-b-2 border-primary text-[length:var(--text-label-caps)] font-semibold transition-colors pb-1";
     }
-    return css({
-      color: "on-surface-variant",
-      _hover: { color: "primary" },
-      fontSize: "label-caps",
-      fontWeight: "label-caps",
-      transition: "colors",
-      paddingBottom: "1",
-    });
+    return "text-on-surface-variant hover:text-primary text-[length:var(--text-label-caps)] font-semibold transition-colors pb-1";
   };
 
   return (
-    <nav className={css({
-      position: "fixed",
-      top: "0",
-      width: "full",
-      zIndex: "50",
-      backgroundColor: "surface/80",
-      backdropBlur: "md",
-      boxShadow: "sm",
-      borderBottom: "1px solid",
-      borderColor: "outline-variant",
-      transition: "all 0.3s",
-    })}>
-      <div className={css({
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        height: "16",
-        paddingX: "gutter",
-        maxWidth: "container-max",
-        marginX: "auto",
-      })}>
-        <div className={css({ display: "flex", alignItems: "center", gap: "md" })}>
+    <nav className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-sm border-b border-outline-variant transition-all duration-300">
+      <div className="flex justify-between items-center h-16 px-gutter max-w-[var(--spacing-container-max)] mx-auto">
+        <div className="flex items-center gap-md">
           <img
             alt="CloudNova Logo"
-            className={css({ height: "8", width: "auto", display: "none" })}
+            className="h-8 w-auto hidden"
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKrfk0eJeszZLwtqDno7rdyXBneiyQM6WsPvsv4bHPfxMXlTylmZic2igXetLUOB4oENHvJrWHHYUrSkhf0-O8_3y-XHCCMoeDPODRovjqq-yBniIDRhUm_4gatrTi3QE-MaRV4srUZl0h6XWQ5Xhwq2nTeaRV56LQ57nT8K4y68V9V5xitmKYQY6rCxne-0X7_4UdyBxLKzLZ54TNUBFKeZbioUrRT2epoyIMI3BRNgDoBPL4VQ"
           />
-          <Link href="/" className={css({
-            fontSize: "headline-md",
-            fontWeight: "bold",
-            color: "primary",
-            display: "flex",
-            alignItems: "center",
-            gap: "2",
-          })}>
+          <Link href="/" className="text-[length:var(--text-headline-md)] font-bold text-primary flex items-center gap-2">
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
               cloud
             </span>
             CloudNova
           </Link>
         </div>
-        <div className={css({ display: { base: "none", md: "flex" }, alignItems: "center", gap: "lg" })}>
+        <div className="hidden md:flex items-center gap-lg">
           <Link className={getLinkClass("/")} href="/">
             Trang chủ
           </Link>
@@ -145,65 +114,29 @@ export default function Navbar() {
             Tin tức
           </Link>
         </div>
-        <div className={css({ display: "flex", alignItems: "center", gap: "md", position: "relative" })}>
+        <div className="flex items-center gap-md relative">
           
-          <Link href="/checkout" className={css({
-            position: "relative",
-            padding: "2",
-            color: "on-surface",
-            _hover: { backgroundColor: "surface-container" },
-            borderRadius: "full",
-            transition: "colors",
-          })}>
+          <Link href="/checkout" className="relative p-2 text-on-surface hover:bg-surface-container rounded-full transition-colors">
             <span className="material-symbols-outlined" style={{ fontSize: "24px" }}>shopping_cart</span>
             {cartCount > 0 && (
-              <span className={css({
-                position: "absolute",
-                top: "0",
-                right: "0",
-                backgroundColor: "error",
-                color: "white",
-                fontSize: "10px",
-                fontWeight: "bold",
-                width: "4",
-                height: "4",
-                borderRadius: "full",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              })}>
+              <span className="absolute top-0 right-0 bg-error text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                 {cartCount}
               </span>
             )}
           </Link>
 
           {token ? (
-            <div className={css({ display: "flex", alignItems: "center", gap: "4" })}>
-              <div className={css({ position: "relative" })}>
+            <div className="flex items-center gap-4">
+              <div className="relative">
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className={css({
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "10",
-                    height: "10",
-                    borderRadius: "full",
-                    backgroundColor: "primary",
-                    color: "white",
-                    fontWeight: "bold",
-                    fontSize: "lg",
-                    _hover: { boxShadow: "md" },
-                    transition: "shadow",
-                    outline: "none",
-                    overflow: "hidden",
-                  })}
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white font-bold text-lg hover:shadow-md transition-shadow outline-none overflow-hidden"
                 >
                   {avatarUrl ? (
                       <img 
                           src={avatarUrl} 
                           alt="User avatar" 
-                          className={css({ width: "full", height: "full", objectFit: "cover" })}
+                          className="w-full h-full object-cover"
                           onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.onerror = null;
@@ -216,53 +149,15 @@ export default function Navbar() {
                 </button>
                 
                 {showDropdown && (
-                  <div className={css({
-                    position: "absolute",
-                    right: "0",
-                    marginTop: "2",
-                    width: "48",
-                    backgroundColor: "surface",
-                    border: "1px solid",
-                    borderColor: "outline-variant",
-                    borderRadius: "xl",
-                    boxShadow: "lg",
-                    paddingY: "2",
-                    zIndex: "50",
-                  })}>
-                    <div className={css({
-                      paddingX: "4",
-                      paddingY: "2",
-                      borderBottom: "1px solid",
-                      borderColor: "outline-variant",
-                      marginBottom: "2",
-                    })}>
-                      <p className={css({ fontWeight: "medium", color: "on-surface", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" })}>{fullName}</p>
+                  <div className="absolute right-0 mt-2 w-48 bg-surface border border-outline-variant rounded-xl shadow-lg py-2 z-50">
+                    <div className="px-4 py-2 border-b border-outline-variant mb-2">
+                      <p className="font-medium text-on-surface overflow-hidden text-ellipsis whitespace-nowrap">{fullName}</p>
                     </div>
-                    <Link href="/client" onClick={() => setShowDropdown(false)} className={css({
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "3",
-                      paddingX: "4",
-                      paddingY: "2",
-                      color: "on-surface",
-                      _hover: { backgroundColor: "surface-container" },
-                      transition: "colors",
-                    })}>
+                    <Link href="/client" onClick={() => setShowDropdown(false)} className="flex items-center gap-3 px-4 py-2 text-on-surface hover:bg-surface-container transition-colors">
                       <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>dashboard</span>
                       Quản lý tài khoản
                     </Link>
-                    <button onClick={() => { setShowDropdown(false); handleLogout(); }} className={css({
-                      width: "full",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "3",
-                      paddingX: "4",
-                      paddingY: "2",
-                      color: "error",
-                      _hover: { backgroundColor: "error-container/50" },
-                      transition: "colors",
-                      textAlign: "left",
-                    })}>
+                    <button onClick={() => { setShowDropdown(false); handleLogout(); }} className="w-full flex items-center gap-3 px-4 py-2 text-error hover:bg-error-container/50 transition-colors text-left">
                       <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>logout</span>
                       Đăng xuất
                     </button>
@@ -272,72 +167,38 @@ export default function Navbar() {
             </div>
           ) : (
             <>
-              <Link href="/login" className={css({
-                display: { base: "none", md: "block" },
-                fontSize: "label-caps",
-                fontWeight: "label-caps",
-                color: "primary",
-                border: "1px solid",
-                borderColor: "primary",
-                paddingX: "4",
-                paddingY: "2",
-                borderRadius: "lg",
-                _hover: { backgroundColor: "surface-container-low" },
-                transition: "colors",
-                cursor: "pointer",
-                _active: { scale: "0.95" },
-                transitionDuration: "200ms",
-              })}>
+              <Link href="/login" className="hidden md:block text-[length:var(--text-label-caps)] font-semibold text-primary border border-primary px-4 py-2 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer active:scale-95 duration-200">
                 Đăng nhập
               </Link>
-              <Link href="/register" className={css({
-                fontSize: "label-caps",
-                fontWeight: "label-caps",
-                backgroundColor: "primary",
-                color: "white",
-                paddingX: "4",
-                paddingY: "2",
-                borderRadius: "lg",
-                _hover: { backgroundColor: "primary-container" },
-                transition: "colors",
-                cursor: "pointer",
-                _active: { scale: "0.95" },
-                transitionDuration: "200ms",
-              })}>
+              <Link href="/register" className="text-[length:var(--text-label-caps)] font-semibold bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-container transition-colors cursor-pointer active:scale-95 duration-200">
                 Đăng ký ngay
               </Link>
             </>
           )}
           
-          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className={css({
-            display: { base: "block", md: "none" },
-            color: "on-surface",
-            marginLeft: "2",
-            outline: "none",
-          })}>
-            <span className="material-symbols-outlined">{isMobileMenuOpen ? 'close' : 'menu'}</span>
+          <button onClick={() => setIsMobileMenuOpen(true)} className="block md:hidden text-on-surface ml-2 outline-none">
+            <span className="material-symbols-outlined">menu</span>
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Backdrop */}
       {isMobileMenuOpen && (
-        <div className={css({
-          display: { base: "flex", md: "none" },
-          position: "absolute",
-          top: "full",
-          left: "0",
-          width: "full",
-          backgroundColor: "surface",
-          borderBottom: "1px solid",
-          borderColor: "outline-variant",
-          boxShadow: "lg",
-          paddingY: "4",
-          paddingX: "6",
-          flexDirection: "column",
-          gap: "4",
-          zIndex: "40",
-        })}>
+        <div 
+          className="md:hidden fixed inset-0 bg-black/50 z-40 transition-opacity"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Menu Drawer */}
+      <div className={`flex md:hidden fixed top-0 right-0 h-full w-64 bg-surface shadow-2xl flex-col z-50 transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="flex justify-between items-center p-4 border-b border-outline-variant">
+          <span className="font-bold text-primary">Menu</span>
+          <button onClick={() => setIsMobileMenuOpen(false)} className="text-on-surface outline-none">
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div className="flex flex-col p-6 gap-4 overflow-y-auto">
           <Link onClick={() => setIsMobileMenuOpen(false)} className={getLinkClass("/")} href="/">Trang chủ</Link>
           <Link onClick={() => setIsMobileMenuOpen(false)} className={getLinkClass("/services")} href="/services">Dịch vụ</Link>
           <Link onClick={() => setIsMobileMenuOpen(false)} className={getLinkClass("/partners")} href="/partners">Đối tác</Link>
@@ -347,44 +208,13 @@ export default function Navbar() {
           <Link onClick={() => setIsMobileMenuOpen(false)} className={getLinkClass("/news")} href="/news">Tin tức</Link>
           
           {!token && (
-            <div className={css({
-              display: "flex",
-              flexDirection: "column",
-              gap: "2",
-              marginTop: "4",
-              paddingTop: "4",
-              borderTop: "1px solid",
-              borderColor: "outline-variant",
-            })}>
-              <Link onClick={() => setIsMobileMenuOpen(false)} href="/login" className={css({
-                fontSize: "label-caps",
-                fontWeight: "label-caps",
-                color: "primary",
-                border: "1px solid",
-                borderColor: "primary",
-                paddingX: "4",
-                paddingY: "3",
-                borderRadius: "lg",
-                textAlign: "center",
-                _hover: { backgroundColor: "surface-container-low" },
-                transition: "colors",
-              })}>Đăng nhập</Link>
-              <Link onClick={() => setIsMobileMenuOpen(false)} href="/register" className={css({
-                fontSize: "label-caps",
-                fontWeight: "label-caps",
-                backgroundColor: "primary",
-                color: "white",
-                paddingX: "4",
-                paddingY: "3",
-                borderRadius: "lg",
-                textAlign: "center",
-                _hover: { backgroundColor: "primary-container" },
-                transition: "colors",
-              })}>Đăng ký ngay</Link>
+            <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-outline-variant">
+              <Link onClick={() => setIsMobileMenuOpen(false)} href="/login" className="text-[length:var(--text-label-caps)] font-semibold text-primary border border-primary px-4 py-3 rounded-lg text-center hover:bg-surface-container-low transition-colors">Đăng nhập</Link>
+              <Link onClick={() => setIsMobileMenuOpen(false)} href="/register" className="text-[length:var(--text-label-caps)] font-semibold bg-primary text-white px-4 py-3 rounded-lg text-center hover:bg-primary-container transition-colors">Đăng ký ngay</Link>
             </div>
           )}
         </div>
-      )}
+      </div>
     </nav>
   );
 }

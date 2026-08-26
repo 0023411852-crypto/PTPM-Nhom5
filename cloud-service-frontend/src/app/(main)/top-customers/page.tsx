@@ -63,7 +63,10 @@ export default function TopCustomersPage() {
     useEffect(() => {
         // Fetch VIP Customers
         fetch('/api/Users/vip?limit=3')
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error("HTTP error " + res.status);
+                return res.json();
+            })
             .then(data => {
                 setVipCustomers(data);
                 setLoadingVip(false);

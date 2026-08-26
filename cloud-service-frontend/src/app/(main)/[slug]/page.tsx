@@ -29,7 +29,7 @@ export default async function StaticPageRender({ params }: { params: Promise<{ s
         <main className="min-h-screen bg-slate-50 flex flex-col pb-20">
             {/* Header Section */}
             <div className="bg-white border-b border-slate-200 pt-32 pb-16 shadow-sm">
-                <div className="max-w-4xl mx-auto px-6 text-center">
+                <div className="max-w-[56rem] mx-auto px-6 text-center">
                     <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">
                         {page.title}
                     </h1>
@@ -38,7 +38,7 @@ export default async function StaticPageRender({ params }: { params: Promise<{ s
             </div>
             
             {/* Content Section */}
-            <section className="max-w-4xl mx-auto px-6 w-full -mt-8 relative z-10">
+            <section className="max-w-[56rem] mx-auto px-6 w-full -mt-8 relative z-10">
                 <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-8 md:p-12 min-h-[400px]">
                     {/* Render HTML content safely */}
                     <div 

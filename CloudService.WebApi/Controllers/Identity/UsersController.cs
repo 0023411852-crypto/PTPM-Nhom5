@@ -198,7 +198,7 @@ namespace CloudService.WebApi.Controllers
         }
 
         [HttpGet("vip")]
-        [Authorize(Roles = "Admin")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetTopVipCustomers([FromQuery] int limit = 3)
         {
             // This method currently uses synchronous IQueryable operations.
