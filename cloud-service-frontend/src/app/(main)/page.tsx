@@ -146,7 +146,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const revealItems = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));
+    const revealItems = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal], [data-home-reveal]"));
     if (typeof IntersectionObserver === "undefined") {
       revealItems.forEach((item) => item.classList.add("is-visible"));
       return;
@@ -173,6 +173,7 @@ export default function Home() {
         <div className="hero-orb hero-orb-one" />
         <div className="hero-orb hero-orb-two" />
         <div className="hero-grid absolute inset-0 opacity-60" />
+        <div className="hero-aurora" />
         <div className="hero-scanline" />
         <div className="max-w-[var(--spacing-container-max)] mx-auto px-gutter relative z-10">
           <div className="flex items-center gap-sm pt-8 text-[length:var(--text-label-caps)] text-blue-100/75">
@@ -247,16 +248,17 @@ export default function Home() {
             </div>
           </div>
         </div>
+        <div className="hero-scroll-hint"><span>Cuộn để khám phá</span><Icon name="south" className="text-[16px]" /></div>
         <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#f8faff] to-transparent" />
       </section>
 
-      <section className="trust-strip relative z-10 -mt-1 border-y border-[#dfe8f7] bg-white/90">
+      <section data-home-reveal className="trust-strip home-section-reveal relative z-10 -mt-1 border-y border-[#dfe8f7] bg-white/90">
         <div className="max-w-[var(--spacing-container-max)] mx-auto grid grid-cols-2 md:grid-cols-4 gap-0 px-gutter">
-          {trustStats.map((stat, index) => <div key={stat.label} className={`flex items-center gap-3 py-5 ${index > 1 ? "hidden md:flex" : ""} ${index !== 0 ? "md:border-l md:border-[#e7edf7] md:pl-8" : ""}`}><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eef5ff] text-primary"><Icon name={["verified", "language", "support_agent", "rocket_launch"][index]} className="text-[19px]" /></span><div><p className="text-lg font-bold text-[#0b1c30]">{stat.value}</p><p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#73819a]">{stat.label}</p></div></div>)}
+          {trustStats.map((stat, index) => <div data-reveal key={stat.label} className={`flex items-center gap-3 py-5 ${index > 1 ? "hidden md:flex" : ""} ${index !== 0 ? "md:border-l md:border-[#e7edf7] md:pl-8" : ""}`}><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eef5ff] text-primary"><Icon name={["verified", "language", "support_agent", "rocket_launch"][index]} className="text-[19px]" /></span><div><p className="text-lg font-bold text-[#0b1c30]">{stat.value}</p><p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#73819a]">{stat.label}</p></div></div>)}
         </div>
       </section>
 
-      <section className="bg-[#f8faff] px-gutter py-20 lg:py-28">
+      <section data-home-reveal className="home-section-reveal bg-[#f8faff] px-gutter py-20 lg:py-28">
         <div className="max-w-[var(--spacing-container-max)] mx-auto">
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div className="max-w-[40rem]">
@@ -272,7 +274,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-white px-gutter py-20 lg:py-28">
+      <section data-home-reveal className="home-section-reveal bg-white px-gutter py-20 lg:py-28">
         <div className="max-w-[var(--spacing-container-max)] mx-auto grid lg:grid-cols-[0.86fr_1.14fr] gap-14 lg:gap-24 items-start">
           <div className="lg:sticky lg:top-28">
             <p className="section-eyebrow">Vì sao chọn CloudNova?</p>
@@ -286,7 +288,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-[#f1f5fc] px-gutter py-20 lg:py-28">
+      <section data-home-reveal className="home-section-reveal bg-[#f1f5fc] px-gutter py-20 lg:py-28">
         <div className="max-w-[var(--spacing-container-max)] mx-auto">
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><div><div className="flex flex-wrap items-center gap-3"><p className="section-eyebrow">Bảng giá minh bạch</p><ApiBadge status={apiStatus.plans} /></div><h2 className="section-title mt-3">Bắt đầu nhỏ.<br className="sm:hidden" /> Sẵn sàng lớn.</h2><p className="section-description mt-4">Chọn cấu hình phù hợp hôm nay, nâng cấp bất cứ lúc nào khi doanh nghiệp phát triển.</p></div><Link href="/pricing" className="group inline-flex items-center gap-2 text-sm font-bold text-primary">Xem bảng giá đầy đủ <Icon name="arrow_forward" className="text-[18px] transition-transform group-hover:translate-x-1" /></Link></div>
           <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-3">
@@ -295,18 +297,18 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-white px-gutter py-20 lg:py-28">
+      <section data-home-reveal className="home-section-reveal bg-white px-gutter py-20 lg:py-28">
         <div className="max-w-[var(--spacing-container-max)] mx-auto grid lg:grid-cols-[1.15fr_0.85fr] gap-5">
           <div className="promo-panel relative overflow-hidden rounded-[26px] p-8 sm:p-12"><div className="promo-panel-grid" /><div className="relative z-10 max-w-[36rem]"><div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-[0.15em] text-cyan-200"><span className="flex items-center gap-2"><Icon name="local_fire_department" className="text-[18px]" /> Ưu đãi dành cho bạn</span><ApiBadge status={apiStatus.promotions} /></div><h2 className="mt-5 text-3xl font-bold tracking-[-0.035em] text-white sm:text-4xl">Hạ tầng tốt hơn.<br /><span className="text-cyan-300">Chi phí hợp lý hơn.</span></h2><p className="mt-4 max-w-[30rem] text-sm leading-6 text-blue-100/65">{spotlightPromotion?.description || "Khởi động dự án mới với ưu đãi hấp dẫn cho các gói dịch vụ Cloud đang được quan tâm."}</p><div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"><Link href="/promotions" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#07327d]">Xem ưu đãi <Icon name="arrow_forward" className="text-[17px]" /></Link>{spotlightPromotion?.discountPercentage ? <span className="text-sm font-semibold text-cyan-100">Tiết kiệm đến {spotlightPromotion.discountPercentage}%</span> : <span className="text-sm font-semibold text-cyan-100">Ưu đãi có thời hạn</span>}</div></div><div className="promo-sphere" /></div>
           <div className="rounded-[26px] border border-[#e1e9f5] bg-[#f8faff] p-7 sm:p-9"><div className="flex items-center justify-between"><div><div className="flex flex-wrap items-center gap-3"><p className="section-eyebrow">Góc kiến thức</p><ApiBadge status={apiStatus.news} /></div><h2 className="mt-2 text-2xl font-bold tracking-[-0.03em] text-[#0b1c30]">Tin mới từ CloudNova</h2></div><Link href="/news" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d5e0ef] text-primary transition hover:bg-primary hover:text-white"><Icon name="arrow_outward" className="text-[17px]" /></Link></div><div className="mt-7 divide-y divide-[#e2eaf5]">{newsIsLoading ? <DataSkeleton variant="news" /> : latestNews.length > 0 ? latestNews.map((article) => <Link href={`/news/${article.id}`} key={article.id} data-reveal className="group block py-4 first:pt-0"><div className="flex items-center justify-between gap-3"><span className="text-[10px] font-bold uppercase tracking-[0.12em] text-primary">{article.category || "Tin tức"}</span><Icon name="arrow_forward" className="text-[16px] text-[#aab8ca] transition group-hover:translate-x-1 group-hover:text-primary" /></div><h3 className="mt-2 line-clamp-2 text-sm font-bold leading-5 text-[#203654] transition group-hover:text-primary">{article.title || "Cập nhật mới từ CloudNova"}</h3><p className="mt-2 text-[11px] text-[#8b98aa]">{article.createdAt ? new Date(article.createdAt).toLocaleDateString("vi-VN") : "Mới cập nhật"}</p></Link>) : ["5 điều cần biết trước khi triển khai Cloud VPS", "Tối ưu website để tăng tốc độ và trải nghiệm người dùng", "Bảo mật nhiều lớp cho hạ tầng doanh nghiệp"].map((title, index) => <Link href="/news" key={title} data-reveal className="group block py-4 first:pt-0"><div className="flex items-center justify-between"><span className="text-[10px] font-bold uppercase tracking-[0.12em] text-primary">{index === 0 ? "Hướng dẫn" : "Kiến thức"}</span><Icon name="arrow_forward" className="text-[16px] text-[#aab8ca] transition group-hover:translate-x-1 group-hover:text-primary" /></div><h3 className="mt-2 text-sm font-bold leading-5 text-[#203654] transition group-hover:text-primary">{title}</h3><p className="mt-2 text-[11px] text-[#8b98aa]">Cập nhật gần đây</p></Link>)}</div></div>
         </div>
       </section>
 
-      <section className="bg-[#f8faff] px-gutter py-20 lg:py-28">
+      <section data-home-reveal className="home-section-reveal bg-[#f8faff] px-gutter py-20 lg:py-28">
         <div className="max-w-[var(--spacing-container-max)] mx-auto"><div className="mx-auto max-w-[38rem] text-center"><p className="section-eyebrow">Khách hàng nói gì</p><h2 className="section-title mt-3">Được tin tưởng để<br />vận hành mỗi ngày.</h2></div><div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3"><blockquote data-reveal className="quote-card md:translate-y-5"><div className="flex gap-1 text-amber-400"><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /></div><p className="mt-6 text-base leading-7 text-[#314766]">“Dịch vụ VPS ổn định, hỗ trợ kỹ thuật nhanh chóng. Đội ngũ CloudNova luôn phản hồi rất có trách nhiệm.”</p><footer className="mt-8 flex items-center gap-3"><span className="avatar-circle">NA</span><span><b className="block text-sm text-[#0b1c30]">Nguyễn Anh</b><small className="text-xs text-[#8390a3]">Founder, ABC Tech</small></span></footer></blockquote><blockquote className="quote-card"><div className="flex gap-1 text-amber-400"><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /></div><p className="mt-6 text-base leading-7 text-[#314766]">“Chuyển hệ thống lên Cloud rất nhẹ nhàng. Chi phí rõ ràng và hiệu năng tốt hơn hẳn so với trước đây.”</p><footer className="mt-8 flex items-center gap-3"><span className="avatar-circle avatar-purple">ML</span><span><b className="block text-sm text-[#0b1c30]">Minh Linh</b><small className="text-xs text-[#8390a3]">CTO, Studio 11</small></span></footer></blockquote><blockquote data-reveal className="quote-card md:translate-y-5"><div className="flex gap-1 text-amber-400"><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /></div><p className="mt-6 text-base leading-7 text-[#314766]">“Website luôn nhanh và ổn định dù lượng truy cập tăng. Đây là lựa chọn rất đáng tin cậy cho doanh nghiệp.”</p><footer className="mt-8 flex items-center gap-3"><span className="avatar-circle avatar-cyan">TH</span><span><b className="block text-sm text-[#0b1c30]">Thanh Hà</b><small className="text-xs text-[#8390a3]">CEO, Retail Hub</small></span></footer></blockquote></div></div>
       </section>
 
-      <section className="home-cta relative overflow-hidden px-gutter py-20 lg:py-24"><div className="cta-rings" /><div className="relative z-10 mx-auto max-w-[46rem] text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-200">Sẵn sàng bắt đầu?</p><h2 className="mt-4 text-4xl font-bold tracking-[-0.045em] text-white sm:text-5xl">Đưa ý tưởng của bạn<br /><span className="text-cyan-300">lên một tầm cao mới.</span></h2><p className="mx-auto mt-5 max-w-[34rem] text-base leading-7 text-blue-100/65">Hãy để CloudNova đồng hành cùng bạn xây dựng một nền tảng nhanh, an toàn và sẵn sàng mở rộng.</p><div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row"><Link href="/pricing" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-4 text-sm font-bold text-[#07327d]">Khám phá bảng giá <Icon name="arrow_forward" className="text-[18px]" /></Link><Link href="/contact" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-4 text-sm font-semibold text-white">Liên hệ tư vấn <Icon name="support_agent" className="text-[18px]" /></Link></div></div></section>
+      <section data-home-reveal className="home-section-reveal home-cta relative overflow-hidden px-gutter py-20 lg:py-24"><div className="cta-rings" /><div className="relative z-10 mx-auto max-w-[46rem] text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-200">Sẵn sàng bắt đầu?</p><h2 className="mt-4 text-4xl font-bold tracking-[-0.045em] text-white sm:text-5xl">Đưa ý tưởng của bạn<br /><span className="text-cyan-300">lên một tầm cao mới.</span></h2><p className="mx-auto mt-5 max-w-[34rem] text-base leading-7 text-blue-100/65">Hãy để CloudNova đồng hành cùng bạn xây dựng một nền tảng nhanh, an toàn và sẵn sàng mở rộng.</p><div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row"><Link href="/pricing" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-4 text-sm font-bold text-[#07327d]">Khám phá bảng giá <Icon name="arrow_forward" className="text-[18px]" /></Link><Link href="/contact" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-4 text-sm font-semibold text-white">Liên hệ tư vấn <Icon name="support_agent" className="text-[18px]" /></Link></div></div></section>
     </main>
   );
 }
