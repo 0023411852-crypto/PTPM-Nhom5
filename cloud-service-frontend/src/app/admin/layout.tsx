@@ -84,7 +84,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {/* Sidebar */}
                 <aside className="dashboard-sidebar bg-inverse-surface text-on-secondary fixed left-0 top-0 h-full w-[260px] flex flex-col py-lg z-20">
                     <div className="px-lg mb-lg">
-                        <h1 className="font-headline-md text-headline-md font-bold text-surface">CloudAdmin</h1>
+                        <h1 className="dashboard-brand font-headline-md text-headline-md font-bold text-surface">CloudAdmin</h1>
                         <p className="font-body-sm text-body-sm text-on-secondary/70">Hạ tầng v2.4</p>
                     </div>
                     <nav className="flex-1 flex flex-col gap-unit overflow-y-auto custom-scrollbar">
@@ -102,7 +102,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                             <Link 
                                                 key={link.name}
                                                 href={link.href}
-                                                className={`flex items-center gap-md px-md py-sm mx-sm rounded-lg transition-colors duration-200 ${
+                                                className={`dashboard-nav-link flex items-center gap-md px-md py-sm mx-sm rounded-lg transition-colors duration-200 ${
                                                     isActive 
                                                         ? 'bg-primary-container text-on-primary-container' 
                                                         : 'text-surface-variant hover:text-surface hover:bg-primary-fixed-variant/10'
@@ -118,7 +118,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         ))}
                     </nav>
                     <div className="px-md mt-auto">
-                        <div className="flex items-center justify-between gap-2 p-sm rounded-lg hover:bg-primary-fixed-variant/10 transition-colors group">
+                        <div className="dashboard-profile-card flex items-center justify-between gap-2 p-sm rounded-lg hover:bg-primary-fixed-variant/10 transition-colors group">
                             <Link href="/admin/profile" className="flex items-center gap-sm flex-1 min-w-0 cursor-pointer">
                                 <div className="w-8 h-8 rounded-full bg-surface-container overflow-hidden shrink-0">
                                     <img 
@@ -152,7 +152,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <div className="flex-1 flex flex-col ml-[260px] h-full">
                     
                     {/* Header */}
-                    <header className="dashboard-header bg-surface fixed top-0 right-0 left-[260px] h-16 border-b border-outline-variant shadow-sm z-10 flex justify-between items-center px-lg transition-all duration-150">
+                    <header className="dashboard-header dashboard-topbar bg-surface fixed top-0 right-0 left-[260px] h-16 border-b border-outline-variant shadow-sm z-10 flex justify-between items-center px-lg transition-all duration-150">
                         <div className="flex-1 max-w-[28rem] relative">
                             <span className="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
                             <input className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-sm pl-[36px] pr-sm font-body-sm text-body-sm focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" placeholder="Tìm kiếm tài nguyên, máy chủ, người dùng..." type="text"/>

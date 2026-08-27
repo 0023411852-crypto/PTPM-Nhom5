@@ -73,12 +73,12 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
                         <span className="material-symbols-outlined text-[20px]">cloud</span>
                     </div>
                     <div>
-                        <h1 className="font-headline-md text-headline-md font-bold text-surface-container-lowest leading-tight">CloudNova</h1>
+                        <h1 className="dashboard-brand font-headline-md text-headline-md font-bold text-surface-container-lowest leading-tight">CloudNova</h1>
                         <p className="font-body-sm text-body-sm text-surface-variant/70 leading-tight">Bảng điều khiển Biên tập viên</p>
                     </div>
                 </div>
 
-                <Link href="/editor/articles/create" className="w-full bg-primary-container text-on-primary-container font-body-md text-body-md py-2 px-4 rounded-lg flex items-center justify-center gap-2 mb-lg hover:opacity-90 transition-opacity">
+                <Link href="/editor/articles/create" className="dashboard-create-link w-full bg-primary-container text-on-primary-container font-body-md text-body-md py-2 px-4 rounded-lg flex items-center justify-center gap-2 mb-lg hover:opacity-90 transition-opacity">
                     <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>add</span>
                     Bài viết mới
                 </Link>
@@ -90,7 +90,7 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
                             <li key={link.name}>
                                 <Link 
                                     href={link.href}
-                                    className={`flex items-center gap-3 px-3 py-2 rounded-md font-body-md text-body-md transition-all duration-200 ${
+                                    className={`dashboard-nav-link flex items-center gap-3 px-3 py-2 rounded-md font-body-md text-body-md transition-all duration-200 ${
                                         isActive 
                                             ? 'text-surface-container-lowest bg-primary-container/20 border-r-4 border-primary-container' 
                                             : 'text-surface-variant/70 hover:bg-primary-container/10 hover:text-surface-container-lowest'
@@ -110,7 +110,7 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
                             <li key={link.name}>
                                 <Link 
                                     href={link.href}
-                                    className="flex items-center gap-3 px-3 py-2 rounded-md font-body-md text-body-md text-surface-variant/70 hover:bg-primary-container/10 hover:text-surface-container-lowest transition-colors"
+                                    className="dashboard-nav-link flex items-center gap-3 px-3 py-2 rounded-md font-body-md text-body-md text-surface-variant/70 hover:bg-primary-container/10 hover:text-surface-container-lowest transition-colors"
                                 >
                                     <span className="material-symbols-outlined">{link.icon}</span>
                                     {link.name}
@@ -131,7 +131,7 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
             </nav>
 
             <div className="flex-1 ml-[260px] flex flex-col min-w-0">
-                <header className="dashboard-header fixed top-0 right-0 w-[calc(100%-260px)] h-16 bg-surface dark:bg-surface-dim border-b border-outline-variant flex justify-between items-center px-lg z-10">
+                <header className="dashboard-header dashboard-topbar fixed top-0 right-0 w-[calc(100%-260px)] h-16 bg-surface dark:bg-surface-dim border-b border-outline-variant flex justify-between items-center px-lg z-10">
                     <div className="flex items-center gap-lg flex-1">
                         <span className="font-headline-md text-headline-md text-on-surface whitespace-nowrap">Tổng quan</span>
                         <div className="relative w-64 hidden lg:block">

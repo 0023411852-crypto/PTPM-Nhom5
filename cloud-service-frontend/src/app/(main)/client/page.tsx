@@ -399,7 +399,7 @@ export default function ClientPortalPage() {
                         {activeTab === 'services' && (
                             <div className="space-y-xl">
                                 {/* Giỏ hàng Section */}
-                                <div className="bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
+                                <div className="client-panel bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
                                     <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">Giỏ hàng của bạn</h2>
                                     {cartItems.length === 0 ? (
                                         <div className="text-center py-lg text-on-surface-variant">Giỏ hàng đang trống.</div>
@@ -426,7 +426,7 @@ export default function ClientPortalPage() {
                                 </div>
 
                                 {/* Quản lý Dịch vụ Section */}
-                                <div className="bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
+                                <div className="client-panel bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
                                     <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">VPS Đang hoạt động</h2>
                                 
                                 {loadingServices ? (
@@ -442,7 +442,7 @@ export default function ClientPortalPage() {
                                 ) : (
                                     <div className="space-y-md">
                                         {services.map(svc => (
-                                            <div key={svc.id} className="border border-outline-variant rounded-xl p-lg flex flex-col md:flex-row gap-lg justify-between items-start md:items-center hover:border-primary transition-colors">
+                                            <div key={svc.id} className="client-item-card border border-outline-variant rounded-xl p-lg flex flex-col md:flex-row gap-lg justify-between items-start md:items-center hover:border-primary transition-colors">
                                                 <div>
                                                     <div className="flex items-center gap-sm mb-xs">
                                                         <h3 className="font-headline-md text-headline-md text-on-surface">{svc.serviceName}</h3>
@@ -484,7 +484,7 @@ export default function ClientPortalPage() {
 
                         {/* Tab Lịch sử đơn hàng */}
                         {activeTab === 'orders' && (
-                            <div className="bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
+                            <div className="client-panel bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
                                 <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">Lịch sử đơn hàng</h2>
                                 
                                 {loadingOrders ? (
@@ -500,7 +500,7 @@ export default function ClientPortalPage() {
                                 ) : (
                                     <div className="space-y-md">
                                         {orders.map(order => (
-                                            <div key={order.id} className="border border-outline-variant rounded-xl p-lg flex flex-col md:flex-row gap-lg justify-between items-start md:items-center hover:border-primary transition-colors">
+                                            <div key={order.id} className="client-item-card border border-outline-variant rounded-xl p-lg flex flex-col md:flex-row gap-lg justify-between items-start md:items-center hover:border-primary transition-colors">
                                                 <div>
                                                     <div className="flex items-center gap-sm mb-xs">
                                                         <h3 className="font-headline-md text-headline-md text-on-surface">Đơn hàng #{order.id.substring(0, 8)}</h3>
@@ -552,7 +552,7 @@ export default function ClientPortalPage() {
                         {/* Tab Hỗ trợ */}
                         {activeTab === 'support' && (
                             <div className="space-y-xl">
-                                <div className="bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
+                                <div className="client-panel bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
                                     <div className="flex justify-between items-center mb-lg">
                                         <h2 className="font-headline-sm text-headline-sm text-on-surface">Ticket Hỗ Trợ</h2>
                                         <button 
@@ -599,7 +599,7 @@ export default function ClientPortalPage() {
                                     ) : (
                                         <div className="space-y-sm">
                                             {tickets.map(ticket => (
-                                                <div key={ticket.id} className="border border-outline-variant rounded-xl p-md hover:bg-surface-container-lowest transition-colors cursor-pointer">
+                                                <div key={ticket.id} className="client-item-card border border-outline-variant rounded-xl p-md hover:bg-surface-container-lowest transition-colors cursor-pointer">
                                                     <div className="flex justify-between mb-sm">
                                                         <h4 className="font-medium text-on-surface text-[16px]">{ticket.title}</h4>
                                                         <span className={`px-2 py-1 rounded text-[12px] font-bold uppercase ${ticket.status === 'Open' ? 'bg-warning/20 text-warning' : 'bg-success/20 text-success'}`}>
@@ -620,7 +620,7 @@ export default function ClientPortalPage() {
                         {/* Tab Hồ sơ */}
                         {activeTab === 'profile' && (
                             <div className="space-y-xl">
-                                <div className="bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
+                                <div className="client-panel bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
                                 <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">Thông tin cơ bản</h2>
                                 <form onSubmit={handleUpdateProfile} className="space-y-md">
                                     <div>
@@ -679,7 +679,7 @@ export default function ClientPortalPage() {
                                 </form>
                             </div>
 
-                                <div className="bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
+                                <div className="client-panel bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
                                     <h3 className="font-headline-sm text-headline-sm text-on-surface mb-md">Đổi mật khẩu</h3>
                                     <form onSubmit={handlePasswordChange} className="space-y-md mt-md">
                                         <div>
@@ -816,7 +816,7 @@ export default function ClientPortalPage() {
             {/* Review Modal */}
             {reviewOrderId && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-md bg-black/50 backdrop-blur-sm">
-                    <div className="bg-surface rounded-2xl w-full max-w-[32rem] shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+                    <div className="client-modal bg-surface rounded-2xl w-full max-w-[32rem] shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
                         <div className="p-xl border-b border-outline-variant flex justify-between items-center">
                             <h2 className="font-headline-sm text-headline-sm text-on-surface">Đánh giá đơn hàng #{reviewOrderId.substring(0, 8)}</h2>
                             <button onClick={() => setReviewOrderId(null)} className="text-on-surface-variant hover:text-on-surface transition-colors">
