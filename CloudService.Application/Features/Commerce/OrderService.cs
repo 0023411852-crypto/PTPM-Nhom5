@@ -142,7 +142,7 @@ namespace CloudService.Application.Services
             return value;
         }
 
-        public async Task<OrderDto> CreateOrderAsync(Guid userId, CreateOrderDto dto)
+        public async Task<OrderDto> CreateOrderAsync(Guid userId, CreateOrderDto dto, Guid? orderGroupId = null)
         {
             var planRepo = _unitOfWork.Repository<ServicePlan>();
             var plan = await planRepo.GetByIdAsync(dto.ServicePlanId);
@@ -158,7 +158,7 @@ namespace CloudService.Application.Services
                 throw new ValidationException("Plan Price does not belong to the selected Service Plan");
 
             // Calculate base price based on billing cycle
-            var basePrice = planPrice.Price * planPrice.BillingCycle;
+            var basePrice = planPrice.Price * dto.BillingCycle;
             var subtotal = basePrice + planPrice.SetupFee;
 
             // Find and apply the best applicable promotion
@@ -172,7 +172,7 @@ namespace CloudService.Application.Services
                 p.DiscountPercentage >= 0 && p.DiscountPercentage <= 100 &&
                 (p.EndDate == null || p.EndDate >= DateTime.UtcNow) &&
                 p.StartDate <= DateTime.UtcNow &&
-                (!p.BillingCycle.HasValue || p.BillingCycle.Value == planPrice.BillingCycle) &&
+                (!p.BillingCycle.HasValue || p.BillingCycle.Value == dto.BillingCycle) &&
                 (p.ServicePlans == null || !p.ServicePlans.Any() || p.ServicePlans.Any(sp => sp.Id == dto.ServicePlanId))
             ).ToList();
 
@@ -196,11 +196,13 @@ namespace CloudService.Application.Services
                 UserId = userId,
                 ServicePlanId = dto.ServicePlanId,
                 PlanPriceId = dto.PlanPriceId,
+                BillingCycle = dto.BillingCycle,
                 PromotionId = promotion?.Id, // LƯU PROMOTION THỰC SỰ ĐƯỢC CHỌN
                 CustomerNotes = dto.CustomerNotes,
                 TotalAmount = totalAmount,
                 Status = OrderStatus.Pending,
-                OrderDate = DateTime.UtcNow
+                OrderDate = DateTime.UtcNow,
+                OrderGroupId = orderGroupId
             };
 
             await _unitOfWork.Repository<OrderRequest>().AddAsync(order);
@@ -292,7 +294,7 @@ namespace CloudService.Application.Services
                 VpsIP = demoIp,
                 VpsUser = demoUser,
                 VpsPassword = demoPassword,
-                ExpiryDate = DateTime.UtcNow.AddMonths(order.PlanPrice?.BillingCycle == 12 ? 12 : 1),
+                ExpiryDate = DateTime.UtcNow.AddMonths(order.BillingCycle == 12 ? 12 : 1),
                 Status = "Active"
             };
 
@@ -340,6 +342,126 @@ namespace CloudService.Application.Services
             repo.Delete(order);
             await _unitOfWork.SaveChangesAsync();
             return true;
+        }
+        public async Task<Guid> CreateOrderBatchAsync(Guid userId, CreateOrderBatchDto dto)
+        {
+            var groupId = Guid.NewGuid();
+            var createdOrders = new List<OrderDto>();
+
+            foreach (var item in dto.Items)
+            {
+                // Create multiple orders if quantity > 1
+                for (int i = 0; i < item.Quantity; i++)
+                {
+                    var singleDto = new CreateOrderDto
+                    {
+                        ServicePlanId = item.ServicePlanId,
+                        PlanPriceId = item.PlanPriceId,
+                        BillingCycle = item.BillingCycle,
+                        PromotionId = item.PromotionId,
+                        CustomerNotes = dto.CustomerNotes
+                    };
+                    
+                    var order = await CreateOrderAsync(userId, singleDto, groupId);
+                    createdOrders.Add(order);
+                }
+            }
+
+            if (!createdOrders.Any())
+                throw new ValidationException("Giỏ hàng trống hoặc không thể tạo đơn.");
+
+            return groupId;
+        }
+
+        public async Task<decimal?> GetPaymentAmountForGroupAsync(Guid groupId, Guid requesterId, bool isAdmin)
+        {
+            var repo = _unitOfWork.Repository<OrderRequest>();
+            var orders = await repo.SelectToListAsync(q => q.Where(o => o.OrderGroupId == groupId));
+            
+            if (!orders.Any())
+                return null;
+                
+            if (!isAdmin && orders.Any(o => o.UserId != requesterId))
+                return null;
+                
+            return orders.Sum(o => o.TotalAmount);
+        }
+
+        public async Task<List<DemoPaymentResultDto>> ConfirmDemoPaymentGroupAsync(Guid groupId, Guid requesterId)
+        {
+            if (!bool.TryParse(_configuration["DemoPayment:Enabled"], out var isEnabled) || !isEnabled)
+                throw new UnauthorizedException("Demo Payment đang bị tắt trên hệ thống.");
+
+            var orderRepo = _unitOfWork.Repository<OrderRequest>();
+            var orders = await orderRepo.SelectToListAsync(q => q.Where(o => o.OrderGroupId == groupId && o.UserId == requesterId), includeProperties: "ServicePlan,PlanPrice");
+            
+            if (!orders.Any())
+                return new List<DemoPaymentResultDto>();
+
+            var results = new List<DemoPaymentResultDto>();
+            
+            foreach (var order in orders)
+            {
+                if (order.Status == OrderStatus.Cancelled)
+                    continue;
+
+                if (order.Status == OrderStatus.Completed)
+                {
+                    results.Add(new DemoPaymentResultDto
+                    {
+                        OrderId = order.Id,
+                        Status = order.Status.ToString(),
+                        AlreadyProcessed = true,
+                        DemoMode = true,
+                        ServiceName = "",
+                        VpsIP = "",
+                        VpsUser = "",
+                        VpsPassword = "",
+                        ExpiryDate = DateTime.MinValue
+                    });
+                    continue;
+                }
+
+                order.Status = OrderStatus.Completed;
+                order.UpdatedAt = DateTime.UtcNow;
+
+                var random = new Random();
+                var demoIp = $"10.{random.Next(0, 255)}.{random.Next(0, 255)}.{random.Next(10, 254)}";
+                var demoUser = $"demo-{order.Id.ToString("N")[..8]}";
+                var demoPassword = GenerateRandomPassword();
+                var serviceName = order.ServicePlan?.Name ?? "Demo VPS";
+                var expiryDate = DateTime.UtcNow.AddMonths(order.BillingCycle);
+
+                var customerService = new CustomerService
+                {
+                    OrderId = order.Id,
+                    CustomerId = order.UserId,
+                    ServiceName = serviceName,
+                    VpsIP = demoIp,
+                    VpsUser = demoUser,
+                    VpsPassword = demoPassword,
+                    ExpiryDate = expiryDate,
+                    Status = "Active"
+                };
+
+                await _unitOfWork.Repository<CustomerService>().AddAsync(customerService);
+                
+                results.Add(new DemoPaymentResultDto
+                {
+                    OrderId = order.Id,
+                    Status = "Completed",
+                    AlreadyProcessed = false,
+                    DemoMode = true,
+                    ServiceName = serviceName,
+                    VpsIP = demoIp,
+                    VpsUser = demoUser,
+                    VpsPassword = demoPassword,
+                    ExpiryDate = expiryDate
+                });
+            }
+            
+            await _unitOfWork.SaveChangesAsync();
+            return results;
         }
     }
 }

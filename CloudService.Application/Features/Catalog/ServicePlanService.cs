@@ -68,7 +68,7 @@ namespace CloudService.Application.Services
             return _mapper.Map<ServicePlanDto>(entity);
         }
 
-        public async Task<ServicePlanDto> UpdateAsync(Guid id, UpdateServicePlanDto dto)
+        public async Task<ServicePlanDto> UpdateAsync(Guid id, UpdateServicePlanDto dto, Guid userId = default)
         {
             var repo = _unitOfWork.Repository<ServicePlan>();
             var entity = await repo.GetByIdAsync(id, includeProperties: "Prices,Category,PackageSpecifications");
@@ -104,7 +104,7 @@ namespace CloudService.Application.Services
                         {
                             await _eventDispatcher.DispatchAsync(new PriceUpdatedEvent
                             {
-                                UserId = Guid.Empty,
+                                UserId = userId,
                                 PlanPriceId = existing.Id,
                                 ServicePlanId = entity.Id,
                                 OldPrice = oldPrice,

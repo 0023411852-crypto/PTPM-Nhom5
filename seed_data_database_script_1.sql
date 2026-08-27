@@ -72,13 +72,13 @@ FROM (VALUES
 WHERE NOT EXISTS (SELECT 1 FROM [AppUsers] u WHERE u.Id = v.Id);
 
 -- 3. Service categories
-INSERT INTO [ServiceCategories] ([Id], [Name], [Description], [Slug], [IsActive], [CreatedAt], [UpdatedAt])
-SELECT v.Id, v.Name, v.Description, v.Slug, 1, @Now, NULL
+INSERT INTO [ServiceCategories] ([Id], [Name], [Description], [Slug], [IsActive], [CreatedAt], [UpdatedAt], [DetailTitle], [Icon], [FeaturesJson])
+SELECT v.Id, v.Name, v.Description, v.Slug, 1, @Now, NULL, v.DetailTitle, v.Icon, v.FeaturesJson
 FROM (VALUES
-    (@CatVpsId, N'Cloud VPS', N'Máy chủ ảo VPS tốc độ cao, ổn định.', N'cloud-vps'),
-    (@CatHostingId, N'Web Hosting', N'Hosting doanh nghiệp tối ưu cho website.', N'web-hosting'),
-    (@CatStorageId, N'Cloud Storage', N'Lưu trữ dữ liệu an toàn trên nền tảng đám mây.', N'cloud-storage')
-) v(Id, Name, Description, Slug)
+    (@CatVpsId, N'Cloud VPS', N'Máy chủ ảo VPS tốc độ cao, ổn định.', N'cloud-vps', N'Hiệu năng cao với ổ cứng NVMe', N'dns', N'["vCPU & RAM linh hoạt", "NVMe siêu tốc", "Root Access toàn quyền", "99.9% Uptime Guarantee"]'),
+    (@CatHostingId, N'Web Hosting', N'Hosting doanh nghiệp tối ưu cho website.', N'web-hosting', N'Giải pháp lưu trữ website', N'web', N'["SSD/NVMe Storage", "Free SSL Certificate", "Auto Backup daily", "Integrated Email"]'),
+    (@CatStorageId, N'Cloud Storage', N'Lưu trữ dữ liệu an toàn trên nền tảng đám mây.', N'cloud-storage', N'Lưu trữ đám mây an toàn', N'cloud', N'["100GB Storage", "Auto Sync", "File Sharing", "256-bit Encryption"]')
+) v(Id, Name, Description, Slug, DetailTitle, Icon, FeaturesJson)
 WHERE NOT EXISTS (SELECT 1 FROM [ServiceCategories] c WHERE c.Id = v.Id);
 
 -- 4. Service plans

@@ -8,6 +8,45 @@ namespace CloudService.WebApi
     {
         public static void SeedData(ApplicationDbContext context)
         {
+            try
+            {
+                context.Database.ExecuteSqlRaw(@"
+                    IF NOT EXISTS (
+                        SELECT * FROM sys.columns 
+                        WHERE Name = N'BillingCycle' AND Object_ID = Object_ID(N'OrderRequests')
+                    )
+                    BEGIN
+                        ALTER TABLE [OrderRequests] ADD [BillingCycle] INT NOT NULL DEFAULT 1;
+                    END
+                ");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Warning: Could not alter OrderRequests table: " + ex.Message);
+            }
+
+            try
+            {
+                var columnExists = context.Database.SqlQueryRaw<int>(@"
+                    SELECT COUNT(*) as Value
+                    FROM sys.columns 
+                    WHERE Name = N'ThumbnailUrl' AND Object_ID = Object_ID(N'NewsArticles')
+                ").FirstOrDefault();
+
+                Console.WriteLine($"[DataSeeder] ThumbnailUrl column exists? {columnExists > 0}");
+
+                if (columnExists == 0)
+                {
+                    Console.WriteLine("[DataSeeder] Adding ThumbnailUrl column to NewsArticles...");
+                    context.Database.ExecuteSqlRaw("ALTER TABLE [NewsArticles] ADD [ThumbnailUrl] nvarchar(max) NULL;");
+                    Console.WriteLine("[DataSeeder] Column added successfully.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Warning: Could not alter NewsArticles table: " + ex.Message);
+            }
+
             if (!context.Roles.Any())
             {
                 var adminRole = new Role { Id = Guid.NewGuid(), Name = "Admin" };

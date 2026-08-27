@@ -37,7 +37,9 @@ namespace CloudService.WebApi.Controllers
             if (!Guid.TryParse(userIdStr, out var userId))
                 return Unauthorized();
 
-            var result = await _service.GetTicketByIdAsync(id, userId);
+            var isAdmin = User.IsInRole("Admin");
+            var result = await _service.GetTicketByIdAsync(id, isAdmin ? null : userId);
+            
             if (result == null) return NotFound();
             return Ok(result);
         }

@@ -33,6 +33,11 @@ namespace CloudService.WebApi.Middlewares
 
         private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
+            if (context.Response.HasStarted)
+            {
+                return;
+            }
+            
             context.Response.ContentType = "application/json";
 
             int statusCode = exception switch
@@ -41,16 +46,32 @@ namespace CloudService.WebApi.Middlewares
                 UnauthorizedException => (int)HttpStatusCode.Unauthorized,
                 NotFoundException => (int)HttpStatusCode.NotFound,
                 ConflictException => (int)HttpStatusCode.Conflict,
+                Microsoft.EntityFrameworkCore.DbUpdateException => (int)HttpStatusCode.BadRequest,
                 _ => (int)HttpStatusCode.InternalServerError
             };
 
             context.Response.StatusCode = statusCode;
 
+            string detailMessage = exception.Message;
+            if (statusCode == (int)HttpStatusCode.InternalServerError)
+            {
+                detailMessage = "Đã xảy ra lỗi hệ thống nghiêm trọng. Vui lòng thử lại sau.";
+            }
+            else if (exception is Microsoft.EntityFrameworkCore.DbUpdateException)
+            {
+                detailMessage = "Lỗi khi cập nhật cơ sở dữ liệu. Vui lòng kiểm tra lại thông tin đầu vào (ví dụ: trùng lặp dữ liệu, thiếu trường bắt buộc).";
+            }
+            
+            if (detailMessage.Contains("An error occurred while saving the entity changes. See the inner exception for details."))
+            {
+                detailMessage = "Đã xảy ra lỗi khi lưu thay đổi. Vui lòng xem chi tiết lỗi bên trong.";
+            }
+
             var problemDetails = new ProblemDetails
             {
                 Status = statusCode,
                 Title = GetTitle(statusCode),
-                Detail = statusCode == (int)HttpStatusCode.InternalServerError ? "An unexpected error occurred on the server." : exception.Message,
+                Detail = detailMessage,
                 Instance = context.Request.Path
             };
 
@@ -62,11 +83,12 @@ namespace CloudService.WebApi.Middlewares
         {
             return statusCode switch
             {
-                400 => "Bad Request",
-                401 => "Unauthorized",
-                404 => "Not Found",
-                409 => "Conflict",
-                _ => "Internal Server Error"
+                400 => "Yêu cầu không hợp lệ",
+                401 => "Chưa xác thực",
+                403 => "Không có quyền truy cập",
+                404 => "Không tìm thấy dữ liệu",
+                409 => "Xung đột dữ liệu",
+                _ => "Lỗi hệ thống"
             };
         }
     }

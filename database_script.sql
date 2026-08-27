@@ -1,3 +1,12 @@
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'CloudServiceDB_v2')
+BEGIN
+    CREATE DATABASE [CloudServiceDB_v2];
+END;
+GO
+
+USE [CloudServiceDB_v2];
+GO
+
 IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
 BEGIN
     CREATE TABLE [__EFMigrationsHistory] (
@@ -182,6 +191,7 @@ BEGIN
         [StartDate] datetime2 NOT NULL,
         [EndDate] datetime2 NOT NULL,
         [IsActive] bit NOT NULL,
+        [BillingCycle] int NULL,
         [CreatedAt] datetime2 NOT NULL,
         [UpdatedAt] datetime2 NULL,
         CONSTRAINT [PK_Promotions] PRIMARY KEY ([Id]),
@@ -200,6 +210,7 @@ BEGIN
         [UserId] uniqueidentifier NOT NULL,
         [ServicePlanId] uniqueidentifier NOT NULL,
         [PlanPriceId] uniqueidentifier NOT NULL,
+        [BillingCycle] int NOT NULL DEFAULT 1,
         [PromotionId] uniqueidentifier NULL,
         [TotalAmount] decimal(18,2) NOT NULL,
         [Status] int NOT NULL,

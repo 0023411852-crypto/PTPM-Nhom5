@@ -8,7 +8,7 @@ namespace CloudService.Application.Interfaces
         Task<PagedResponse<ServicePlanDto>> GetAllAsync(PaginationFilter filter);
         Task<ServicePlanDto?> GetByIdAsync(Guid id);
         Task<ServicePlanDto> CreateAsync(CreateServicePlanDto dto);
-        Task<ServicePlanDto> UpdateAsync(Guid id, UpdateServicePlanDto dto);
+        Task<ServicePlanDto> UpdateAsync(Guid id, UpdateServicePlanDto dto, Guid userId = default);
         Task<bool> DeleteAsync(Guid id);
         Task<ServicePlanDto?> RegenerateQrCodeAsync(Guid id);
     }

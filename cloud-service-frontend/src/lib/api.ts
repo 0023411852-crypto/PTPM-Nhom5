@@ -103,7 +103,7 @@ export async function apiRequest<T>(
     let errorMessage = 'An error occurred';
     try {
       const errorData = await response.json();
-      errorMessage = errorData.message || errorData.error || errorMessage;
+      errorMessage = errorData.message || errorData.error || errorData.detail || errorMessage;
     } catch {
       errorMessage = response.statusText || errorMessage;
     }

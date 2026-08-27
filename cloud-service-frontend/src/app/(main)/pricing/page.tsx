@@ -164,22 +164,35 @@ export default function PricingPage() {
 
     // Helper to format currency
     const formatCurrency = (amount: number) => {
-        return amount.toLocaleString('vi-VN') + 'đ';
+        return Math.round(amount).toLocaleString('vi-VN') + 'đ';
     };
 
     const handleAddToCart = (plan: any, priceAmount: number, cycle: string, priceObj: any, selectedPromoId?: string) => {
-        // Chỉ cho phép 1 sản phẩm trong giỏ để tránh lỗi tạo nhiều đơn
-        const cart = [];
-        const newItem = {
-            planId: plan.id,
-            planName: plan.name,
-            priceId: priceObj?.id || '',
-            price: priceAmount,
-            cycle: cycle,
-            qty: 1,
-            promotionId: selectedPromoId // Thêm PromotionId nếu có
-        };
-        cart.push(newItem);
+        // Cho phép nhiều sản phẩm trong giỏ và tăng số lượng nếu cùng gói và chu kỳ
+        const cartStr = localStorage.getItem("cart");
+        let cart = cartStr ? JSON.parse(cartStr) : [];
+        
+        const existingItemIndex = cart.findIndex((item: any) => 
+            item.planId === plan.id && 
+            item.cycle === cycle && 
+            item.priceId === (priceObj?.id || '')
+        );
+
+        if (existingItemIndex !== -1) {
+            cart[existingItemIndex].qty = (cart[existingItemIndex].qty || 1) + 1;
+        } else {
+            const newItem = {
+                planId: plan.id,
+                planName: plan.name,
+                priceId: priceObj?.id || '',
+                price: priceAmount,
+                cycle: cycle,
+                qty: 1,
+                promotionId: selectedPromoId // Thêm PromotionId nếu có
+            };
+            cart.push(newItem);
+        }
+        
         localStorage.setItem("cart", JSON.stringify(cart));
         window.dispatchEvent(new Event('cartUpdated'));
 
@@ -274,7 +287,7 @@ export default function PricingPage() {
                     </button>
                     <div className="flex items-center gap-sm">
                         <span className="font-body-md text-body-md font-medium text-on-background">Thanh toán theo năm</span>
-                        <span className="bg-surface-container text-primary font-label-caps text-label-caps px-sm py-xs rounded-DEFAULT">GIẢM 20%</span>
+                        <span className="bg-surface-container text-primary font-label-caps text-label-caps px-sm py-xs rounded-DEFAULT">TIẾT KIỆM HƠN</span>
                     </div>
                 </div>
             </section>
@@ -287,42 +300,47 @@ export default function PricingPage() {
                         {plans.map((plan, index) => {
                             const dbCycle = isAnnual ? 12 : 1;
                             const urlCycle = isAnnual ? 'yearly' : 'monthly';
-                            const priceObj = plan.prices?.find(p => p.billingCycle === dbCycle) 
-                                             || plan.prices?.[0]; // Fallback to first price if missing
+                            
+                            // LUÔN lấy giá của tháng (billingCycle === 1) làm gốc
+                            const priceObj = plan.prices?.find(p => p.billingCycle === 1); 
                             
                             let priceAmount = priceObj ? priceObj.price : 0;
-                            const originalPrice = priceAmount;
-
-                            // For 12-month cycle, multiply monthly price by 12
-                            if (isAnnual && dbCycle === 1) {
+                            
+                            // Nếu thanh toán theo năm, nhân giá tháng lên 12
+                            if (isAnnual && priceObj) {
                                 priceAmount = priceAmount * 12;
                             }
+                            
+                            const originalPrice = priceAmount;
 
-                            // Tự động tìm promotion có discount cao nhất hợp lệ
-                            let discountPercent = 0;
+                            // Tự động tìm promotion có discount cao nhất hợp lệ (Năm mặc định giảm 10%)
+                            let discountPercent = isAnnual ? 10 : 0;
                             let bestPromoId: string | undefined = undefined;
                             let bestPromoText = '';
                             const selectedBillingCycle = isAnnual ? 12 : 1;
                             
-                            allPromos.forEach(promo => {
-                                const isPromoTimeValid = promo.isActive && 
-                                    (!promo.endDate || new Date(promo.endDate).getTime() > new Date().getTime()) &&
-                                    (new Date(promo.startDate).getTime() <= new Date().getTime());
-                                
-                                if (isPromoTimeValid) {
-                                    const billingCycleMatch = !promo.billingCycle || promo.billingCycle === selectedBillingCycle;
-                                    const planMatch = !promo.servicePlanIds || promo.servicePlanIds.length === 0 || promo.servicePlanIds.includes(plan.id);
+                            if (priceObj) {
+                                allPromos.forEach(promo => {
+                                    const isPromoTimeValid = promo.isActive && 
+                                        (!promo.endDate || new Date(promo.endDate).getTime() > new Date().getTime()) &&
+                                        (new Date(promo.startDate).getTime() <= new Date().getTime());
                                     
-                                    if (billingCycleMatch && planMatch && promo.discountPercentage && promo.discountPercentage > discountPercent) {
-                                        discountPercent = promo.discountPercentage;
-                                        bestPromoId = promo.id;
-                                        bestPromoText = promo.badgeText || `GIẢM ${discountPercent}%`;
+                                    if (isPromoTimeValid) {
+                                        // Bắt buộc promotion.billingCycle phải match chính xác chu kỳ được chọn
+                                        const billingCycleMatch = promo.billingCycle === selectedBillingCycle;
+                                        const planMatch = !promo.servicePlanIds || promo.servicePlanIds.length === 0 || promo.servicePlanIds.includes(plan.id);
+                                        
+                                        if (billingCycleMatch && planMatch && promo.discountPercentage && promo.discountPercentage > discountPercent) {
+                                            discountPercent = promo.discountPercentage;
+                                            bestPromoId = promo.id;
+                                            bestPromoText = promo.badgeText || `GIẢM ${discountPercent}%`;
+                                        }
                                     }
-                                }
-                            });
+                                });
 
-                            if (discountPercent > 0) {
-                                priceAmount = priceAmount * (1 - discountPercent / 100);
+                                if (discountPercent > 0) {
+                                    priceAmount = priceAmount * (1 - discountPercent / 100);
+                                }
                             }
 
                             const specs = parseSpecs(plan.specifications);
@@ -368,7 +386,7 @@ export default function PricingPage() {
                                     <div className={`mb-lg ${isHighlighted ? 'pt-sm' : ''}`}>
                                         <h3 className={`font-headline-md text-headline-md ${isHighlighted ? 'text-primary' : 'text-on-background'} mb-sm`}>{plan.name}</h3>
                                         <p className="font-body-sm text-body-sm text-on-surface-variant mb-xl">{plan.description}</p>
-                                        <div className="mb-xl h-[80px]">
+                                        <div className="mb-xl min-h-[90px] flex flex-col justify-end">
                                             {discountPercent > 0 && (
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <span className="text-on-surface-variant line-through text-sm font-medium">{formatCurrency(originalPrice)}/{urlCycle === 'monthly' ? 'th' : 'năm'}</span>
@@ -379,6 +397,11 @@ export default function PricingPage() {
                                                 <span className={`font-display-lg ${isHighlighted ? 'text-[48px]' : 'text-[40px]'} font-bold text-on-background leading-none`}>{formatCurrency(priceAmount)}</span>
                                                 <span className="font-body-sm text-body-sm text-secondary mb-1">/{urlCycle === 'monthly' ? 'th' : 'năm'}</span>
                                             </div>
+                                            {discountPercent > 0 && (
+                                                <div className="mt-1">
+                                                    <span className="text-primary font-medium text-[13px] bg-primary/10 px-2 py-0.5 rounded-md">Tiết kiệm {formatCurrency(originalPrice - priceAmount)}</span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     <ul className="flex-grow space-y-md mb-lg">

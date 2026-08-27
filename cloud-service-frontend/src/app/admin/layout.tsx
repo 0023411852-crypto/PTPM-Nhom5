@@ -59,7 +59,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             links: [
                 { name: 'Quản lý người dùng', href: '/admin/users', icon: 'group' },
                 { name: 'Quản lý Đối tác', href: '/admin/partners', icon: 'handshake' },
-                { name: 'Yêu cầu Đối tác', href: '/admin/partner-requests', icon: 'request_quote' },
                 { name: 'Quản lý Danh mục', href: '/admin/categories', icon: 'category' },
                 { name: 'Quản lý Máy chủ/VPS', href: '/admin/services', icon: 'dns' },
                 { name: 'Đơn hàng & Thanh toán', href: '/admin/orders', icon: 'receipt_long' },

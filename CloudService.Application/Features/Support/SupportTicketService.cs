@@ -39,7 +39,7 @@ namespace CloudService.Application.Services
             var paginatedItems = await _ticketRepository.ToListAsync(query => query
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize));
+                .Take(filter.PageSize), "Customer");
 
             var dtos = _mapper.Map<List<SupportTicketDto>>(paginatedItems);
             return new PagedResponse<SupportTicketDto>(dtos, totalCount, filter.PageNumber, filter.PageSize);
@@ -52,7 +52,7 @@ namespace CloudService.Application.Services
                 .Where(x => x.CustomerId == customerId)
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize));
+                .Take(filter.PageSize), "Customer");
 
             var dtos = _mapper.Map<List<SupportTicketDto>>(paginatedItems);
             return new PagedResponse<SupportTicketDto>(dtos, totalCount, filter.PageNumber, filter.PageSize);
@@ -62,7 +62,7 @@ namespace CloudService.Application.Services
         {
             var entities = await _ticketRepository.ToListAsync(query => customerId.HasValue
                 ? query.Where(x => x.Id == id && x.CustomerId == customerId.Value)
-                : query.Where(x => x.Id == id));
+                : query.Where(x => x.Id == id), "Customer");
             var entity = entities.FirstOrDefault();
             return entity == null ? null : _mapper.Map<SupportTicketDto>(entity);
         }

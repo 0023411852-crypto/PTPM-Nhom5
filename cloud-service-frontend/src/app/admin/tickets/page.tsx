@@ -15,6 +15,8 @@ type SupportTicket = {
     description: string;
     createdAt: string;
     customerId: string;
+    customerName: string;
+    customerEmail: string;
     replies?: TicketReply[];
 };
 
@@ -131,6 +133,7 @@ export default function AdminTicketsPage() {
                                     {ticket.status}
                                 </span>
                             </div>
+                            <p className="text-[13px] font-medium text-primary mb-1 line-clamp-1">{ticket.customerName || 'Khách ẩn danh'} - {ticket.customerEmail || 'Không có email'}</p>
                             <p className="text-[13px] opacity-80 line-clamp-1">{ticket.description}</p>
                             <p className="text-[11px] opacity-60 mt-2">{new Date(ticket.createdAt).toLocaleString('vi-VN')}</p>
                         </div>
@@ -145,7 +148,8 @@ export default function AdminTicketsPage() {
                         <div className="p-lg border-b border-outline-variant bg-surface-container-lowest flex justify-between items-start">
                             <div>
                                 <h2 className="font-headline-sm text-headline-sm text-on-surface mb-1">{selectedTicket.title}</h2>
-                                <p className="text-[14px] text-on-surface-variant">Ticket ID: {selectedTicket.id}</p>
+                                <p className="text-[14px] text-on-surface-variant font-medium">Người gửi: {selectedTicket.customerName || 'Khách ẩn danh'} ({selectedTicket.customerEmail || 'Không có email'})</p>
+                                <p className="text-[12px] text-on-surface-variant opacity-70">Ticket ID: {selectedTicket.id}</p>
                             </div>
                             {selectedTicket.status === 'Open' && (
                                 <button onClick={handleCloseTicket} className="px-sm py-xs bg-error/10 text-error rounded font-medium text-[13px] hover:bg-error/20 transition-colors">

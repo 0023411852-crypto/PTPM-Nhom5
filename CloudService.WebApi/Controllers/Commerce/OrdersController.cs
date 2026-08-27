@@ -66,6 +66,24 @@ namespace CloudService.WebApi.Controllers
             }
         }
 
+        [HttpPost("batch")]
+        public async Task<IActionResult> CreateOrderBatch([FromBody] CreateOrderBatchDto dto)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdStr, out var userId))
+                return Unauthorized();
+
+            try
+            {
+                var groupId = await _orderService.CreateOrderBatchAsync(userId, dto);
+                return Ok(new { groupId });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpGet("all")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllOrders([FromQuery] PaginationFilter filter)
@@ -114,6 +132,41 @@ namespace CloudService.WebApi.Controllers
                 return BadRequest(new { message = "Tổng tiền đơn hàng không hợp lệ." });
 
             var paymentString = $"BANK|0123456789|{serverAmount.Value:0.##}|{id}";
+            var base64Qr = _qrCodeService.GenerateQRCodeBase64(paymentString);
+            return Ok(new { qrCode = base64Qr, paymentString, amount = serverAmount.Value });
+        }
+
+        [HttpPost("group/{groupId:guid}/demo-payment")]
+        public async Task<IActionResult> ConfirmDemoPaymentGroup(Guid groupId)
+        {
+            if (!_configuration.GetValue<bool>("DemoPayment:Enabled"))
+                return NotFound(new { message = "Demo Payment đang bị tắt." });
+
+            var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdValue, out var userId))
+                return Unauthorized();
+
+            var result = await _orderService.ConfirmDemoPaymentGroupAsync(groupId, userId);
+            if (result == null || !result.Any())
+                return NotFound(new { message = "Không tìm thấy đơn hàng hoặc đơn không hợp lệ." });
+
+            return Ok(result);
+        }
+
+        [HttpGet("group/{groupId:guid}/payment-qr")]
+        public async Task<IActionResult> GetGroupPaymentQR(Guid groupId)
+        {
+            var requesterIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(requesterIdValue, out var requesterId))
+                return Unauthorized();
+
+            var serverAmount = await _orderService.GetPaymentAmountForGroupAsync(groupId, requesterId, User.IsInRole("Admin"));
+            if (serverAmount == null)
+                return NotFound(new { message = "Không tìm thấy nhóm đơn hàng." });
+            if (serverAmount <= 0)
+                return BadRequest(new { message = "Tổng tiền đơn hàng không hợp lệ." });
+
+            var paymentString = $"BANK|0123456789|{serverAmount.Value:0.##}|{groupId}";
             var base64Qr = _qrCodeService.GenerateQRCodeBase64(paymentString);
             return Ok(new { qrCode = base64Qr, paymentString, amount = serverAmount.Value });
         }

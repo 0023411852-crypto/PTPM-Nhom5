@@ -218,7 +218,7 @@ export default function AdminServicesPage() {
                 fetchData();
             } else {
                 const data = await res.json();
-                showMessage('Đã có lỗi xảy ra', data.message || "Đã có lỗi xảy ra!", true);
+                showMessage('Đã có lỗi xảy ra', data.detail || data.message || "Đã có lỗi xảy ra!", true);
             }
         } catch (error) {
             console.error("Lỗi:", error);

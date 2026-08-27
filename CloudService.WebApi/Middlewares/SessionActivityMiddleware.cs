@@ -43,9 +43,16 @@ namespace CloudService.WebApi.Middlewares
             var now = DateTime.UtcNow;
             if ((now - session.LastActiveTimestamp).TotalMinutes > 1)
             {
-                session.LastActiveTimestamp = now;
-                repo.Update(session);
-                await unitOfWork.SaveChangesAsync();
+                try
+                {
+                    session.LastActiveTimestamp = now;
+                    repo.Update(session);
+                    await unitOfWork.SaveChangesAsync();
+                }
+                catch (Exception)
+                {
+                    // Ignore session update failures
+                }
             }
         }
     }

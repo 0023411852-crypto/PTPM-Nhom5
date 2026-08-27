@@ -3,6 +3,7 @@ using CloudService.Application.DTOs.ServicePlans;
 using CloudService.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CloudService.WebApi.Controllers
 {
@@ -53,7 +54,10 @@ namespace CloudService.WebApi.Controllers
         {
             try
             {
-                var result = await _service.UpdateAsync(id, dto);
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                Guid.TryParse(userIdString, out Guid userId);
+                
+                var result = await _service.UpdateAsync(id, dto, userId);
                 return Ok(result);
             }
             catch (Exception ex)

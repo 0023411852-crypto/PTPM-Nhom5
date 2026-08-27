@@ -14,6 +14,8 @@ namespace CloudService.Domain.Entities
         public Guid PlanPriceId { get; set; }
         public virtual PlanPrice PlanPrice { get; set; } = null!;
 
+        public int BillingCycle { get; set; } = 1;
+
         public Guid? PromotionId { get; set; }
         public virtual Promotion? Promotion { get; set; }
 
@@ -23,5 +25,7 @@ namespace CloudService.Domain.Entities
         public string? CustomerNotes { get; set; }
         public string? AdminNotes { get; set; }
         public DateTime OrderDate { get; set; } = DateTime.UtcNow;
+
+        public Guid? OrderGroupId { get; set; }
     }
 }

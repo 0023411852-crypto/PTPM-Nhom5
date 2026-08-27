@@ -50,7 +50,9 @@ namespace CloudService.Application.Mappings
             CreateMap<AppUser, UserDto>();
             
             CreateMap<CustomerService, CloudService.Application.DTOs.CustomerServices.CustomerServiceDto>();
-            CreateMap<SupportTicket, CloudService.Application.DTOs.SupportTickets.SupportTicketDto>();
+            CreateMap<SupportTicket, CloudService.Application.DTOs.SupportTickets.SupportTicketDto>()
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.FullName : string.Empty))
+                .ForMember(dest => dest.CustomerEmail, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.Email : string.Empty));
             CreateMap<TicketReply, CloudService.Application.DTOs.SupportTickets.TicketReplyDto>();
             CreateMap<SiteSetting, CloudService.Application.DTOs.SiteSettingDto>();
             

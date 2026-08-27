@@ -23,7 +23,7 @@ export default function CheckoutPage() {
     const [token, setToken] = useState<string | null>(null);
     const [customerNotes, setCustomerNotes] = useState('');
     const [qrCodeData, setQrCodeData] = useState<{qrCode: string, paymentString: string, amount: number} | null>(null);
-    const [demoOrderIds, setDemoOrderIds] = useState<string[]>([]);
+
     const [isDemoConfirming, setIsDemoConfirming] = useState(false);
     const [demoPayment, setDemoPayment] = useState<{
         orderId: string;
@@ -63,9 +63,11 @@ export default function CheckoutPage() {
         return acc + (price * quantity);
     }, 0);
 
-    const fetchQRCode = async (orderId: string, amount: number) => {
+    const [orderGroupId, setOrderGroupId] = useState<string | null>(null);
+
+    const fetchQRCode = async (groupId: string, amount: number) => {
         try {
-            const res = await fetch(`/api/Orders/${orderId}/payment-qr?amount=${amount}`, {
+            const res = await fetch(`/api/Orders/group/${groupId}/payment-qr?amount=${amount}`, {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
@@ -83,22 +85,27 @@ export default function CheckoutPage() {
     };
 
     const handleConfirmDemoPayment = async () => {
-        if (demoOrderIds.length === 0 || !token || isDemoConfirming) return;
+        if (!orderGroupId || !token || isDemoConfirming) return;
         setIsDemoConfirming(true);
         setErrorMsg('');
         try {
-            const responses = await Promise.all(demoOrderIds.map(orderId =>
-                fetch(`/api/Orders/${orderId}/demo-payment`, {
-                    method: 'POST',
-                    headers: { Authorization: `Bearer ${token}` }
-                }).then(async res => ({ res, data: await res.json().catch(() => ({})) }))
-            ));
-            const failed = responses.find(({ res }) => !res.ok);
-            if (failed) {
-                setErrorMsg(failed.data.message || 'Không thể xác nhận thanh toán demo.');
+            const res = await fetch(`/api/Orders/group/${orderGroupId}/demo-payment`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json().catch(() => ({}));
+            
+            if (!res.ok) {
+                setErrorMsg(data.message || 'Không thể xác nhận thanh toán demo.');
                 return;
             }
-            setDemoPayment(responses[0].data);
+            
+            // Assume data is a list of results, we just show the first one or a combined success message
+            if (Array.isArray(data) && data.length > 0) {
+                setDemoPayment(data[0]);
+            } else {
+                setDemoPayment(data);
+            }
         } catch {
             setErrorMsg('Lỗi kết nối khi xác nhận thanh toán demo.');
         } finally {
@@ -128,47 +135,45 @@ export default function CheckoutPage() {
         setIsSubmitting(true);
         
         try {
-            let firstOrderId = "";
-            const createdOrderIds: string[] = [];
-            // Gửi từng đơn hàng trong giỏ
-            for (let i = 0; i < cart.length; i++) {
-                const item = cart[i];
-                for (let q = 0; q < item.qty; q++) {
-                    const res = await fetch("/api/Orders", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer ${token}`
-                        },
-                        body: JSON.stringify({
-                            servicePlanId: item.planId,
-                            planPriceId: item.priceId,
-                            customerNotes: customerNotes,
-                            promotionId: item.promotionId || null 
-                        })
-                    });
+            const batchItems = cart.map(item => ({
+                servicePlanId: item.planId,
+                planPriceId: item.priceId,
+                billingCycle: item.cycle === 'yearly' ? 12 : 1,
+                promotionId: item.promotionId || null,
+                quantity: item.qty
+            }));
 
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (firstOrderId === "") firstOrderId = data.id;
-                        createdOrderIds.push(data.id);
-                    }
+            const res = await fetch("/api/Orders/batch", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    items: batchItems,
+                    customerNotes: customerNotes
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                const groupId = data.groupId;
+                
+                if (groupId) {
+                    await fetchQRCode(groupId, subtotal);
+                    setOrderGroupId(groupId);
+                    setDemoPayment(null);
+                    setIsSuccess(true);
+                    // Clear cart
+                    setCart([]);
+                    localStorage.setItem("cart", "[]");
+                    window.dispatchEvent(new Event('cartUpdated'));
+                } else {
+                    setErrorMsg("Tạo đơn hàng thất bại.");
                 }
-            }
-
-            if (firstOrderId) {
-                // Fetch 1 mã QR dùng chung tổng tiền
-                // BE bỏ qua amount do client gửi và trả lại TotalAmount đã lưu trong database.
-                await fetchQRCode(firstOrderId, subtotal);
-                setDemoOrderIds(createdOrderIds);
-                setDemoPayment(null);
-                setIsSuccess(true);
-                // Clear cart
-                setCart([]);
-                localStorage.setItem("cart", "[]");
-                window.dispatchEvent(new Event('cartUpdated'));
             } else {
-                setErrorMsg("Tạo đơn hàng thất bại.");
+                const errorData = await res.json().catch(() => ({}));
+                setErrorMsg(errorData.message || "Tạo đơn hàng thất bại.");
             }
         } catch (err) {
             setErrorMsg("Lỗi kết nối đến máy chủ.");
@@ -227,7 +232,7 @@ export default function CheckoutPage() {
                         <div className="mb-lg">
                             <button
                                 onClick={handleConfirmDemoPayment}
-                                disabled={isDemoConfirming || demoOrderIds.length === 0}
+                                disabled={isDemoConfirming || !orderGroupId}
                                 className="w-full max-w-[420px] px-lg py-md bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors disabled:opacity-60"
                             >
                                 {isDemoConfirming ? 'Đang xác nhận Demo Payment...' : 'Tôi đã thanh toán (DEMO)'}
