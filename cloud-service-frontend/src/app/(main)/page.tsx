@@ -1,485 +1,265 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
+import { useEffect, useState } from "react";
+
+type ServiceCategory = {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  slug?: string;
+  isActive?: boolean;
+};
+
+type ServicePlan = {
+  id: string;
+  name: string;
+  description?: string;
+  category?: { name?: string };
+  prices?: Array<{ price?: number }>;
+  isActive?: boolean;
+};
+
+type Promotion = {
+  id: string;
+  title?: string;
+  description?: string;
+  discountPercentage?: number;
+};
+
+type NewsArticle = {
+  id: string;
+  title?: string;
+  category?: string;
+  createdAt?: string;
+  thumbnailUrl?: string;
+};
+
+const fallbackServices: ServiceCategory[] = [
+  { id: "vps", name: "Cloud VPS", slug: "vps", icon: "dns", description: "Máy chủ ảo hiệu năng cao, triển khai nhanh và dễ dàng mở rộng." },
+  { id: "hosting", name: "Web Hosting", slug: "hosting", icon: "language", description: "Không gian lưu trữ ổn định cho website, WordPress và ứng dụng web." },
+  { id: "domain", name: "Tên miền", slug: "domain", icon: "public", description: "Đăng ký, quản lý và bảo vệ thương hiệu số trên Internet." },
+  { id: "email", name: "Email doanh nghiệp", slug: "email-doanh-nghiep", icon: "mail", description: "Email theo tên miền riêng, chuyên nghiệp và bảo mật cho đội ngũ." },
+  { id: "ssl", name: "SSL / TLS", slug: "ssl", icon: "verified_user", description: "Mã hóa kết nối và tăng độ tin cậy cho mọi điểm chạm của khách hàng." },
+  { id: "firewall", name: "Firewall chống DDoS", slug: "firewall-chong-ddos", icon: "shield", description: "Lớp bảo vệ chủ động trước lưu lượng bất thường và tấn công mạng." },
+];
+
+const benefits = [
+  { icon: "speed", title: "Triển khai trong vài phút", text: "Khởi tạo hạ tầng nhanh, cấu hình rõ ràng và sẵn sàng đưa dự án vào vận hành." },
+  { icon: "monitoring", title: "Giám sát 24/7", text: "Theo dõi tình trạng máy chủ liên tục để bạn yên tâm tập trung phát triển kinh doanh." },
+  { icon: "security", title: "Bảo mật nhiều lớp", text: "Firewall, SSL/TLS và chính sách sao lưu giúp dữ liệu luôn được bảo vệ chủ động." },
+  { icon: "support_agent", title: "Đồng hành tận tâm", text: "Đội ngũ kỹ thuật phản hồi nhanh, tư vấn đúng nhu cầu và ngân sách thực tế." },
+];
+
+const trustStats = [
+  { value: "99.9%", label: "Uptime cam kết" },
+  { value: "10Gbps", label: "Băng thông quốc tế" },
+  { value: "24/7", label: "Hỗ trợ kỹ thuật" },
+  { value: "5 phút", label: "Thời gian khởi tạo" },
+];
+
+function formatPrice(price?: number) {
+  if (typeof price !== "number") return "Liên hệ";
+  return `${price.toLocaleString("vi-VN")}đ`;
+}
+
+function Icon({ name, className = "" }: { name: string; className?: string }) {
+  return <span className={`material-symbols-outlined ${className}`}>{name}</span>;
+}
 
 export default function Home() {
-  const shaderCanvasRef = useRef<HTMLCanvasElement>(null);
-  const threeContainerRef = useRef<HTMLDivElement>(null);
-
   const [slogan, setSlogan] = useState("Hạ tầng Cloud mạnh mẽ cho mọi ý tưởng.");
-  const [featuredPlans, setFeaturedPlans] = useState<any[]>([]);
-  const [activePromotions, setActivePromotions] = useState<any[]>([]);
-  const [latestNews, setLatestNews] = useState<any[]>([]);
+  const [services, setServices] = useState<ServiceCategory[]>([]);
+  const [featuredPlans, setFeaturedPlans] = useState<ServicePlan[]>([]);
+  const [activePromotions, setActivePromotions] = useState<Promotion[]>([]);
+  const [latestNews, setLatestNews] = useState<NewsArticle[]>([]);
 
   useEffect(() => {
     fetch("/api/SiteSettings/public")
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (Array.isArray(data)) {
-          const found = data.find((x: any) => x.key === 'Slogan');
-          if (found) setSlogan(found.value);
+          const found = data.find((item: { key?: string }) => item.key === "Slogan");
+          if (found?.value) setSlogan(found.value);
         }
       })
-      .catch(e => console.error(e));
-  }, []);
+      .catch(() => undefined);
 
-  useEffect(() => {
     const loadHomepageData = async () => {
       try {
-        const [plansRes, promotionsRes, newsRes] = await Promise.all([
+        const [categoriesRes, plansRes, promotionsRes, newsRes] = await Promise.all([
+          fetch("/api/ServiceCategories?PageNumber=1&PageSize=6"),
           fetch("/api/ServicePlans?PageNumber=1&PageSize=3"),
           fetch("/api/Promotions?PageNumber=1&PageSize=3&onlyActive=true"),
-          fetch("/api/NewsArticles?onlyPublished=true&pageNumber=1&pageSize=3")
+          fetch("/api/NewsArticles?onlyPublished=true&pageNumber=1&pageSize=3"),
         ]);
+
+        if (categoriesRes.ok) {
+          const data = await categoriesRes.json();
+          setServices((data?.data || []).filter((service: ServiceCategory) => service.isActive !== false).slice(0, 6));
+        }
         if (plansRes.ok) {
           const data = await plansRes.json();
-          setFeaturedPlans((data.data || []).filter((plan: any) => plan.isActive).slice(0, 3));
+          setFeaturedPlans((data?.data || []).filter((plan: ServicePlan) => plan.isActive !== false).slice(0, 3));
         }
         if (promotionsRes.ok) {
           const data = await promotionsRes.json();
-          setActivePromotions((data.data || []).slice(0, 3));
+          setActivePromotions((data?.data || []).slice(0, 3));
         }
         if (newsRes.ok) {
           const data = await newsRes.json();
-          setLatestNews((data.data || []).slice(0, 3));
+          setLatestNews((data?.data || []).slice(0, 3));
         }
-      } catch (error) {
-        console.error("Failed to load homepage data", error);
+      } catch {
+        // The visual fallback keeps the homepage useful when the API is unavailable.
       }
     };
+
     loadHomepageData();
   }, []);
 
-  // WebGL Shader Animation (from STITCH_SHADER_START:ANIMATION_3)
-  useEffect(() => {
-    const canvas = shaderCanvasRef.current;
-    if (!canvas) return;
-
-    function syncSize() {
-      if (!canvas) return;
-      const w = canvas.clientWidth || 1280;
-      const h = canvas.clientHeight || 720;
-      if (canvas.width !== w || canvas.height !== h) {
-        canvas.width = w;
-        canvas.height = h;
-      }
-    }
-
-    if (typeof ResizeObserver !== "undefined") {
-      new ResizeObserver(syncSize).observe(canvas);
-    }
-    syncSize();
-
-    const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-    if (!gl) return;
-    const glContext = gl as WebGLRenderingContext;
-
-    const vs = `attribute vec2 a_position;
-varying vec2 v_texCoord;
-void main() {
-  v_texCoord = a_position * 0.5 + 0.5;
-  gl_Position = vec4(a_position, 0.0, 1.0);
-}`;
-    const fs = `precision highp float;
-varying vec2 v_texCoord;
-uniform float u_time;
-uniform vec2 u_resolution;
-uniform vec2 u_mouse;
-
-// Simplex noise function
-vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
-float snoise(vec2 v){
-  const vec4 C = vec4(0.211324865405187, 0.366025403784439,
-           -0.577350269189626, 0.024390243902439);
-  vec2 i  = floor(v + dot(v, C.yy) );
-  vec2 x0 = v -   i + dot(i, C.xx);
-  vec2 i1;
-  i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-  vec4 x12 = x0.xyxy + C.xxzz;
-  x12.xy -= i1;
-  i = mod(i, 289.0);
-  vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
-  + i.x + vec3(0.0, i1.x, 1.0 ));
-  vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy),
-    dot(x12.zw,x12.zw)), 0.0);
-  m = m*m ;
-  m = m*m ;
-  vec3 x = 2.0 * fract(p * C.wwww) - 1.0;
-  vec3 h = abs(x) - 0.5;
-  vec3 a0 = x - floor(x + 0.5);
-  m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
-  vec3 g;
-  g.x  = a0.x  * x0.x  + h.x  * x0.y;
-  g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-  return 130.0 * dot(m, g);
-}
-
-void main() {
-    vec2 uv = v_texCoord;
-    vec2 m = u_mouse / u_resolution;
-    
-    // Background color (Dark Navy)
-    vec3 color = vec3(0.039, 0.098, 0.184); 
-    
-    // Animated cloud-like noise
-    float n = snoise(uv * 3.0 + u_time * 0.1);
-    n += 0.5 * snoise(uv * 6.0 - u_time * 0.15);
-    
-    // Primary Blue highlights
-    vec3 accent = vec3(0.0, 0.38, 1.0); // CloudNova Blue
-    float glow = smoothstep(0.4, 0.6, n);
-    
-    color = mix(color, accent, glow * 0.15);
-    
-    // Subtle grid pattern
-    vec2 grid = fract(uv * 40.0);
-    float line = step(0.98, grid.x) + step(0.98, grid.y);
-    color += line * 0.02;
-    
-    // Mouse interaction glow
-    float dist = distance(uv, m);
-    color += accent * (1.0 - smoothstep(0.0, 0.3, dist)) * 0.1;
-
-    gl_FragColor = vec4(color, 1.0);
-}`;
-    function cs(type: number, src: string) {
-      const s = glContext.createShader(type);
-      if (!s) return null;
-      glContext.shaderSource(s, src);
-      glContext.compileShader(s);
-      return s;
-    }
-    const prog = glContext.createProgram();
-    if (!prog) return;
-    const vShader = cs(glContext.VERTEX_SHADER, vs);
-    const fShader = cs(glContext.FRAGMENT_SHADER, fs);
-    if (vShader) glContext.attachShader(prog, vShader);
-    if (fShader) glContext.attachShader(prog, fShader);
-    glContext.linkProgram(prog);
-    glContext.useProgram(prog);
-
-    const buf = glContext.createBuffer();
-    glContext.bindBuffer(glContext.ARRAY_BUFFER, buf);
-    glContext.bufferData(glContext.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), glContext.STATIC_DRAW);
-    
-    const pos = glContext.getAttribLocation(prog, "a_position");
-    glContext.enableVertexAttribArray(pos);
-    glContext.vertexAttribPointer(pos, 2, glContext.FLOAT, false, 0, 0);
-    
-    const uTime = glContext.getUniformLocation(prog, "u_time");
-    const uRes = glContext.getUniformLocation(prog, "u_resolution");
-    const uMouse = glContext.getUniformLocation(prog, "u_mouse");
-
-    const mouse = { x: canvas.width / 2, y: canvas.height / 2 };
-    
-    const handleMouseMove = (event: MouseEvent) => {
-      if (!canvas) return;
-      const rect = canvas.getBoundingClientRect();
-      if (rect.width && rect.height) {
-        const nx = (event.clientX - rect.left) / rect.width;
-        const ny = 1.0 - (event.clientY - rect.top) / rect.height;
-        mouse.x = nx * canvas.width;
-        mouse.y = ny * canvas.height;
-      }
-    };
-    
-    window.addEventListener("mousemove", handleMouseMove);
-
-    let animationId: number;
-    function render(t: number) {
-      if (!canvas) return;
-      if (typeof ResizeObserver === "undefined") syncSize();
-      glContext.viewport(0, 0, canvas.width, canvas.height);
-      if (uTime) glContext.uniform1f(uTime, t * 0.001);
-      if (uRes) glContext.uniform2f(uRes, canvas.width, canvas.height);
-      if (uMouse) glContext.uniform2f(uMouse, mouse.x, mouse.y);
-      glContext.drawArrays(glContext.TRIANGLE_STRIP, 0, 4);
-      animationId = requestAnimationFrame(render);
-    }
-    render(0);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      cancelAnimationFrame(animationId);
-    };
-  }, []);
-
-  // Three.js Animation (from STITCH_THREEJS_START:ANIMATION_4)
-  useEffect(() => {
-    const container = threeContainerRef.current;
-    if (!container) return;
-
-    const width = container.clientWidth || window.innerWidth;
-    const height = container.clientHeight || window.innerHeight;
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.z = 5;
-
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    container.appendChild(renderer.domElement);
-
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
-    const pointLight = new THREE.PointLight(0x0061ff, 2, 10);
-    pointLight.position.set(2, 2, 2);
-    scene.add(pointLight);
-
-    const group = new THREE.Group();
-    scene.add(group);
-
-    const coreGeo = new THREE.IcosahedronGeometry(1, 1);
-    const coreMat = new THREE.MeshPhongMaterial({
-      color: 0x0061ff,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.8,
-    });
-    const core = new THREE.Mesh(coreGeo, coreMat);
-    group.add(core);
-
-    const innerCoreGeo = new THREE.SphereGeometry(0.6, 32, 32);
-    const innerCoreMat = new THREE.MeshPhongMaterial({
-      color: 0x0061ff,
-      emissive: 0x002d72,
-      shininess: 100,
-    });
-    const innerCore = new THREE.Mesh(innerCoreGeo, innerCoreMat);
-    group.add(innerCore);
-
-    const nodeCount = 8;
-    const nodes: any[] = [];
-    const nodeGeo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
-    const nodeMat = new THREE.MeshPhongMaterial({ color: 0xffffff });
-
-    for (let i = 0; i < nodeCount; i++) {
-      const node = new THREE.Mesh(nodeGeo, nodeMat);
-      const angle = (i / nodeCount) * Math.PI * 2;
-      const radius = 2.5;
-      node.position.x = Math.cos(angle) * radius;
-      node.position.y = Math.sin(angle) * radius;
-      node.position.z = (Math.random() - 0.5) * 2;
-      group.add(node);
-      nodes.push({
-        mesh: node,
-        speed: 0.005 + Math.random() * 0.01,
-        angle: angle,
-        radius: radius,
-      });
-    }
-
-    const lineMat = new THREE.LineBasicMaterial({ color: 0x0061ff, transparent: true, opacity: 0.3 });
-    const lines: THREE.Line[] = [];
-
-    function updateLines() {
-      lines.forEach((l) => scene.remove(l));
-      lines.length = 0;
-
-      nodes.forEach((node) => {
-        const points = [new THREE.Vector3(0, 0, 0), node.mesh.position];
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        const line = new THREE.Line(geometry, lineMat);
-        scene.add(line);
-        lines.push(line);
-      });
-    }
-
-    let animationId: number;
-    function animate() {
-      animationId = requestAnimationFrame(animate);
-
-      const time = Date.now() * 0.001;
-
-      core.rotation.y += 0.005;
-      core.rotation.z += 0.003;
-      innerCore.scale.setScalar(1 + Math.sin(time * 2) * 0.05);
-
-      nodes.forEach((n) => {
-        n.angle += n.speed;
-        n.mesh.position.x = Math.cos(n.angle) * n.radius;
-        n.mesh.position.y = Math.sin(n.angle) * n.radius;
-        n.mesh.rotation.x += 0.02;
-        n.mesh.rotation.y += 0.02;
-      });
-
-      updateLines();
-
-      group.rotation.y = Math.sin(time * 0.5) * 0.2;
-      group.rotation.x = Math.cos(time * 0.3) * 0.1;
-
-      renderer.render(scene, camera);
-    }
-
-    animate();
-
-    const handleResize = () => {
-      const w = container.clientWidth || window.innerWidth;
-      const h = container.clientHeight || window.innerHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    };
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      cancelAnimationFrame(animationId);
-      container.removeChild(renderer.domElement);
-    };
-  }, []);
+  const visibleServices = services.length > 0 ? services : fallbackServices;
+  const spotlightPromotion = activePromotions[0];
 
   return (
-    <>
-      <main className="pt-16">
-        <section className="relative min-h-[90vh] flex items-center overflow-hidden">
-          <div className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" style={{ display: "block" }}>
-            <canvas ref={shaderCanvasRef} style={{ display: "block", width: "100%", height: "100%" }} />
+    <main className="home-page flex-grow pt-16 overflow-hidden">
+      <section className="home-hero relative overflow-hidden">
+        <div className="hero-orb hero-orb-one" />
+        <div className="hero-orb hero-orb-two" />
+        <div className="hero-grid absolute inset-0 opacity-60" />
+        <div className="max-w-[var(--spacing-container-max)] mx-auto px-gutter relative z-10">
+          <div className="flex items-center gap-sm pt-8 text-[length:var(--text-label-caps)] text-blue-100/75">
+            <span className="status-dot" />
+            <span>Hệ thống đang hoạt động ổn định</span>
+            <span className="hidden sm:inline text-blue-200/40">•</span>
+            <span className="hidden sm:inline">99.9% uptime SLA</span>
           </div>
 
-          <div className="max-w-[var(--spacing-container-max)] mx-auto px-gutter w-full grid grid-cols-1 lg:grid-cols-2 gap-2xl relative z-10 py-16 mt-16 items-start">
-            <div className="flex flex-col justify-center gap-lg py-12 px-6 md:p-10 bg-white/70 backdrop-blur-xl rounded-3xl border border-white/50 shadow-2xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-high border border-outline-variant w-fit">
-                <span className="material-symbols-outlined" style={{ fontSize: "16px", color: "var(--color-primary)" }}>rocket_launch</span>
-                <span className="text-[length:var(--text-label-caps)] font-semibold text-on-surface">Khuyến mãi lên đến 30%</span>
+          <div className="grid lg:grid-cols-[0.92fr_1.08fr] gap-12 xl:gap-20 items-center pt-12 pb-16 lg:pt-16 lg:pb-20">
+            <div className="max-w-[40rem]">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-white/10 px-3 py-2 text-xs font-semibold tracking-[0.12em] text-cyan-100 uppercase backdrop-blur-sm">
+                <Icon name="auto_awesome" className="text-[16px] text-cyan-300" />
+                Cloud infrastructure cho doanh nghiệp Việt
               </div>
-              <h1 className="text-[length:var(--text-display-lg)] font-bold text-on-background whitespace-pre-wrap">
-                {slogan}
+              <h1 className="mt-7 text-5xl sm:text-6xl xl:text-[76px] xl:leading-[1.03] font-bold tracking-[-0.055em] text-white">
+                Xây nền tảng.
+                <span className="block hero-title-gradient">Mở rộng tương lai.</span>
               </h1>
-              <p className="text-[length:var(--text-body-lg)] text-on-surface-variant max-w-[42rem]">
-                Triển khai VPS, Hosting, Domain và các giải pháp Cloud trên nền tảng hạ tầng ổn định, bảo mật và sẵn
-                sàng mở rộng.
+              <p className="mt-7 max-w-[36rem] text-lg leading-8 text-blue-100/75">
+                {slogan} Triển khai VPS, Hosting, Domain và các giải pháp bảo mật trên hạ tầng ổn định, minh bạch và sẵn sàng tăng trưởng.
               </p>
-              <div className="flex flex-col sm:flex-row gap-md mt-sm">
-                <Link href="/pricing" className="bg-primary text-white text-[length:var(--text-label-caps)] font-semibold px-6 py-4 rounded-xl hover:bg-primary-container transition-colors shadow-lg shadow-primary/30 active:scale-95 flex justify-center items-center gap-2 duration-200 w-full sm:w-auto">
+              <div className="mt-9 flex flex-col sm:flex-row gap-3">
+                <Link href="/pricing" className="home-primary-button group inline-flex items-center justify-center gap-3 rounded-xl bg-white px-6 py-4 text-sm font-bold text-[#07327d] shadow-[0_15px_45px_rgba(40,142,255,0.28)]">
                   Bắt đầu ngay
-                  <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>arrow_forward</span>
+                  <Icon name="arrow_forward" className="text-[19px] transition-transform group-hover:translate-x-1" />
                 </Link>
-                <Link href="/services" className="hidden sm:inline-flex justify-center bg-surface-container-lowest text-primary border-2 border-outline-variant text-[length:var(--text-label-caps)] font-semibold px-6 py-4 rounded-xl hover:border-primary transition-colors active:scale-95 items-center duration-200">
+                <Link href="/services" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-4 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/10">
                   Khám phá dịch vụ
+                  <Icon name="north_east" className="text-[18px]" />
                 </Link>
               </div>
-              <div className="flex items-center gap-xl mt-lg pt-lg border-t border-outline-variant">
-                <div>
-                  <p className="text-[length:var(--text-headline-md)] font-semibold text-on-background">99.9%</p>
-                  <p className="text-[length:var(--text-label-caps)] font-semibold text-on-surface-variant">Uptime SLA</p>
-                </div>
-                <div>
-                  <p className="text-[length:var(--text-headline-md)] font-semibold text-on-background">24/7</p>
-                  <p className="text-[length:var(--text-label-caps)] font-semibold text-on-surface-variant">Support</p>
-                </div>
-                <div>
-                  <p className="text-[length:var(--text-headline-md)] font-semibold text-on-background">10Gbps</p>
-                  <p className="text-[length:var(--text-label-caps)] font-semibold text-on-surface-variant">Network</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative h-[400px] lg:h-[600px] flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full blur-3xl" style={{ background: "linear-gradient(to top right, var(--color-surface-tint) 10%, transparent)" }}></div>
-              <div ref={threeContainerRef} className="w-full h-full relative z-10" style={{ display: "block" }}></div>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-2xl px-gutter bg-background">
-          <div className="max-w-[var(--spacing-container-max)] mx-auto">
-            <div className="flex items-end justify-between gap-md mb-lg">
-              <div>
-                <p className="text-[length:var(--text-label-caps)] font-semibold text-primary">Dịch vụ nổi bật</p>
-                <h2 className="text-[length:var(--text-headline-lg)] font-bold text-on-background">Gói Cloud được quan tâm</h2>
-              </div>
-              <Link href="/pricing" className="text-primary text-[length:var(--text-body-sm)] font-semibold hover:underline">Xem bảng giá</Link>
-            </div>
-            {featuredPlans.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-lg">
-                {featuredPlans.map((plan) => (
-                  <Link href="/pricing" key={plan.id} className="block h-full group">
-                    <article className="bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group-hover:border-primary">
-                      <p className="text-[length:var(--text-label-caps)] font-semibold text-primary">{plan.category?.name || "Cloud"}</p>
-                      <h3 className="text-[length:var(--text-headline-md)] font-semibold text-on-surface mt-sm group-hover:text-primary transition-colors">{plan.name}</h3>
-                      <p 
-                        className="text-[length:var(--text-body-sm)] text-on-surface-variant mt-sm overflow-hidden flex-grow line-clamp-2"
-                        style={{ WebkitBoxOrient: "vertical" }}
-                      >{plan.description}</p>
-                      <div className="mt-lg flex items-end justify-between border-t border-outline-variant/50 pt-md">
-                        <div>
-                            <p className="text-[length:var(--text-body-sm)] text-on-surface-variant mb-1">Giá từ</p>
-                            <p className="text-[length:var(--text-headline-md)] font-semibold text-on-surface">{plan.prices?.[0]?.price?.toLocaleString("vi-VN") || "Liên hệ"} đ</p>
-                        </div>
-                        <span className="material-symbols-outlined" style={{
-                          color: "var(--color-primary)",
-                          backgroundColor: "var(--color-primary-container-low)",
-                          borderRadius: "9999px",
-                          padding: "8px",
-                        }}>arrow_forward</span>
-                      </div>
-                    </article>
-                  </Link>
+              <div className="mt-10 flex flex-wrap gap-x-8 gap-y-4 border-t border-white/15 pt-6">
+                {trustStats.slice(0, 3).map((stat) => (
+                  <div key={stat.label}>
+                    <p className="text-xl font-bold text-white">{stat.value}</p>
+                    <p className="mt-1 text-xs text-blue-100/55">{stat.label}</p>
+                  </div>
                 ))}
               </div>
-            ) : <p className="text-on-surface-variant">Chưa có gói dịch vụ nổi bật.</p>}
-          </div>
-        </section>
+            </div>
 
-        <section className="py-2xl px-gutter bg-surface-container-lowest">
-          <div className="max-w-[var(--spacing-container-max)] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-lg">
-            <div className="bg-primary-container/30 rounded-2xl p-lg border border-primary/20 shadow-inner">
-              <p className="text-[length:var(--text-label-caps)] font-semibold text-primary">Khuyến mãi đang chạy</p>
-              <div className="mt-md flex flex-col gap-md">
-                {activePromotions.length > 0 ? activePromotions.map((promotion) => (
-                  <div key={promotion.id} className="bg-surface rounded-lg p-md border border-outline-variant">
-                    <div className="flex items-center justify-between gap-md">
-                      <h3 className="text-[length:var(--text-headline-md)] font-semibold text-on-surface">{promotion.title}</h3>
-                      <span className="text-primary font-semibold whitespace-nowrap">-{promotion.discountPercentage}%</span>
-                    </div>
-                    <p className="text-[length:var(--text-body-sm)] text-on-surface-variant mt-xs">{promotion.description}</p>
+            <div className="relative mx-auto w-full max-w-[620px] lg:ml-auto">
+              <div className="hero-dashboard-glow" />
+              <div className="hero-dashboard relative overflow-hidden rounded-[26px] border border-white/20 bg-[#0a2348]/90 p-3 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+                <div className="flex items-center justify-between border-b border-white/10 px-3 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1.5"><span className="h-2 w-2 rounded-full bg-[#ff6a6a]" /><span className="h-2 w-2 rounded-full bg-[#ffcf5c]" /><span className="h-2 w-2 rounded-full bg-[#65dd95]" /></div>
+                    <span className="ml-2 text-[11px] font-medium text-blue-100/50">cloudnova / overview</span>
                   </div>
-                )) : <p className="text-on-surface-variant">Hiện chưa có chương trình khuyến mãi.</p>}
-              </div>
-            </div>
-            <div className="bg-surface rounded-2xl p-lg border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-end justify-between gap-md">
-                <div>
-                  <p className="text-[length:var(--text-label-caps)] font-semibold text-primary">Tin tức mới nhất</p>
-                  <h2 className="text-[length:var(--text-headline-md)] font-semibold text-on-surface">CloudNova Insights</h2>
+                  <div className="flex items-center gap-1.5 text-[10px] text-emerald-300"><span className="status-dot status-dot-small" /> All systems operational</div>
                 </div>
-                <Link href="/news" className="text-primary text-[length:var(--text-body-sm)] font-semibold hover:underline">Xem tất cả</Link>
+                <div className="grid sm:grid-cols-[1.02fr_0.98fr] gap-3 p-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.055] p-4">
+                    <div className="flex items-start justify-between"><div><p className="text-[10px] uppercase tracking-[0.16em] text-blue-100/40">Network traffic</p><p className="mt-2 text-2xl font-semibold text-white">8.42 <span className="text-sm font-normal text-blue-100/45">Gbps</span></p></div><Icon name="monitoring" className="text-cyan-300" /></div>
+                    <div className="mt-7 flex h-28 items-end gap-1.5 border-b border-l border-white/10 px-2 pb-0">
+                      {[31, 45, 38, 55, 42, 67, 53, 71, 64, 79, 67, 91, 76, 88, 96, 82].map((height, index) => <span key={index} className="chart-bar" style={{ height: `${height}%`, opacity: `${0.34 + index / 28}` }} />)}
+                    </div>
+                    <div className="mt-3 flex justify-between text-[10px] text-blue-100/35"><span>09:00</span><span>12:00</span><span>15:00</span><span>Now</span></div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.055] p-4"><div className="flex items-center justify-between text-[10px] text-blue-100/45"><span>CPU Usage</span><Icon name="memory" className="text-[17px] text-violet-300" /></div><div className="mt-3 flex items-end justify-between"><span className="text-2xl font-semibold text-white">24.8%</span><span className="text-[10px] text-emerald-300">−3.2%</span></div><div className="metric-track mt-3"><span className="metric-fill w-[25%] bg-violet-400" /></div></div>
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.055] p-4"><div className="flex items-center justify-between text-[10px] text-blue-100/45"><span>Memory Allocation</span><Icon name="storage" className="text-[17px] text-cyan-300" /></div><div className="mt-3 flex items-end justify-between"><span className="text-2xl font-semibold text-white">6.2 <small className="text-sm font-normal text-blue-100/45">/ 16 GB</small></span><span className="text-[10px] text-cyan-300">38.7%</span></div><div className="metric-track mt-3"><span className="metric-fill w-[39%] bg-cyan-400" /></div></div>
+                    <div className="rounded-2xl border border-emerald-300/15 bg-emerald-400/[0.08] p-4"><div className="flex items-center gap-2 text-[10px] font-semibold text-emerald-200"><Icon name="verified" className="text-[16px]" /> Server health</div><p className="mt-2 text-lg font-semibold text-white">Excellent</p><p className="mt-1 text-[10px] text-emerald-100/55">Checked a few seconds ago</p></div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between rounded-xl bg-black/15 px-4 py-3 text-[10px] text-blue-100/45"><span>node-hcm-01.cloudnova.vn</span><span className="flex items-center gap-1.5 text-emerald-300"><span className="status-dot status-dot-small" /> 100% available</span></div>
               </div>
-              <div className="mt-md flex flex-col gap-md">
-                {latestNews.length > 0 ? latestNews.map((article) => (
-                  <Link key={article.id} href={`/news/${article.id}`} className="block border-b border-outline-variant pb-md last:border-0 last:pb-0 hover:text-primary transition-colors">
-                    <p className="text-[length:var(--text-label-caps)] font-semibold text-secondary">{article.category || "Tin tức"}</p>
-                    <h3 className="text-[length:var(--text-body-md)] font-semibold text-on-surface mt-xs">{article.title}</h3>
-                    <p className="text-[length:var(--text-body-sm)] text-on-surface-variant mt-xs">{new Date(article.createdAt).toLocaleDateString("vi-VN")}</p>
-                  </Link>
-                )) : <p className="text-on-surface-variant">Chưa có bài viết mới.</p>}
-              </div>
+              <div className="floating-chip floating-chip-top"><Icon name="bolt" className="text-[17px] text-amber-300" /><span><b className="block text-[11px] text-white">Ultra fast</b><small className="text-[9px] text-blue-100/50">NVMe SSD storage</small></span></div>
+              <div className="floating-chip floating-chip-bottom"><Icon name="shield_lock" className="text-[17px] text-cyan-300" /><span><b className="block text-[11px] text-white">Protected</b><small className="text-[9px] text-blue-100/50">DDoS mitigation active</small></span></div>
             </div>
           </div>
-        </section>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#f8faff] to-transparent" />
+      </section>
 
-        <section className="py-xl bg-surface-container-lowest border-t border-b border-outline-variant">
-          <div className="max-w-[var(--spacing-container-max)] mx-auto px-gutter flex flex-col md:flex-row justify-center items-center gap-xl md:gap-3xl opacity-60">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined" style={{ fontSize: "32px" }}>verified</span>
-              <span className="text-[length:var(--text-label-caps)] font-semibold">99.9% SLA</span>
+      <section className="relative z-10 -mt-1 border-y border-[#dfe8f7] bg-white/90">
+        <div className="max-w-[var(--spacing-container-max)] mx-auto grid grid-cols-2 md:grid-cols-4 gap-0 px-gutter">
+          {trustStats.map((stat, index) => <div key={stat.label} className={`flex items-center gap-3 py-5 ${index > 1 ? "hidden md:flex" : ""} ${index !== 0 ? "md:border-l md:border-[#e7edf7] md:pl-8" : ""}`}><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eef5ff] text-primary"><Icon name={["verified", "language", "support_agent", "rocket_launch"][index]} className="text-[19px]" /></span><div><p className="text-lg font-bold text-[#0b1c30]">{stat.value}</p><p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#73819a]">{stat.label}</p></div></div>)}
+        </div>
+      </section>
+
+      <section className="bg-[#f8faff] px-gutter py-20 lg:py-28">
+        <div className="max-w-[var(--spacing-container-max)] mx-auto">
+          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div className="max-w-[40rem]">
+              <p className="section-eyebrow">Hệ sinh thái dịch vụ</p>
+              <h2 className="section-title mt-3">Một nền tảng cho mọi<br className="hidden sm:block" /> bước tiến số.</h2>
+              <p className="section-description mt-4">Từ ý tưởng đầu tiên đến hệ thống phục vụ hàng triệu người dùng, CloudNova cung cấp đầy đủ những mảnh ghép bạn cần.</p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined" style={{ fontSize: "32px" }}>monitoring</span>
-              <span className="text-[length:var(--text-label-caps)] font-semibold">24/7 Monitoring</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined" style={{ fontSize: "32px" }}>security</span>
-              <span className="text-[length:var(--text-label-caps)] font-semibold">Secure Infrastructure</span>
-            </div>
+            <Link href="/services" className="group inline-flex items-center gap-2 text-sm font-bold text-primary">Xem tất cả dịch vụ <Icon name="arrow_forward" className="text-[18px] transition-transform group-hover:translate-x-1" /></Link>
           </div>
-        </section>
-      </main>
+          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {visibleServices.map((service, index) => <Link key={service.id} href={`/services/${service.slug || ""}`} className={`service-card group ${index === 0 ? "lg:col-span-2 lg:flex lg:items-end" : ""}`}><div className="service-card-shine" /><div className={`relative z-10 flex h-full flex-col ${index === 0 ? "lg:flex-row lg:items-end lg:justify-between lg:gap-10" : ""}`}><div><div className="service-icon"><Icon name={service.icon || "cloud"} className="text-[22px]" /></div><h3 className="mt-6 text-xl font-bold tracking-[-0.02em] text-[#0b1c30]">{service.name}</h3><p className="mt-3 max-w-[27rem] text-sm leading-6 text-[#63718b]">{service.description || "Giải pháp hạ tầng ổn định, bảo mật và dễ dàng mở rộng."}</p></div><span className="mt-8 inline-flex h-10 w-10 items-center justify-center self-end rounded-full border border-[#d9e4f4] text-primary transition group-hover:border-primary group-hover:bg-primary group-hover:text-white"><Icon name="arrow_outward" className="text-[18px]" /></span></div></Link>)}
+          </div>
+        </div>
+      </section>
 
-      </>
+      <section className="bg-white px-gutter py-20 lg:py-28">
+        <div className="max-w-[var(--spacing-container-max)] mx-auto grid lg:grid-cols-[0.86fr_1.14fr] gap-14 lg:gap-24 items-start">
+          <div className="lg:sticky lg:top-28">
+            <p className="section-eyebrow">Vì sao chọn CloudNova?</p>
+            <h2 className="section-title mt-3">Không chỉ là máy chủ.<br /><span className="text-primary">Đó là sự an tâm.</span></h2>
+            <p className="section-description mt-5">Hạ tầng tốt giúp đội ngũ đi nhanh hơn. Chúng tôi tập trung vào hiệu năng, sự minh bạch và trải nghiệm hỗ trợ để bạn có thể tập trung vào sản phẩm của mình.</p>
+            <Link href="/about" className="mt-8 inline-flex items-center gap-2 rounded-xl border border-[#d8e2f0] px-5 py-3 text-sm font-bold text-[#193152] transition hover:border-primary hover:text-primary">Tìm hiểu về CloudNova <Icon name="north_east" className="text-[18px]" /></Link>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {benefits.map((benefit, index) => <div key={benefit.title} className={`benefit-card ${index === 0 ? "sm:translate-y-8" : ""}`}><div className="flex items-center justify-between"><div className="benefit-icon"><Icon name={benefit.icon} className="text-[21px]" /></div><span className="text-xs font-bold text-[#b6c2d4]">0{index + 1}</span></div><h3 className="mt-12 text-lg font-bold text-[#0b1c30]">{benefit.title}</h3><p className="mt-3 text-sm leading-6 text-[#6e7d95]">{benefit.text}</p></div>)}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[#f1f5fc] px-gutter py-20 lg:py-28">
+        <div className="max-w-[var(--spacing-container-max)] mx-auto">
+          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><div><p className="section-eyebrow">Bảng giá minh bạch</p><h2 className="section-title mt-3">Bắt đầu nhỏ.<br className="sm:hidden" /> Sẵn sàng lớn.</h2><p className="section-description mt-4">Chọn cấu hình phù hợp hôm nay, nâng cấp bất cứ lúc nào khi doanh nghiệp phát triển.</p></div><Link href="/pricing" className="group inline-flex items-center gap-2 text-sm font-bold text-primary">Xem bảng giá đầy đủ <Icon name="arrow_forward" className="text-[18px] transition-transform group-hover:translate-x-1" /></Link></div>
+          <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-3">
+            {featuredPlans.length > 0 ? featuredPlans.map((plan, index) => <article key={plan.id} className={`price-card ${index === 1 ? "price-card-featured" : ""}`}><div className="flex items-start justify-between gap-3"><div><span className="rounded-full bg-[#eaf1ff] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">{plan.category?.name || "Cloud"}</span><h3 className="mt-5 text-2xl font-bold tracking-[-0.03em] text-[#0b1c30]">{plan.name}</h3></div>{index === 1 && <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold text-white">Phổ biến</span>}</div><p className="mt-3 min-h-10 text-sm leading-6 text-[#6e7d95]">{plan.description || "Cấu hình cân bằng cho website và ứng dụng đang tăng trưởng."}</p><div className="mt-8 border-t border-[#e5ebf4] pt-6"><span className="text-xs text-[#7c899d]">Từ</span><p className="mt-1 text-3xl font-bold tracking-[-0.04em] text-[#0b1c30]">{formatPrice(plan.prices?.[0]?.price)}<span className="text-sm font-medium text-[#7c899d]"> / tháng</span></p></div><Link href="/pricing" className={`mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition ${index === 1 ? "bg-primary text-white hover:bg-[#0639a0]" : "border border-[#d4dfef] text-[#17345e] hover:border-primary hover:text-primary"}`}>Xem chi tiết <Icon name="arrow_forward" className="text-[17px]" /></Link></article>) : ["VPS Starter", "VPS Business", "VPS Enterprise"].map((name, index) => <article key={name} className={`price-card ${index === 1 ? "price-card-featured" : ""}`}><div className="flex items-start justify-between"><span className="rounded-full bg-[#eaf1ff] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">Cloud VPS</span>{index === 1 && <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold text-white">Phổ biến</span>}</div><h3 className="mt-5 text-2xl font-bold text-[#0b1c30]">{name}</h3><p className="mt-3 min-h-10 text-sm leading-6 text-[#6e7d95]">Cấu hình linh hoạt cho từng giai đoạn phát triển.</p><div className="mt-8 border-t border-[#e5ebf4] pt-6"><span className="text-xs text-[#7c899d]">Từ</span><p className="mt-1 text-3xl font-bold text-[#0b1c30]">Liên hệ</p></div><Link href="/contact" className={`mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold ${index === 1 ? "bg-primary text-white" : "border border-[#d4dfef] text-[#17345e]"}`}>Tư vấn cấu hình <Icon name="arrow_forward" className="text-[17px]" /></Link></article>)}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white px-gutter py-20 lg:py-28">
+        <div className="max-w-[var(--spacing-container-max)] mx-auto grid lg:grid-cols-[1.15fr_0.85fr] gap-5">
+          <div className="promo-panel relative overflow-hidden rounded-[26px] p-8 sm:p-12"><div className="promo-panel-grid" /><div className="relative z-10 max-w-[36rem]"><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-cyan-200"><Icon name="local_fire_department" className="text-[18px]" /> Ưu đãi dành cho bạn</div><h2 className="mt-5 text-3xl font-bold tracking-[-0.035em] text-white sm:text-4xl">Hạ tầng tốt hơn.<br /><span className="text-cyan-300">Chi phí hợp lý hơn.</span></h2><p className="mt-4 max-w-[30rem] text-sm leading-6 text-blue-100/65">{spotlightPromotion?.description || "Khởi động dự án mới với ưu đãi hấp dẫn cho các gói dịch vụ Cloud đang được quan tâm."}</p><div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"><Link href="/promotions" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#07327d]">Xem ưu đãi <Icon name="arrow_forward" className="text-[17px]" /></Link>{spotlightPromotion?.discountPercentage ? <span className="text-sm font-semibold text-cyan-100">Tiết kiệm đến {spotlightPromotion.discountPercentage}%</span> : <span className="text-sm font-semibold text-cyan-100">Ưu đãi có thời hạn</span>}</div></div><div className="promo-sphere" /></div>
+          <div className="rounded-[26px] border border-[#e1e9f5] bg-[#f8faff] p-7 sm:p-9"><div className="flex items-center justify-between"><div><p className="section-eyebrow">Góc kiến thức</p><h2 className="mt-2 text-2xl font-bold tracking-[-0.03em] text-[#0b1c30]">Tin mới từ CloudNova</h2></div><Link href="/news" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d5e0ef] text-primary transition hover:bg-primary hover:text-white"><Icon name="arrow_outward" className="text-[17px]" /></Link></div><div className="mt-7 divide-y divide-[#e2eaf5]">{latestNews.length > 0 ? latestNews.map((article) => <Link href={`/news/${article.id}`} key={article.id} className="group block py-4 first:pt-0"><div className="flex items-center justify-between gap-3"><span className="text-[10px] font-bold uppercase tracking-[0.12em] text-primary">{article.category || "Tin tức"}</span><Icon name="arrow_forward" className="text-[16px] text-[#aab8ca] transition group-hover:translate-x-1 group-hover:text-primary" /></div><h3 className="mt-2 line-clamp-2 text-sm font-bold leading-5 text-[#203654] transition group-hover:text-primary">{article.title || "Cập nhật mới từ CloudNova"}</h3><p className="mt-2 text-[11px] text-[#8b98aa]">{article.createdAt ? new Date(article.createdAt).toLocaleDateString("vi-VN") : "Mới cập nhật"}</p></Link>) : ["5 điều cần biết trước khi triển khai Cloud VPS", "Tối ưu website để tăng tốc độ và trải nghiệm người dùng", "Bảo mật nhiều lớp cho hạ tầng doanh nghiệp"].map((title, index) => <Link href="/news" key={title} className="group block py-4 first:pt-0"><div className="flex items-center justify-between"><span className="text-[10px] font-bold uppercase tracking-[0.12em] text-primary">{index === 0 ? "Hướng dẫn" : "Kiến thức"}</span><Icon name="arrow_forward" className="text-[16px] text-[#aab8ca] transition group-hover:translate-x-1 group-hover:text-primary" /></div><h3 className="mt-2 text-sm font-bold leading-5 text-[#203654] transition group-hover:text-primary">{title}</h3><p className="mt-2 text-[11px] text-[#8b98aa]">Cập nhật gần đây</p></Link>)}</div></div>
+        </div>
+      </section>
+
+      <section className="bg-[#f8faff] px-gutter py-20 lg:py-28">
+        <div className="max-w-[var(--spacing-container-max)] mx-auto"><div className="mx-auto max-w-[38rem] text-center"><p className="section-eyebrow">Khách hàng nói gì</p><h2 className="section-title mt-3">Được tin tưởng để<br />vận hành mỗi ngày.</h2></div><div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3"><blockquote className="quote-card md:translate-y-5"><div className="flex gap-1 text-amber-400"><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /></div><p className="mt-6 text-base leading-7 text-[#314766]">“Dịch vụ VPS ổn định, hỗ trợ kỹ thuật nhanh chóng. Đội ngũ CloudNova luôn phản hồi rất có trách nhiệm.”</p><footer className="mt-8 flex items-center gap-3"><span className="avatar-circle">NA</span><span><b className="block text-sm text-[#0b1c30]">Nguyễn Anh</b><small className="text-xs text-[#8390a3]">Founder, ABC Tech</small></span></footer></blockquote><blockquote className="quote-card"><div className="flex gap-1 text-amber-400"><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /></div><p className="mt-6 text-base leading-7 text-[#314766]">“Chuyển hệ thống lên Cloud rất nhẹ nhàng. Chi phí rõ ràng và hiệu năng tốt hơn hẳn so với trước đây.”</p><footer className="mt-8 flex items-center gap-3"><span className="avatar-circle avatar-purple">ML</span><span><b className="block text-sm text-[#0b1c30]">Minh Linh</b><small className="text-xs text-[#8390a3]">CTO, Studio 11</small></span></footer></blockquote><blockquote className="quote-card md:translate-y-5"><div className="flex gap-1 text-amber-400"><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /></div><p className="mt-6 text-base leading-7 text-[#314766]">“Website luôn nhanh và ổn định dù lượng truy cập tăng. Đây là lựa chọn rất đáng tin cậy cho doanh nghiệp.”</p><footer className="mt-8 flex items-center gap-3"><span className="avatar-circle avatar-cyan">TH</span><span><b className="block text-sm text-[#0b1c30]">Thanh Hà</b><small className="text-xs text-[#8390a3]">CEO, Retail Hub</small></span></footer></blockquote></div></div>
+      </section>
+
+      <section className="home-cta relative overflow-hidden px-gutter py-20 lg:py-24"><div className="cta-rings" /><div className="relative z-10 mx-auto max-w-[46rem] text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-200">Sẵn sàng bắt đầu?</p><h2 className="mt-4 text-4xl font-bold tracking-[-0.045em] text-white sm:text-5xl">Đưa ý tưởng của bạn<br /><span className="text-cyan-300">lên một tầm cao mới.</span></h2><p className="mx-auto mt-5 max-w-[34rem] text-base leading-7 text-blue-100/65">Hãy để CloudNova đồng hành cùng bạn xây dựng một nền tảng nhanh, an toàn và sẵn sàng mở rộng.</p><div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row"><Link href="/pricing" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-4 text-sm font-bold text-[#07327d]">Khám phá bảng giá <Icon name="arrow_forward" className="text-[18px]" /></Link><Link href="/contact" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-4 text-sm font-semibold text-white">Liên hệ tư vấn <Icon name="support_agent" className="text-[18px]" /></Link></div></div></section>
+    </main>
   );
 }
