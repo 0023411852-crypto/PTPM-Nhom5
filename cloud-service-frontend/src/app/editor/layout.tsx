@@ -65,9 +65,9 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
     ];
 
     return (
-        <div className="bg-background text-on-surface font-body-md antialiased overflow-hidden h-screen flex">
+        <div className="dashboard-shell bg-background text-on-surface font-body-md antialiased overflow-hidden h-screen flex">
             
-            <nav className="fixed left-0 top-0 h-full w-[260px] bg-on-secondary-fixed dark:bg-on-background flex flex-col py-lg px-md border-r border-outline-variant/20 z-20">
+            <nav className="dashboard-sidebar fixed left-0 top-0 h-full w-[260px] bg-on-secondary-fixed dark:bg-on-background flex flex-col py-lg px-md border-r border-outline-variant/20 z-20">
                 <div className="flex items-center gap-3 mb-xl px-sm">
                     <div className="w-8 h-8 rounded bg-primary-container flex items-center justify-center text-surface-container-lowest">
                         <span className="material-symbols-outlined text-[20px]">cloud</span>
@@ -131,7 +131,7 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
             </nav>
 
             <div className="flex-1 ml-[260px] flex flex-col min-w-0">
-                <header className="fixed top-0 right-0 w-[calc(100%-260px)] h-16 bg-surface dark:bg-surface-dim border-b border-outline-variant flex justify-between items-center px-lg z-10">
+                <header className="dashboard-header fixed top-0 right-0 w-[calc(100%-260px)] h-16 bg-surface dark:bg-surface-dim border-b border-outline-variant flex justify-between items-center px-lg z-10">
                     <div className="flex items-center gap-lg flex-1">
                         <span className="font-headline-md text-headline-md text-on-surface whitespace-nowrap">Tổng quan</span>
                         <div className="relative w-64 hidden lg:block">
@@ -188,7 +188,7 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto mt-16 p-lg bg-surface dark:bg-surface-dim">
+                <main className="dashboard-main flex-1 overflow-y-auto mt-16 p-lg bg-surface dark:bg-surface-dim">
                     {children}
                 </main>
             </div>

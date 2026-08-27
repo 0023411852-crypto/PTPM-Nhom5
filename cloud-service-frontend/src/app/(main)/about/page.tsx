@@ -6,7 +6,7 @@ export default function AboutPage() {
     return (
         <>
             
-<main className="pt-16 pb-3xl flex-grow">
+<main className="public-content pt-16 pb-3xl flex-grow route-fade-in">
 
 <section className="px-gutter max-w-container-max mx-auto pt-xl pb-3xl">
 <div className="flex flex-col md:flex-row items-center gap-2xl">
@@ -29,7 +29,7 @@ export default function AboutPage() {
 <div className="relative mt-2xl">
 <div className="absolute top-1/2 left-0 w-full h-px bg-outline-variant -translate-y-1/2 hidden md:block"></div>
 <div className="grid grid-cols-1 md:grid-cols-5 gap-lg relative z-10">
-<div className="bg-surface rounded-xl p-md border border-outline-variant flex flex-col items-center text-center">
+<div className="interactive-card bg-surface rounded-xl p-md border border-outline-variant flex flex-col items-center text-center">
 <span className="font-label-caps text-label-caps text-primary bg-primary-fixed px-sm py-xs rounded mb-md">2022</span>
 <span className="font-body-md text-body-md font-medium text-on-surface">Khởi đầu</span>
 </div>
@@ -56,21 +56,21 @@ export default function AboutPage() {
 
 <section className="py-3xl px-gutter max-w-container-max mx-auto">
 <div className="grid grid-cols-1 md:grid-cols-3 gap-lg">
-<div className="p-xl bg-surface border border-outline-variant rounded-2xl hover:border-primary transition-colors hover:shadow-lg">
+<div className="interactive-card p-xl bg-surface border border-outline-variant rounded-2xl hover:border-primary transition-colors hover:shadow-lg">
 <div className="w-12 h-12 rounded-lg bg-primary-fixed flex items-center justify-center text-primary mb-lg">
 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>speed</span>
 </div>
 <h3 className="font-headline-md text-headline-md mb-sm">Hiệu suất</h3>
 <p className="font-body-md text-body-md text-on-surface-variant">Infrastructure built for speed, optimized for intense compute workloads.</p>
 </div>
-<div className="p-xl bg-surface border border-outline-variant rounded-2xl hover:border-primary transition-colors hover:shadow-lg">
+<div className="interactive-card p-xl bg-surface border border-outline-variant rounded-2xl hover:border-primary transition-colors hover:shadow-lg">
 <div className="w-12 h-12 rounded-lg bg-tertiary-fixed flex items-center justify-center text-tertiary mb-lg">
 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
 </div>
 <h3 className="font-headline-md text-headline-md mb-sm">Tin cậy</h3>
 <p className="font-body-md text-body-md text-on-surface-variant">99.9% SLA and continuous monitoring to ensure your apps stay online.</p>
 </div>
-<div className="p-xl bg-surface border border-outline-variant rounded-2xl hover:border-primary transition-colors hover:shadow-lg">
+<div className="interactive-card p-xl bg-surface border border-outline-variant rounded-2xl hover:border-primary transition-colors hover:shadow-lg">
 <div className="w-12 h-12 rounded-lg bg-secondary-fixed flex items-center justify-center text-secondary mb-lg">
 <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>tune</span>
 </div>

@@ -111,7 +111,7 @@ export default function NewsPage() {
   }, [search, category]);
 
   return (
-    <main className="flex-grow pt-16">
+    <main className="public-content flex-grow pt-16">
       <section className="relative pt-3xl pb-2xl px-gutter overflow-hidden shader-overlay border-b border-outline-variant">
         <div className="max-w-container-max mx-auto relative z-10 flex flex-col items-center text-center">
           <h1 className="font-display-lg text-display-lg text-on-surface mb-md">Cloud Knowledge</h1>
@@ -165,7 +165,7 @@ export default function NewsPage() {
 
         {!loading && !error && featuredArticle && (
           <section className="mb-2xl">
-            <div className="group flex flex-col lg:flex-row bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-300">
+            <div className="interactive-card group flex flex-col lg:flex-row bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-300">
               <div className="lg:w-7/12 relative overflow-hidden bg-surface-container min-h-[260px]">
                 {resolveMediaUrl(featuredArticle.thumbnailUrl) ? (
                   <img src={resolveMediaUrl(featuredArticle.thumbnailUrl) || undefined} alt={featuredArticle.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
@@ -202,7 +202,7 @@ export default function NewsPage() {
               </div>
               <div className="grid grid-cols-1 gap-lg md:grid-cols-2">
                 {visibleArticles.map((article) => (
-                  <article key={article.id} className="group flex flex-col overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
+                  <article key={article.id} className="interactive-card group flex flex-col overflow-hidden rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
                     <div className="relative h-52 overflow-hidden bg-surface-container">
                       {resolveMediaUrl(article.thumbnailUrl) ? <img src={resolveMediaUrl(article.thumbnailUrl) || undefined} alt={article.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" /> : <div className="flex h-full w-full items-center justify-center bg-surface-container text-primary"><span className="material-symbols-outlined text-4xl">article</span></div>}
                       <span className="absolute left-4 top-4 rounded border border-outline-variant bg-surface-container-lowest/90 px-2 py-1 font-label-caps text-label-caps text-secondary">{article.category || "Tin tức"}</span>
@@ -227,7 +227,7 @@ export default function NewsPage() {
             </section>
 
             <aside className="space-y-lg">
-              <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg shadow-sm">
+              <div className="interactive-card rounded-xl border border-outline-variant bg-surface-container-lowest p-lg shadow-sm">
                 <div className="mb-md flex items-center gap-sm border-b border-outline-variant pb-md">
                   <span className="material-symbols-outlined text-primary">auto_awesome</span>
                   <h3 className="font-headline-sm text-headline-sm text-on-surface">Thông tin nổi bật</h3>
@@ -242,7 +242,7 @@ export default function NewsPage() {
                 )}
               </div>
 
-              <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg shadow-sm">
+              <div className="interactive-card rounded-xl border border-outline-variant bg-surface-container-lowest p-lg shadow-sm">
                 <h3 className="mb-md border-b border-outline-variant pb-md font-headline-sm text-headline-sm text-on-surface">Thẻ chủ đề</h3>
                 <div className="flex flex-wrap gap-sm">
                   {categories.filter((item) => item !== "Tất cả").map((item) => (

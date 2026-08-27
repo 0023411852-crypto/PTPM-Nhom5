@@ -60,7 +60,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="bg-background text-on-background w-full min-h-screen flex flex-col items-center justify-center bg-grid-pattern p-[16px] sm:p-[24px] pt-24 relative overflow-hidden">
+        <div className="auth-shell bg-background text-on-background w-full min-h-screen flex flex-col items-center justify-center bg-grid-pattern p-[16px] sm:p-[24px] pt-24 relative overflow-hidden route-fade-in">
             
 <div className="w-full max-w-[448px]">
 
@@ -70,7 +70,7 @@ export default function LoginPage() {
 </div>
 </div>
 
-<div className="glass-panel rounded-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.08)] p-[32px] relative overflow-hidden">
+<div className="auth-card glass-panel rounded-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.08)] p-[32px] relative overflow-hidden">
 
 <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
 <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-tertiary/10 rounded-full blur-3xl pointer-events-none"></div>

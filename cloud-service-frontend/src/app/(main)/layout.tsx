@@ -9,7 +9,7 @@ export default function MainLayout({
   return (
     <>
       <Navbar />
-      {children}
+      <div className="public-route-shell route-fade-in">{children}</div>
       <Footer />
     </>
   );

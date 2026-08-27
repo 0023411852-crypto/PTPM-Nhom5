@@ -81,14 +81,14 @@ export default function PartnersPage() {
         }
     };
     return (
-        <div className="w-full">
+        <div className="public-content w-full route-fade-in">
             {/* Hero Section */}
             <section className="relative pt-3xl pb-2xl px-gutter overflow-hidden bg-surface">
                 <div className="absolute inset-0 bg-grid-pattern opacity-50"></div>
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-[1000px] bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
                 
                 <div className="max-w-container-max mx-auto relative z-10 pt-16">
-                    <div className="glass-panel shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-xl md:p-3xl max-w-[48rem] mx-auto text-center border border-outline-variant/30">
+                    <div className="interactive-card glass-panel shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-xl md:p-3xl max-w-[48rem] mx-auto text-center border border-outline-variant/30">
                         <h1 className="font-display-lg text-display-lg text-on-background mb-md hidden md:block">
                             Trở thành Đối tác của CloudNova
                         </h1>
@@ -146,7 +146,7 @@ export default function PartnersPage() {
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-lg">
                         {/* Card 1 */}
-                        <div className="bg-surface-container-lowest p-xl rounded-xl border border-outline-variant/30 hover:border-primary hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 group">
+                        <div className="interactive-card bg-surface-container-lowest p-xl rounded-xl border border-outline-variant/30 hover:border-primary hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 group">
                             <div className="w-12 h-12 rounded-lg bg-primary-container/10 flex items-center justify-center mb-md group-hover:bg-primary-container/20 transition-colors">
                                 <span className="material-symbols-outlined text-primary text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span>
                             </div>
@@ -157,7 +157,7 @@ export default function PartnersPage() {
                         </div>
 
                         {/* Card 2 */}
-                        <div className="bg-surface-container-lowest p-xl rounded-xl border border-outline-variant/30 hover:border-primary hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 group">
+                        <div className="interactive-card bg-surface-container-lowest p-xl rounded-xl border border-outline-variant/30 hover:border-primary hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 group">
                             <div className="w-12 h-12 rounded-lg bg-primary-container/10 flex items-center justify-center mb-md group-hover:bg-primary-container/20 transition-colors">
                                 <span className="material-symbols-outlined text-primary text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>support_agent</span>
                             </div>
@@ -168,7 +168,7 @@ export default function PartnersPage() {
                         </div>
 
                         {/* Card 3 */}
-                        <div className="bg-surface-container-lowest p-xl rounded-xl border border-outline-variant/30 hover:border-primary hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 group">
+                        <div className="interactive-card bg-surface-container-lowest p-xl rounded-xl border border-outline-variant/30 hover:border-primary hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 group">
                             <div className="w-12 h-12 rounded-lg bg-primary-container/10 flex items-center justify-center mb-md group-hover:bg-primary-container/20 transition-colors">
                                 <span className="material-symbols-outlined text-primary text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>school</span>
                             </div>
@@ -192,7 +192,7 @@ export default function PartnersPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-lg">
                         {/* Silver */}
-                        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-xl flex flex-col">
+                        <div className="interactive-card bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-xl flex flex-col">
                             <div className="mb-lg">
                                 <span className="inline-block px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-caps text-label-caps uppercase tracking-wider mb-md">Silver</span>
                                 <div className="font-display-lg text-display-lg text-on-background">10%</div>
@@ -220,7 +220,7 @@ export default function PartnersPage() {
                         </div>
 
                         {/* Gold */}
-                        <div className="bg-surface-container-lowest rounded-xl border-2 border-primary p-xl flex flex-col relative shadow-[0_4px_20px_rgba(0,0,0,0.05)] transform md:-translate-y-4">
+                        <div className="interactive-card bg-surface-container-lowest rounded-xl border-2 border-primary p-xl flex flex-col relative shadow-[0_4px_20px_rgba(0,0,0,0.05)] transform md:-translate-y-4">
                             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-on-primary font-label-caps text-label-caps uppercase tracking-wider px-4 py-1 rounded-full whitespace-nowrap">
                                 Phổ biến nhất
                             </div>

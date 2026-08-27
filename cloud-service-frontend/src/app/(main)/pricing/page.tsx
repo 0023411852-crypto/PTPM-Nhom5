@@ -170,7 +170,7 @@ export default function PricingPage() {
     const handleAddToCart = (plan: any, priceAmount: number, cycle: string, priceObj: any, selectedPromoId?: string) => {
         // Cho phép nhiều sản phẩm trong giỏ và tăng số lượng nếu cùng gói và chu kỳ
         const cartStr = localStorage.getItem("cart");
-        let cart = cartStr ? JSON.parse(cartStr) : [];
+        const cart = cartStr ? JSON.parse(cartStr) : [];
         
         const existingItemIndex = cart.findIndex((item: any) => 
             item.planId === plan.id && 
@@ -210,7 +210,7 @@ export default function PricingPage() {
     };
 
     return (
-        <main className="flex-grow pt-16 pb-2xl relative">
+        <main className="public-content flex-grow pt-16 pb-2xl relative">
             {toastMessage && (
                 <div className="fixed top-24 right-4 z-50 bg-primary text-white px-6 py-3 rounded-lg shadow-lg font-medium animate-fade-in">
                     <div className="flex items-center gap-2">
@@ -243,7 +243,7 @@ export default function PricingPage() {
             {featuredPromo && (
                 <section className="px-gutter pb-3xl -mt-xl relative z-20">
                     <div className="max-w-container-max mx-auto">
-                        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:border-primary/50 transition-colors duration-300">
+                        <div className="interactive-card bg-surface-container-lowest rounded-xl border border-outline-variant p-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:border-primary/50 transition-colors duration-300">
                             <div className="grid md:grid-cols-2 gap-xl items-center">
                                 <div>
                                     <span className="inline-block bg-error-container text-on-error-container font-label-caps text-label-caps px-2 py-1 rounded-md mb-md">HOT DEAL</span>
@@ -351,7 +351,7 @@ export default function PricingPage() {
 
                             if (isEnterprise) {
                                 return (
-                                    <div key={plan.id} className="col-span-12 md:col-span-6 lg:col-span-3 flex flex-col bg-inverse-surface rounded-xl border border-inverse-surface p-lg">
+                                    <div key={plan.id} className="interactive-card col-span-12 md:col-span-6 lg:col-span-3 flex flex-col bg-inverse-surface rounded-xl border border-inverse-surface p-lg">
                                         <div className="mb-lg">
                                             <h3 className="font-headline-md text-headline-md text-surface-container-lowest mb-sm">{plan.name}</h3>
                                             <div className="flex items-baseline gap-xs mt-md">
@@ -377,7 +377,7 @@ export default function PricingPage() {
                             }
 
                             return (
-                                <div key={plan.id} className={`col-span-12 md:col-span-6 lg:col-span-3 flex flex-col ${isHighlighted ? 'bg-surface-container-lowest rounded-xl border-2 border-primary p-lg shadow-[0_4px_20px_rgba(0,0,0,0.05)] relative transform md:-translate-y-4' : 'bg-surface-container-lowest rounded-xl border border-outline-variant p-lg hover:border-primary transition-colors hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}>
+                                <div key={plan.id} className={`interactive-card col-span-12 md:col-span-6 lg:col-span-3 flex flex-col ${isHighlighted ? 'bg-surface-container-lowest rounded-xl border-2 border-primary p-lg shadow-[0_4px_20px_rgba(0,0,0,0.05)] relative transform md:-translate-y-4' : 'bg-surface-container-lowest rounded-xl border border-outline-variant p-lg hover:border-primary transition-colors hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}>
                                     {isHighlighted && (
                                         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary text-on-primary font-label-caps text-label-caps px-md py-xs rounded-full">
                                             PHỔ BIẾN NHẤT

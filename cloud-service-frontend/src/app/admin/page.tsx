@@ -39,11 +39,11 @@ export default function AdminDashboardPage() {
     if (loading) return <div className="text-center p-2xl">Đang tải dữ liệu...</div>;
 
     return (
-        <div className="space-y-xl">
+        <div className="dashboard-page space-y-xl route-fade-in">
             <h1 className="font-display-sm text-display-sm text-on-surface">Tổng quan hệ thống</h1>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg">
-                <div className="bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm">
+                <div className="interactive-card bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm">
                     <div className="flex justify-between items-start mb-md">
                         <div className="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center">
                             <span className="material-symbols-outlined text-primary text-[24px]">payments</span>
@@ -55,7 +55,7 @@ export default function AdminDashboardPage() {
                     </h3>
                 </div>
 
-                <div className="bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm">
+                <div className="interactive-card bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm">
                     <div className="flex justify-between items-start mb-md">
                         <div className="w-12 h-12 rounded-xl bg-success/20 flex items-center justify-center">
                             <span className="material-symbols-outlined text-success text-[24px]">shopping_cart</span>
@@ -65,7 +65,7 @@ export default function AdminDashboardPage() {
                     <h3 className="font-display-sm text-display-sm text-on-surface">{stats?.totalOrders || 0}</h3>
                 </div>
 
-                <div className="bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm">
+                <div className="interactive-card bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm">
                     <div className="flex justify-between items-start mb-md">
                         <div className="w-12 h-12 rounded-xl bg-warning/20 flex items-center justify-center">
                             <span className="material-symbols-outlined text-warning text-[24px]">pending_actions</span>
@@ -75,7 +75,7 @@ export default function AdminDashboardPage() {
                     <h3 className="font-display-sm text-display-sm text-on-surface">{stats?.pendingOrders || 0}</h3>
                 </div>
 
-                <div className="bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm">
+                <div className="interactive-card bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm">
                     <div className="flex justify-between items-start mb-md">
                         <div className="w-12 h-12 rounded-xl bg-error/20 flex items-center justify-center">
                             <span className="material-symbols-outlined text-error text-[24px]">support_agent</span>
@@ -87,7 +87,7 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg">
-                <div className="bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm">
+                <div className="interactive-card bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm">
                     <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">Lối tắt thao tác</h2>
                     <div className="space-y-sm">
                         <Link href="/admin/orders" className="flex items-center gap-md p-md rounded-xl hover:bg-surface-container transition-colors border border-transparent hover:border-outline-variant">

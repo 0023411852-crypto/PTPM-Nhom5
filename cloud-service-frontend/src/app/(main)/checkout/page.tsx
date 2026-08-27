@@ -186,8 +186,8 @@ export default function CheckoutPage() {
 
     if (!token) {
         return (
-            <div className="pt-32 pb-2xl min-h-screen px-gutter">
-                <div className="max-w-[768px] mx-auto bg-surface rounded-2xl shadow-sm border border-outline-variant p-2xl text-center">
+            <div className="public-content checkout-page pt-32 pb-2xl min-h-screen px-gutter route-fade-in">
+                <div className="interactive-card max-w-[768px] mx-auto bg-surface rounded-2xl shadow-sm border border-outline-variant p-2xl text-center">
                     <div className="w-20 h-20 bg-error-container text-on-error-container rounded-full flex items-center justify-center mx-auto mb-lg">
                         <span className="material-symbols-outlined text-[40px]">lock</span>
                     </div>
@@ -205,8 +205,8 @@ export default function CheckoutPage() {
 
     if (isSuccess) {
         return (
-            <div className="pt-32 pb-2xl min-h-screen px-gutter">
-                <div className="max-w-[768px] mx-auto bg-surface rounded-2xl shadow-sm border border-outline-variant p-2xl text-center">
+            <div className="public-content checkout-page pt-32 pb-2xl min-h-screen px-gutter route-fade-in">
+                <div className="interactive-card max-w-[768px] mx-auto bg-surface rounded-2xl shadow-sm border border-outline-variant p-2xl text-center">
                     <div className="w-20 h-20 bg-primary-container text-primary rounded-full flex items-center justify-center mx-auto mb-lg">
                         <span className="material-symbols-outlined text-[40px]">check_circle</span>
                     </div>
@@ -258,7 +258,7 @@ export default function CheckoutPage() {
     }
 
     return (
-        <main className="flex-grow pt-24 pb-3xl bg-surface-container-lowest min-h-screen">
+        <main className="public-content checkout-page flex-grow pt-24 pb-3xl bg-surface-container-lowest min-h-screen route-fade-in">
             <div className="max-w-container-max mx-auto px-gutter">
                 <div className="mb-xl">
                     <Link href="/pricing" className="inline-flex items-center gap-xs font-label-caps text-label-caps text-primary hover:text-primary-fixed-variant transition-colors mb-sm">
@@ -286,7 +286,7 @@ export default function CheckoutPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-xl">
                         {/* Cột Chi tiết Giỏ hàng */}
                         <div className="lg:col-span-2 space-y-md">
-                            <div className="bg-surface rounded-2xl border border-outline-variant overflow-hidden shadow-sm">
+                            <div className="interactive-card bg-surface rounded-2xl border border-outline-variant overflow-hidden shadow-sm">
                                 <div className="p-lg border-b border-outline-variant bg-surface-container-lowest">
                                     <h2 className="font-headline-sm text-headline-sm text-on-surface">Danh sách dịch vụ ({cart.length})</h2>
                                 </div>
@@ -314,7 +314,7 @@ export default function CheckoutPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm">
+                            <div className="interactive-card bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm">
                                 <h2 className="font-headline-sm text-headline-sm text-on-surface mb-md">Ghi chú đơn hàng</h2>
                                 <textarea 
                                     className="w-full h-24 px-4 py-3 rounded-lg border border-outline-variant bg-surface text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow resize-none"

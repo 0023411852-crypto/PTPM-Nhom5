@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
     };
 
     return (
-        <div className="bg-background text-on-background w-full min-h-screen flex flex-col items-center justify-center bg-grid-pattern p-[16px] sm:p-[24px] pt-24 relative overflow-hidden">
+        <div className="auth-shell bg-background text-on-background w-full min-h-screen flex flex-col items-center justify-center bg-grid-pattern p-[16px] sm:p-[24px] pt-24 relative overflow-hidden route-fade-in">
             
             <div className="w-full max-w-[448px]">
 
@@ -27,7 +27,7 @@ export default function ForgotPasswordPage() {
                     <img alt="CloudNova Logo" className="w-[48px] h-[48px] object-contain rounded-xl shadow-sm bg-white p-2 border border-outline-variant" src="https://lh3.googleusercontent.com/aida/AP1WRLtXpLDCeAkzHKEgrwo4KPsZwWLDhm6abHZmi0-63wgmcnnWA1PmhjYqXGDhDI6g3xWscRm1KZJJLeTAH840G6Ux4ZyqagCFWyQ1uDksYzXkG8xFGx2lESwNOYECwW184tV1FBAHNTlrK3PBQ9nWkxTLX1_5WLj6Z24ycfOruijLeA1yAkbcJZFokdebB9Ilgg8x2F4baW8kY36UwLCEIfCwS9-HK5K-kcvW6RMQi7MXoUE-JYvp9rdz"/>
                 </div>
 
-                <div className="glass-panel rounded-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.08)] p-[32px] relative overflow-hidden">
+                <div className="auth-card glass-panel rounded-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.08)] p-[32px] relative overflow-hidden">
                     
                     <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
                     <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-tertiary/10 rounded-full blur-3xl pointer-events-none"></div>

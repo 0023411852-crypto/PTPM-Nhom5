@@ -38,7 +38,7 @@ export default function RegisterPage() {
         }
     };
     return (
-        <div className="bg-background w-full min-h-screen flex flex-col items-center justify-center relative overflow-hidden font-body-md text-on-surface pt-24">
+        <div className="auth-shell bg-background w-full min-h-screen flex flex-col items-center justify-center relative overflow-hidden font-body-md text-on-surface pt-24 route-fade-in">
             
 
 <div className="absolute inset-0 bg-grid-pattern z-0"></div>
@@ -61,7 +61,7 @@ export default function RegisterPage() {
     </div>
 )}
 
-<div className="glass-panel rounded-xl p-lg md:p-xl">
+<div className="auth-card glass-panel rounded-xl p-lg md:p-xl">
 <form onSubmit={handleSubmit} className="space-y-lg">
 
 <div className="space-y-xs">

@@ -170,7 +170,7 @@ export default function TopCustomersPage() {
     };
 
     return (
-        <div className="bg-background min-h-screen">
+        <div className="public-content bg-background min-h-screen route-fade-in">
             <Head>
                 <title>Top Khách hàng & Đánh giá | CloudNova</title>
             </Head>
@@ -181,7 +181,7 @@ export default function TopCustomersPage() {
                     <p className="text-lg text-gray-600 dark:text-gray-300 text-center w-full max-w-[800px] mx-auto mb-10">
                         Vinh danh những doanh nghiệp hàng đầu đã tin tưởng và đồng hành cùng cơ sở hạ tầng đám mây cao cấp của CloudNova.
                     </p>
-                    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-xl">
+                    <div className="interactive-card bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-xl">
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-gray-50 dark:bg-gray-900/50 text-gray-700 dark:text-gray-300 font-semibold text-sm uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
@@ -259,7 +259,7 @@ export default function TopCustomersPage() {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {servicePlans.map(plan => (
-                                <article key={plan.id} className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm flex gap-4 items-center">
+                                <article key={plan.id} className="interactive-card bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm flex gap-4 items-center">
                                     <div className="w-28 h-28 shrink-0 rounded-lg bg-white border border-gray-200 flex items-center justify-center p-2">
                                         {plan.qrCodeBase64 ? (
                                             <img src={resolveQrImage(plan.qrCodeBase64) || ''} alt={`Mã QR gói ${plan.name}`} className="w-full h-full object-contain" />
@@ -278,7 +278,7 @@ export default function TopCustomersPage() {
                     )}
                 </section>
                 {/* Customer Review Form */}
-                <section className="mb-16 rounded-2xl border border-indigo-100 bg-white/80 p-6 shadow-sm dark:border-indigo-900 dark:bg-gray-800/80 md:p-8">
+                <section className="interactive-card mb-16 rounded-2xl border border-indigo-100 bg-white/80 p-6 shadow-sm dark:border-indigo-900 dark:bg-gray-800/80 md:p-8">
                     <div className="mb-6">
                         <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Chia sẻ trải nghiệm</p>
                         <h2 className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">Đánh giá dịch vụ CloudNova</h2>
@@ -331,7 +331,7 @@ export default function TopCustomersPage() {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {reviews.map(review => (
-                            <div key={review.id} className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-shadow flex flex-col h-[280px]">
+                            <div key={review.id} className="interactive-card bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-shadow flex flex-col h-[280px]">
                                 <div className="flex items-center gap-3 mb-4">
                                     <img alt={review.reviewerName} className="w-12 h-12 rounded-full object-cover" src={review.reviewerAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.reviewerName)}&background=random`} />
                                     <div>

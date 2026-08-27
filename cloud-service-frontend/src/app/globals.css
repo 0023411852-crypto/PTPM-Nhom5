@@ -495,3 +495,89 @@ body {
   .api-badge-loading .api-badge-dot, .api-skeleton::after { animation: none; }
   [data-reveal] { opacity: 1; transform: none; transition: none; }
 }
+
+
+/* Site-wide refinement layer: presentation only, no business logic changes */
+:root {
+  --site-blue: #1762d1;
+  --site-navy: #071a38;
+  --site-line: #dfe8f5;
+  --site-shadow: 0 16px 40px rgba(22, 56, 103, .08);
+}
+
+.public-route-shell { min-height: 100vh; background: #f8faff; }
+.route-fade-in { animation: route-fade-in .42s cubic-bezier(.23, 1, .32, 1) both; }
+@keyframes route-fade-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+
+.site-nav {
+  background: rgba(255, 255, 255, .82) !important;
+  border-bottom-color: rgba(205, 219, 237, .8) !important;
+  box-shadow: 0 5px 24px rgba(25, 61, 111, .055) !important;
+}
+.site-nav::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(90deg, #1762d1, #35c9f2, #8d7dff); opacity: .85; }
+.site-nav-inner { height: 68px !important; }
+.brand-lockup { position: relative; letter-spacing: -.035em; }
+.brand-lockup::after { content: ""; position: absolute; left: 27px; right: -4px; bottom: -5px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, #1762d1, transparent); opacity: .4; }
+.site-nav-link { position: relative; display: inline-flex; align-items: center; min-height: 34px; }
+.site-nav-link::after { content: ""; position: absolute; left: 50%; right: 50%; bottom: -5px; height: 2px; border-radius: 4px; background: var(--site-blue); transition: left .2s ease, right .2s ease; }
+.site-nav-link:hover::after { left: 10%; right: 10%; }
+.nav-icon-button { transition: color .2s ease, background-color .2s ease, transform .2s ease; }
+.nav-icon-button:hover { transform: translateY(-2px); }
+.nav-cta { box-shadow: 0 7px 18px rgba(23, 98, 209, .18); transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease; }
+.nav-cta:hover { transform: translateY(-2px); box-shadow: 0 11px 25px rgba(23, 98, 209, .28); }
+.nav-cta:active { transform: scale(.97); }
+.mobile-drawer { box-shadow: -18px 0 50px rgba(8, 34, 74, .18) !important; }
+
+.site-footer { position: relative; overflow: hidden; background: linear-gradient(135deg, #071a38 0%, #0c2b58 100%) !important; border-top: 0 !important; }
+.site-footer::before { content: ""; position: absolute; width: 430px; height: 430px; right: -160px; top: -270px; border: 1px solid rgba(107, 204, 255, .14); border-radius: 9999px; box-shadow: 0 0 0 44px rgba(107, 204, 255, .025), 0 0 0 88px rgba(107, 204, 255, .018); pointer-events: none; }
+.site-footer-inner { position: relative; z-index: 1; padding-top: 48px !important; padding-bottom: 48px !important; }
+.site-footer a { transition: color .18s ease, transform .18s ease; }
+.site-footer a:hover { transform: translateX(3px); text-decoration: none !important; }
+
+.auth-shell { background: radial-gradient(circle at 15% 15%, rgba(62, 152, 255, .16), transparent 28%), radial-gradient(circle at 88% 84%, rgba(101, 83, 231, .13), transparent 28%), #f5f8fd !important; }
+.auth-card { border-color: rgba(210, 224, 243, .92) !important; box-shadow: 0 24px 70px rgba(27, 67, 119, .12) !important; }
+.auth-card h1 { letter-spacing: -.04em; }
+.auth-shell input:not([type="checkbox"]), .auth-shell textarea, .auth-shell select { min-height: 46px; border-color: #d7e2f0; box-shadow: 0 2px 6px rgba(35, 70, 121, .025); }
+.auth-shell input:not([type="checkbox"]):focus, .auth-shell textarea:focus, .auth-shell select:focus { box-shadow: 0 0 0 4px rgba(23, 98, 209, .12), 0 5px 14px rgba(23, 98, 209, .08); }
+.auth-shell button[type="submit"] { min-height: 48px; box-shadow: 0 10px 22px rgba(23, 98, 209, .2); transition: transform .18s ease, box-shadow .18s ease; }
+.auth-shell button[type="submit"]:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(23, 98, 209, .28); }
+
+.dashboard-shell { background: #f4f7fc !important; }
+.dashboard-sidebar { background: linear-gradient(180deg, #071a38 0%, #0a2b59 100%) !important; box-shadow: 8px 0 30px rgba(10, 37, 78, .08); }
+.dashboard-header { background: rgba(255, 255, 255, .9) !important; border-bottom-color: #dce6f3 !important; box-shadow: 0 5px 20px rgba(31, 64, 110, .045) !important; backdrop-filter: blur(15px); }
+.dashboard-main { background: #f4f7fc !important; }
+.dashboard-sidebar a { transition: color .18s ease, background-color .18s ease, transform .18s ease; }
+.dashboard-sidebar a:hover { transform: translateX(3px); }
+.dashboard-sidebar .bg-primary-container, .dashboard-sidebar .bg-primary-container\/20 { box-shadow: inset 3px 0 0 #68c8ff, 0 8px 18px rgba(0, 0, 0, .1); }
+.dashboard-header input { min-height: 42px; border-radius: 12px !important; }
+
+.interactive-card { transition: transform .22s cubic-bezier(.23, 1, .32, 1), box-shadow .22s ease, border-color .22s ease; }
+.interactive-card:hover { transform: translateY(-4px); box-shadow: var(--site-shadow); border-color: #a9c9f3; }
+
+@media (max-width: 767px) {
+  .site-nav-inner { height: 62px !important; }
+  .site-nav-link::after { display: none; }
+  .site-footer-inner { padding-top: 36px !important; padding-bottom: 36px !important; }
+  .auth-card { padding: 24px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-fade-in, .nav-cta, .nav-icon-button, .site-footer a, .dashboard-sidebar a, .interactive-card { animation: none; transition: none; }
+}
+
+
+.public-content section { animation: section-lift-in .58s cubic-bezier(.23, 1, .32, 1) both; }
+.public-content section:nth-of-type(2) { animation-delay: 70ms; }
+.public-content section:nth-of-type(3) { animation-delay: 140ms; }
+.public-content section:nth-of-type(4) { animation-delay: 210ms; }
+.public-content section:nth-of-type(5) { animation-delay: 280ms; }
+@keyframes section-lift-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.dashboard-main > * { animation: route-fade-in .42s cubic-bezier(.23, 1, .32, 1) both; }
+.dashboard-page > div > .interactive-card:nth-child(1) { transition-delay: 40ms; }
+.dashboard-page > div > .interactive-card:nth-child(2) { transition-delay: 100ms; }
+.dashboard-page > div > .interactive-card:nth-child(3) { transition-delay: 160ms; }
+.dashboard-page > div > .interactive-card:nth-child(4) { transition-delay: 220ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .public-content section, .dashboard-main > * { animation: none; }
+}

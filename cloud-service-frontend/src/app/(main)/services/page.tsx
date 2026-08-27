@@ -66,7 +66,7 @@ export default function ServicesPage() {
     return (
         <>
             
-<main className="flex-grow pt-16">
+<main className="public-content flex-grow pt-16">
 
 <section className="py-3xl px-gutter max-w-container-max mx-auto text-center md:text-left grid grid-cols-1 md:grid-cols-2 gap-2xl items-center">
 <div>
@@ -159,7 +159,7 @@ export default function ServicesPage() {
             .filter(c => filter === 'Tất cả' || filter === c.name)
             .sort((a, b) => a.name.localeCompare(b.name))
             .map(category => (
-                <div key={category.id} className="glass-card rounded-[12px] p-lg flex flex-col hover:border-primary hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all group animate-fade-in">
+                <div key={category.id} className="interactive-card glass-card rounded-[12px] p-lg flex flex-col hover:border-primary hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-all group animate-fade-in">
                     <div className="flex items-center gap-sm mb-md">
                         <div className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
                             <span className="material-symbols-outlined">{category.icon || "dns"}</span>

@@ -340,7 +340,7 @@ export default function ClientPortalPage() {
     if (!token) return <div className="text-center p-2xl">Đang chuyển hướng...</div>;
 
     return (
-        <main className="flex-grow pt-24 pb-3xl bg-surface-container-lowest min-h-screen">
+        <main className="public-content client-portal flex-grow pt-24 pb-3xl bg-surface-container-lowest min-h-screen route-fade-in">
             <div className="max-w-container-max mx-auto px-gutter">
                 
                 <div className="mb-xl flex items-center justify-between">
@@ -353,7 +353,7 @@ export default function ClientPortalPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-xl">
                     {/* Sidebar */}
                     <div className="lg:col-span-1">
-                        <div className="bg-surface rounded-2xl border border-outline-variant p-md shadow-sm space-y-sm">
+                        <div className="interactive-card bg-surface rounded-2xl border border-outline-variant p-md shadow-sm space-y-sm">
                             <button 
                                 onClick={() => setActiveTab('services')}
                                 className={`w-full flex items-center gap-md px-md py-sm rounded-xl transition-colors ${activeTab === 'services' ? 'bg-primary-container text-primary font-medium' : 'text-on-surface-variant hover:bg-surface-container'}`}

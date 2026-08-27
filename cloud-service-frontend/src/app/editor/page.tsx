@@ -57,7 +57,7 @@ export default function EditorDashboardPage() {
     };
 
     return (
-        <div className="max-w-[1200px] mx-auto w-full space-y-lg pb-xl">
+        <div className="dashboard-page max-w-[1200px] mx-auto w-full space-y-lg pb-xl route-fade-in">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="font-headline-lg text-headline-lg text-on-surface">Tổng quan</h2>
@@ -70,7 +70,7 @@ export default function EditorDashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-md">
-                <div className="bg-surface rounded-xl p-md border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+                <div className="interactive-card bg-surface rounded-xl p-md border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
                     <div className="flex justify-between items-start mb-md">
                         <div className="p-sm bg-primary-container/20 rounded-lg text-primary">
                             <span className="material-symbols-outlined">visibility</span>
@@ -83,7 +83,7 @@ export default function EditorDashboardPage() {
                     </p>
                 </div>
 
-                <div className="bg-surface rounded-xl p-md border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+                <div className="interactive-card bg-surface rounded-xl p-md border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
                     <div className="flex justify-between items-start mb-md">
                         <div className="p-sm bg-secondary-container/30 rounded-lg text-secondary">
                             <span className="material-symbols-outlined">article</span>
@@ -96,7 +96,7 @@ export default function EditorDashboardPage() {
                     </p>
                 </div>
 
-                <div className="bg-surface rounded-xl p-md border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+                <div className="interactive-card bg-surface rounded-xl p-md border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
                     <div className="flex justify-between items-start mb-md">
                         <div className="p-sm bg-tertiary-container/30 rounded-lg text-tertiary">
                             <span className="material-symbols-outlined">support_agent</span>
@@ -111,14 +111,14 @@ export default function EditorDashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg">
-                <div className="bg-surface rounded-xl border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-lg flex flex-col min-h-[400px]">
+                <div className="interactive-card bg-surface rounded-xl border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-lg flex flex-col min-h-[400px]">
                     <h3 className="font-headline-md text-[18px] font-semibold text-on-surface mb-md">Lưu lượng truy cập nội dung</h3>
                     <div className="flex-1 border border-dashed border-outline-variant rounded-lg flex items-center justify-center text-on-surface-variant">
                         [Khu vực biểu đồ Area Chart hiển thị lượt xem theo ngày]
                     </div>
                 </div>
 
-                <div className="bg-surface rounded-xl border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-lg flex flex-col">
+                <div className="interactive-card bg-surface rounded-xl border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-lg flex flex-col">
                     <div className="flex justify-between items-center mb-md">
                         <h3 className="font-headline-md text-[18px] font-semibold text-on-surface">Bài viết thịnh hành</h3>
                         <Link href="/editor/articles" className="text-primary hover:text-primary-container font-body-sm font-medium">Xem tất cả</Link>

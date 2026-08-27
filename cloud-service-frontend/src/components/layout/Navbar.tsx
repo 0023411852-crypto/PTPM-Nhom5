@@ -70,21 +70,21 @@ export default function Navbar() {
 
   const getLinkClass = (path: string) => {
     if (pathname === path) {
-      return "text-primary border-b-2 border-primary text-[length:var(--text-label-caps)] font-semibold transition-colors pb-1";
+      return "site-nav-link text-primary border-b-2 border-primary text-[length:var(--text-label-caps)] font-semibold transition-colors pb-1";
     }
-    return "text-on-surface-variant hover:text-primary text-[length:var(--text-label-caps)] font-semibold transition-colors pb-1";
+    return "site-nav-link text-on-surface-variant hover:text-primary text-[length:var(--text-label-caps)] font-semibold transition-colors pb-1";
   };
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-sm border-b border-outline-variant transition-all duration-300">
-      <div className="flex justify-between items-center h-16 px-gutter max-w-[var(--spacing-container-max)] mx-auto">
+    <nav className="site-nav fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-sm border-b border-outline-variant transition-all duration-300">
+      <div className="site-nav-inner flex justify-between items-center h-16 px-gutter max-w-[var(--spacing-container-max)] mx-auto">
         <div className="flex items-center gap-md">
           <img
             alt="CloudNova Logo"
             className="h-8 w-auto hidden"
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKrfk0eJeszZLwtqDno7rdyXBneiyQM6WsPvsv4bHPfxMXlTylmZic2igXetLUOB4oENHvJrWHHYUrSkhf0-O8_3y-XHCCMoeDPODRovjqq-yBniIDRhUm_4gatrTi3QE-MaRV4srUZl0h6XWQ5Xhwq2nTeaRV56LQ57nT8K4y68V9V5xitmKYQY6rCxne-0X7_4UdyBxLKzLZ54TNUBFKeZbioUrRT2epoyIMI3BRNgDoBPL4VQ"
           />
-          <Link href="/" className="text-[length:var(--text-headline-md)] font-bold text-primary flex items-center gap-2">
+          <Link href="/" className="brand-lockup text-[length:var(--text-headline-md)] font-bold text-primary flex items-center gap-2">
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
               cloud
             </span>
@@ -116,7 +116,7 @@ export default function Navbar() {
         </div>
         <div className="flex items-center gap-md relative">
           
-          <Link href="/checkout" className="relative p-2 text-on-surface hover:bg-surface-container rounded-full transition-colors">
+          <Link href="/checkout" className="nav-icon-button relative p-2 text-on-surface hover:bg-surface-container rounded-full transition-colors">
             <span className="material-symbols-outlined" style={{ fontSize: "24px" }}>shopping_cart</span>
             {cartCount > 0 && (
               <span className="absolute top-0 right-0 bg-error text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
@@ -167,10 +167,10 @@ export default function Navbar() {
             </div>
           ) : (
             <>
-              <Link href="/login" className="hidden md:block text-[length:var(--text-label-caps)] font-semibold text-primary border border-primary px-4 py-2 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer active:scale-95 duration-200">
+              <Link href="/login" className="nav-cta hidden md:block text-[length:var(--text-label-caps)] font-semibold text-primary border border-primary px-4 py-2 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer active:scale-95 duration-200">
                 Đăng nhập
               </Link>
-              <Link href="/register" className="text-[length:var(--text-label-caps)] font-semibold bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-container transition-colors cursor-pointer active:scale-95 duration-200">
+              <Link href="/register" className="nav-cta text-[length:var(--text-label-caps)] font-semibold bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-container transition-colors cursor-pointer active:scale-95 duration-200">
                 Đăng ký ngay
               </Link>
             </>
@@ -185,13 +185,13 @@ export default function Navbar() {
       {/* Mobile Menu Backdrop */}
       {isMobileMenuOpen && (
         <div 
-          className="md:hidden fixed inset-0 bg-black/50 z-40 transition-opacity"
+          className="md:hidden fixed inset-0 bg-black/50 z-40 transition-opacity mobile-backdrop"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       {/* Mobile Menu Drawer */}
-      <div className={`flex md:hidden fixed top-0 right-0 h-full w-64 bg-surface shadow-2xl flex-col z-50 transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`mobile-drawer flex md:hidden fixed top-0 right-0 h-full w-64 bg-surface shadow-2xl flex-col z-50 transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex justify-between items-center p-4 border-b border-outline-variant">
           <span className="font-bold text-primary">Menu</span>
           <button onClick={() => setIsMobileMenuOpen(false)} className="text-on-surface outline-none">

@@ -19,8 +19,8 @@ export default async function Footer() {
   const staticPages = await getStaticPages();
 
   return (
-    <footer className="bg-inverse-surface w-full py-xl border-t border-outline-variant">
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-lg px-gutter max-w-[var(--spacing-container-max)] mx-auto">
+    <footer className="site-footer bg-inverse-surface w-full py-xl border-t border-outline-variant">
+      <div className="site-footer-inner grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-lg px-gutter max-w-[var(--spacing-container-max)] mx-auto">
         <div className="col-span-2 lg:col-span-2">
           <span className="text-[length:var(--text-headline-md)] font-bold text-primary-fixed flex items-center gap-2 mb-md">
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
