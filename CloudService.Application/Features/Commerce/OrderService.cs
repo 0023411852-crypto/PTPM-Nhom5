@@ -157,20 +157,15 @@ namespace CloudService.Application.Services
             if (planPrice.ServicePlanId != dto.ServicePlanId)
                 throw new ValidationException("Plan Price does not belong to the selected Service Plan");
 
+            // Calculate base price based on billing cycle
+            var basePrice = planPrice.Price * planPrice.BillingCycle;
+            var subtotal = basePrice + planPrice.SetupFee;
+
             // Find and apply the best applicable promotion
             Promotion? promotion = null;
             decimal discountAmount = 0;
             
             var promoRepo = _unitOfWork.Repository<Promotion>();
-            if (dto.PromotionId.HasValue)
-            {
-                var requestedPromo = await promoRepo.GetByIdAsync(dto.PromotionId.Value, "ServicePlans");
-                if (requestedPromo != null && (requestedPromo.DiscountPercentage < 0 || requestedPromo.DiscountPercentage > 100))
-                {
-                    throw new ValidationException("Promotion discount must be between 0 and 100 percent");
-                }
-            }
-            
             var allPromotions = await promoRepo.GetAllAsync(includeProperties: "ServicePlans");
             var applicablePromotions = allPromotions.Where(p =>
                 p.IsActive &&
@@ -180,41 +175,16 @@ namespace CloudService.Application.Services
                 (!p.BillingCycle.HasValue || p.BillingCycle.Value == planPrice.BillingCycle) &&
                 (p.ServicePlans == null || !p.ServicePlans.Any() || p.ServicePlans.Any(sp => sp.Id == dto.ServicePlanId))
             ).ToList();
-            
-            // Select promotion with highest discount
+
             if (applicablePromotions.Any())
             {
-                // If a specific promotion was provided, validate it's applicable
-                if (dto.PromotionId.HasValue)
-                {
-                    var specifiedPromo = applicablePromotions.FirstOrDefault(p => p.Id == dto.PromotionId.Value);
-                    if (specifiedPromo != null)
-                    {
-                        promotion = specifiedPromo;
-                    }
-                    else
-                    {
-                        // Specified promotion is not applicable, ignore it and use best available
-                        promotion = applicablePromotions.OrderByDescending(p => p.DiscountPercentage).First();
-                    }
-                }
-                else
-                {
-                    // No specific promotion, use the best available
-                    promotion = applicablePromotions.OrderByDescending(p => p.DiscountPercentage).First();
-                }
-            }
-            
-            // Calculate base price based on billing cycle
-            var basePrice = planPrice.Price * planPrice.BillingCycle;
-            var subtotal = basePrice + planPrice.SetupFee;
-            
-            // Calculate discount if promotion selected
-            if (promotion != null)
-            {
-                discountAmount = Math.Round(subtotal * (promotion.DiscountPercentage / 100), 2);
+                // LUÔN LUÔN chọn promotion có discount cao nhất, không tin tưởng FE.
+                // Nếu FE gửi PromotionId = 10% nhưng hệ thống có 20% hợp lệ, sẽ tự động dùng 20%
+                promotion = applicablePromotions.OrderByDescending(p => p.DiscountPercentage).FirstOrDefault();
                 
-                // Ensure discount doesn't exceed total
+                discountAmount = Math.Round(subtotal * (promotion.DiscountPercentage / 100m), 2, MidpointRounding.AwayFromZero);
+                
+                // Đảm bảo không giảm giá quá số tiền gốc
                 if (discountAmount > subtotal)
                     discountAmount = subtotal;
             }
@@ -226,7 +196,7 @@ namespace CloudService.Application.Services
                 UserId = userId,
                 ServicePlanId = dto.ServicePlanId,
                 PlanPriceId = dto.PlanPriceId,
-                PromotionId = dto.PromotionId,
+                PromotionId = promotion?.Id, // LƯU PROMOTION THỰC SỰ ĐƯỢC CHỌN
                 CustomerNotes = dto.CustomerNotes,
                 TotalAmount = totalAmount,
                 Status = OrderStatus.Pending,

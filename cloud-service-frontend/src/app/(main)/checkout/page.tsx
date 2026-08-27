@@ -11,6 +11,7 @@ interface CartItem {
     price: number;
     cycle: string;
     qty: number;
+    promotionId?: string;
 }
 
 export default function CheckoutPage() {
@@ -143,7 +144,7 @@ export default function CheckoutPage() {
                             servicePlanId: item.planId,
                             planPriceId: item.priceId,
                             customerNotes: customerNotes,
-                            promotionId: null 
+                            promotionId: item.promotionId || null 
                         })
                     });
 

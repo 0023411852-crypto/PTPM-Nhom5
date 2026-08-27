@@ -66,6 +66,7 @@ export default function PricingPage() {
     const [timeLeft, setTimeLeft] = useState('');
     const [featuredPromo, setFeaturedPromo] = useState<Promotion | null>(null);
     const [isPromoActive, setIsPromoActive] = useState(false);
+    const [allPromos, setAllPromos] = useState<Promotion[]>([]);
     const [toastMessage, setToastMessage] = useState('');
 
     useEffect(() => {
@@ -110,6 +111,7 @@ export default function PricingPage() {
                 if (res.ok) {
                     const data = await res.json();
                     const activePromos = data.data as Promotion[];
+                    setAllPromos(activePromos);
                     
                     const featured = activePromos.find(p => p.isFeatured);
                     if (featured) {
@@ -165,7 +167,7 @@ export default function PricingPage() {
         return amount.toLocaleString('vi-VN') + 'đ';
     };
 
-    const handleAddToCart = (plan: any, priceAmount: number, cycle: string, priceObj: any) => {
+    const handleAddToCart = (plan: any, priceAmount: number, cycle: string, priceObj: any, selectedPromoId?: string) => {
         // Chỉ cho phép 1 sản phẩm trong giỏ để tránh lỗi tạo nhiều đơn
         const cart = [];
         const newItem = {
@@ -174,7 +176,8 @@ export default function PricingPage() {
             priceId: priceObj?.id || '',
             price: priceAmount,
             cycle: cycle,
-            qty: 1
+            qty: 1,
+            promotionId: selectedPromoId // Thêm PromotionId nếu có
         };
         cart.push(newItem);
         localStorage.setItem("cart", JSON.stringify(cart));
@@ -295,19 +298,28 @@ export default function PricingPage() {
                                 priceAmount = priceAmount * 12;
                             }
 
-                            // Apply promotion discount - only if billing cycle matches
+                            // Tự động tìm promotion có discount cao nhất hợp lệ
                             let discountPercent = 0;
+                            let bestPromoId: string | undefined = undefined;
+                            let bestPromoText = '';
                             const selectedBillingCycle = isAnnual ? 12 : 1;
-                            if (isPromoActive && featuredPromo && featuredPromo.discountPercentage) {
-                                // Check if promotion applies to this billing cycle
-                                const billingCycleMatch = !featuredPromo.billingCycle || featuredPromo.billingCycle === selectedBillingCycle;
-                                // Check if promotion applies to this plan
-                                const planMatch = !featuredPromo.servicePlanIds || featuredPromo.servicePlanIds.length === 0 || featuredPromo.servicePlanIds.includes(plan.id);
+                            
+                            allPromos.forEach(promo => {
+                                const isPromoTimeValid = promo.isActive && 
+                                    (!promo.endDate || new Date(promo.endDate).getTime() > new Date().getTime()) &&
+                                    (new Date(promo.startDate).getTime() <= new Date().getTime());
                                 
-                                if (billingCycleMatch && planMatch) {
-                                    discountPercent = featuredPromo.discountPercentage;
+                                if (isPromoTimeValid) {
+                                    const billingCycleMatch = !promo.billingCycle || promo.billingCycle === selectedBillingCycle;
+                                    const planMatch = !promo.servicePlanIds || promo.servicePlanIds.length === 0 || promo.servicePlanIds.includes(plan.id);
+                                    
+                                    if (billingCycleMatch && planMatch && promo.discountPercentage && promo.discountPercentage > discountPercent) {
+                                        discountPercent = promo.discountPercentage;
+                                        bestPromoId = promo.id;
+                                        bestPromoText = promo.badgeText || `GIẢM ${discountPercent}%`;
+                                    }
                                 }
-                            }
+                            });
 
                             if (discountPercent > 0) {
                                 priceAmount = priceAmount * (1 - discountPercent / 100);
@@ -389,7 +401,7 @@ export default function PricingPage() {
                                         })}
                                     </ul>
                                     <button 
-                                        onClick={() => handleAddToCart(plan, priceAmount, urlCycle, priceObj)}
+                                        onClick={() => handleAddToCart(plan, priceAmount, urlCycle, priceObj, bestPromoId)}
                                         className={`block text-center w-full font-body-md text-body-md font-medium py-sm rounded-lg transition-colors flex items-center justify-center gap-2 ${isHighlighted ? 'bg-primary text-on-primary hover:bg-primary-container' : 'bg-surface text-primary border border-primary hover:bg-surface-variant'}`}
                                     >
                                         <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
