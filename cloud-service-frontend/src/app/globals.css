@@ -770,3 +770,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 @keyframes cta-content-in { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @media (max-width: 639px) { .hero-aurora { width: 420px; height: 270px; } .hero-scroll-hint { display: none; } }
 @media (prefers-reduced-motion: reduce) { .hero-aurora, .hero-scroll-hint, .home-page .home-cta .relative.z-10 { animation: none; } .home-section-reveal, .home-page .trust-strip [data-reveal] { opacity: 1; transform: none; transition: none; } }
+
+
+/* Reveal fail-safe: never hide primary content while hydration/observer is pending. */
+.home-section-reveal { opacity: 1; transform: none; transition: none; }
+.home-section-reveal.is-visible { animation: safe-section-reveal .7s cubic-bezier(.23, 1, .32, 1) both; }
+[data-reveal] { opacity: 1; transform: none; transition: opacity .55s ease, transform .55s ease; }
+[data-reveal].is-visible { opacity: 1; transform: translateY(0); }
+@keyframes safe-section-reveal { from { opacity: .86; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.home-page .trust-strip [data-reveal] { opacity: 1; transform: none; }
+.home-page .trust-strip.is-visible [data-reveal] { animation: safe-card-reveal .55s ease both; }
+@keyframes safe-card-reveal { from { opacity: .72; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .home-section-reveal.is-visible, .home-page .trust-strip.is-visible [data-reveal] { animation: none; } }
