@@ -808,3 +808,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   [data-reveal].is-visible, .home-section-reveal.is-visible { animation: none; }
   .home-hero .hero-dashboard, .home-hero .floating-chip, .home-hero .hero-grid, .home-page .section-eyebrow::after { animation: none; }
 }
+
+
+/* Scroll-linked motion: visible, restrained and fail-safe. */
+.home-page { --home-scroll-progress: 0; --hero-scroll-shift: 0px; --hero-aurora-shift: 0px; }
+.home-scroll-progress { position: fixed; z-index: 60; top: 0; left: 0; width: 100%; height: 3px; pointer-events: none; transform-origin: left center; transform: scaleX(var(--home-scroll-progress)); background: linear-gradient(90deg, #2f8fff, #63e1ff 55%, #a38aff); box-shadow: 0 0 16px rgba(66, 184, 255, .65); }
+.home-hero .hero-dashboard { translate: 0 var(--hero-scroll-shift); }
+.home-hero .hero-aurora { translate: 0 var(--hero-aurora-shift); }
+.home-page .trust-strip { transition: box-shadow .25s ease, background-color .25s ease; }
+.home-page .trust-strip:hover { box-shadow: 0 20px 52px rgba(46, 88, 147, .14); }
+@media (prefers-reduced-motion: reduce) { .home-scroll-progress { display: none; } .home-hero .hero-dashboard, .home-hero .hero-aurora { translate: none; } }

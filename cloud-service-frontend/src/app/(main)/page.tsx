@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type ServiceCategory = {
   id: string;
@@ -95,6 +95,7 @@ function Icon({ name, className = "" }: { name: string; className?: string }) {
 }
 
 export default function Home() {
+  const homeRef = useRef<HTMLElement | null>(null);
   const [slogan, setSlogan] = useState("Hạ tầng Cloud mạnh mẽ cho mọi ý tưởng.");
   const [services, setServices] = useState<ServiceCategory[]>([]);
   const [featuredPlans, setFeaturedPlans] = useState<ServicePlan[]>([]);
@@ -161,6 +162,34 @@ export default function Home() {
     return () => observer.disconnect();
   }, [apiStatus]);
 
+  useEffect(() => {
+    const home = homeRef.current;
+    const hero = home?.querySelector<HTMLElement>(".home-hero");
+    if (!home || !hero || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let frame = 0;
+    const updateParallax = () => {
+      frame = 0;
+      const bounds = hero.getBoundingClientRect();
+      const progress = Math.max(0, Math.min(1, -bounds.top / Math.max(bounds.height, 1)));
+      const shift = Math.max(-1, Math.min(1, -bounds.top / Math.max(window.innerHeight, 1)));
+      home.style.setProperty("--home-scroll-progress", progress.toFixed(3));
+      home.style.setProperty("--hero-scroll-shift", `${(shift * 42).toFixed(1)}px`);
+      home.style.setProperty("--hero-aurora-shift", `${(shift * -70).toFixed(1)}px`);
+    };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateParallax);
+    };
+    updateParallax();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   const visibleServices = services.length > 0 ? services : fallbackServices;
   const spotlightPromotion = activePromotions[0];
   const serviceIsLoading = apiStatus.services === "loading";
@@ -168,7 +197,8 @@ export default function Home() {
   const newsIsLoading = apiStatus.news === "loading";
 
   return (
-    <main className="home-page flex-grow pt-16 overflow-hidden">
+    <main ref={homeRef} className="home-page flex-grow pt-16 overflow-hidden">
+      <div className="home-scroll-progress" aria-hidden="true" />
       <section className="home-hero relative overflow-hidden">
         <div className="hero-orb hero-orb-one" />
         <div className="hero-orb hero-orb-two" />
