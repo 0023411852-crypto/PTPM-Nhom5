@@ -23,28 +23,26 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<MediaFileDto>> GetMediaFilesAsync(PaginationFilter filter, string? fileType, string? search)
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
-            var repo = _unitOfWork.Repository<MediaFile>();
-            var allData = repo.GetQueryable();
-
-            if (!string.IsNullOrEmpty(fileType) && fileType != "Loại tệp: Tất cả" && fileType != "Tất cả")
+            var totalCount = await _unitOfWork.Repository<MediaFile>().CountAsync(q => 
             {
-                allData = allData.Where(m => m.FileType == fileType);
-            }
+                if (!string.IsNullOrEmpty(fileType) && fileType != "Loại tệp: Tất cả" && fileType != "Tất cả")
+                    q = q.Where(m => m.FileType == fileType);
+                if (!string.IsNullOrEmpty(search))
+                    q = q.Where(m => m.FileName.Contains(search));
+                return q;
+            });
 
-            if (!string.IsNullOrEmpty(search))
+            var pagedData = await _unitOfWork.Repository<MediaFile>().ToListAsync(q => 
             {
-                allData = allData.Where(m => m.FileName.Contains(search, StringComparison.OrdinalIgnoreCase));
-            }
-
-            var totalCount = allData.Count();
-
-            var pagedData = allData
-                .OrderByDescending(m => m.CreatedAt)
-                .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
+                if (!string.IsNullOrEmpty(fileType) && fileType != "Loại tệp: Tất cả" && fileType != "Tất cả")
+                    q = q.Where(m => m.FileType == fileType);
+                if (!string.IsNullOrEmpty(search))
+                    q = q.Where(m => m.FileName.Contains(search));
+                
+                return q.OrderByDescending(m => m.CreatedAt)
+                        .Skip((filter.PageNumber - 1) * filter.PageSize)
+                        .Take(filter.PageSize);
+            });
 
             var mappedItems = _mapper.Map<System.Collections.Generic.List<MediaFileDto>>(pagedData);
 

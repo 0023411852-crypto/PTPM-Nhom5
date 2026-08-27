@@ -229,19 +229,22 @@ namespace CloudService.WebApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> SeedVipData()
         {
-            // Seed 3 Users (idempotent - check if users already exist)
-            var role = _context.Roles.FirstOrDefault(r => r.Name == "Customer");
-            if (role == null) return BadRequest("Customer role not found");
-
-            var vipEmails = new[] { "nguyenvana@techcore.vn", "tranthib@dataflow.corp", "lehoangc@fintech.asia" };
-            var existingUsers = _context.AppUsers.Where(u => vipEmails.Contains(u.Email)).ToList();
-            
-            if (existingUsers.Count == vipEmails.Length)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                return Ok("VIP data already seeded");
-            }
+                // Seed 3 Users (idempotent - check if users already exist)
+                var role = _context.Roles.FirstOrDefault(r => r.Name == "Customer");
+                if (role == null) return BadRequest("Customer role not found");
 
-            var users = new List<CloudService.Domain.Entities.AppUser>();
+                var vipEmails = new[] { "nguyenvana@techcore.vn", "tranthib@dataflow.corp", "lehoangc@fintech.asia" };
+                var existingUsers = _context.AppUsers.Where(u => vipEmails.Contains(u.Email)).ToList();
+                
+                if (existingUsers.Count == vipEmails.Length)
+                {
+                    return Ok("VIP data already seeded");
+                }
+
+                var users = new List<CloudService.Domain.Entities.AppUser>();
             foreach (var email in vipEmails)
             {
                 if (!existingUsers.Any(u => u.Email == email))
@@ -372,7 +375,14 @@ namespace CloudService.WebApi.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            return Ok("Seeded successfully");
+                await transaction.CommitAsync();
+                return Ok("Seeded successfully");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
     }

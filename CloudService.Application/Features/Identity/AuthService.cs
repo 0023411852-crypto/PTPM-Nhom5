@@ -148,6 +148,10 @@ namespace CloudService.Application.Services
         {
             var hashedToken = HashToken(request.RefreshToken);
             
+            await using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+            
             var repo = _unitOfWork.Repository<UserSession>();
             var session = await repo.FirstOrDefaultAsync(
                 s => s.RefreshTokenHash == hashedToken && !s.IsRevoked);
@@ -196,6 +200,7 @@ namespace CloudService.Application.Services
             
             repo.Update(session);
             await _unitOfWork.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return new AuthResponse
             {
@@ -205,6 +210,12 @@ namespace CloudService.Application.Services
                 FullName = user.FullName,
                 Role = role?.Name ?? "Customer"
             };
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<bool> LogoutAsync(string refreshToken)

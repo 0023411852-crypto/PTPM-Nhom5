@@ -24,17 +24,12 @@ namespace CloudService.Application.Services
 
         public async Task<object> GetDashboardStatsAsync()
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
-            var usersQuery = _userRepo.GetQueryable();
-            var ordersQuery = _orderRepo.GetQueryable();
-            var ticketsQuery = _ticketRepo.GetQueryable();
-
-            var totalUsers = usersQuery.Count();
-            var totalOrders = ordersQuery.Count();
-            var pendingOrders = ordersQuery.Count(o => o.Status == CloudService.Domain.Enums.OrderStatus.Pending);
-            var openTickets = ticketsQuery.Count(t => t.Status == "Open");
-            var totalRevenue = ordersQuery.Where(o => o.Status == CloudService.Domain.Enums.OrderStatus.Completed).Sum(o => o.TotalAmount);
+            var totalUsers = await _userRepo.CountAsync(q => q);
+            var totalOrders = await _orderRepo.CountAsync(q => q);
+            var pendingOrders = await _orderRepo.CountAsync(q => q.Where(o => o.Status == CloudService.Domain.Enums.OrderStatus.Pending));
+            var openTickets = await _ticketRepo.CountAsync(q => q.Where(t => t.Status == "Open"));
+            var completedOrderAmounts = await _orderRepo.SelectToListAsync(q => q.Where(o => o.Status == CloudService.Domain.Enums.OrderStatus.Completed).Select(o => o.TotalAmount));
+            var totalRevenue = completedOrderAmounts.Sum();
 
             return new 
             {
@@ -48,11 +43,6 @@ namespace CloudService.Application.Services
 
         public async Task<CloudService.Application.DTOs.Admin.RevenueReportDto> GetRevenueReportAsync(string period)
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
-            var usersQuery = _userRepo.GetQueryable();
-            var ordersQuery = _orderRepo.GetQueryable("ServicePlan,ServicePlan.Category");
-
             var now = DateTime.UtcNow;
             DateTime currentStart, previousStart, previousEnd;
 
@@ -76,11 +66,11 @@ namespace CloudService.Application.Services
                 previousEnd = currentStart.AddTicks(-1);
             }
 
-            var currentOrders = ordersQuery.Where(o => o.OrderDate >= currentStart && o.OrderDate <= now).ToList();
-            var previousOrders = ordersQuery.Where(o => o.OrderDate >= previousStart && o.OrderDate <= previousEnd).ToList();
+            var currentOrders = await _orderRepo.ToListAsync(q => q.Where(o => o.OrderDate >= currentStart && o.OrderDate <= now), "ServicePlan,ServicePlan.Category");
+            var previousOrders = await _orderRepo.ToListAsync(q => q.Where(o => o.OrderDate >= previousStart && o.OrderDate <= previousEnd), "ServicePlan,ServicePlan.Category");
             
-            var currentUsers = usersQuery.Where(u => u.CreatedAt >= currentStart && u.CreatedAt <= now).ToList();
-            var previousUsers = usersQuery.Where(u => u.CreatedAt >= previousStart && u.CreatedAt <= previousEnd).ToList();
+            var currentUsers = await _userRepo.ToListAsync(q => q.Where(u => u.CreatedAt >= currentStart && u.CreatedAt <= now));
+            var previousUsers = await _userRepo.ToListAsync(q => q.Where(u => u.CreatedAt >= previousStart && u.CreatedAt <= previousEnd));
 
             var currentCompletedOrders = currentOrders.Where(o => o.Status == CloudService.Domain.Enums.OrderStatus.Completed).ToList();
             var previousCompletedOrders = previousOrders.Where(o => o.Status == CloudService.Domain.Enums.OrderStatus.Completed).ToList();

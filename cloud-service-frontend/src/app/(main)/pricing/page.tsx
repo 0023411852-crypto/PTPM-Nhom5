@@ -165,7 +165,8 @@ export default function PricingPage() {
     };
 
     const handleAddToCart = (plan: any, priceAmount: number, urlCycle: string, priceObj: any) => {
-        const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+        // Chỉ cho phép 1 sản phẩm trong giỏ để tránh lỗi tạo nhiều đơn
+        const cart = [];
         const newItem = {
             planId: plan.id,
             planName: plan.name,

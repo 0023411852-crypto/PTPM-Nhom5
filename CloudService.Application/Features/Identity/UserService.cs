@@ -101,6 +101,7 @@ namespace CloudService.Application.Services
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
             repo.Update(user);
+            await _unitOfWork.SaveChangesAsync();
             
             await _eventDispatcher.DispatchAsync(new PasswordChangedEvent 
             { 

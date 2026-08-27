@@ -1032,3 +1032,139 @@ END;
 GO
 COMMIT;
 GO
+
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260822164426_AddServiceFeaturesAndSpecifications'
+)
+BEGIN
+    ALTER TABLE [PartnerRequests] ALTER COLUMN [RequestedService] nvarchar(max) NOT NULL;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260822164426_AddServiceFeaturesAndSpecifications'
+)
+BEGIN
+    ALTER TABLE [NewsArticles] ALTER COLUMN [ThumbnailUrl] nvarchar(max) NULL;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260822164426_AddServiceFeaturesAndSpecifications'
+)
+BEGIN
+    ALTER TABLE [CustomerReviews] ALTER COLUMN [Rating] decimal(3,1) NOT NULL;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260822164426_AddServiceFeaturesAndSpecifications'
+)
+BEGIN
+    CREATE TABLE [PackageSpecifications] (
+        [Id] uniqueidentifier NOT NULL,
+        [ServicePlanId] uniqueidentifier NOT NULL,
+        [Name] nvarchar(100) NOT NULL,
+        [Value] nvarchar(255) NOT NULL,
+        [Unit] nvarchar(50) NOT NULL,
+        [DisplayOrder] int NOT NULL,
+        [CreatedAt] datetime2 NOT NULL,
+        [UpdatedAt] datetime2 NULL,
+        CONSTRAINT [PK_PackageSpecifications] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_PackageSpecifications_ServicePlans_ServicePlanId] FOREIGN KEY ([ServicePlanId]) REFERENCES [ServicePlans] ([Id]) ON DELETE CASCADE
+    );
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260822164426_AddServiceFeaturesAndSpecifications'
+)
+BEGIN
+    CREATE TABLE [ServiceFeatures] (
+        [Id] uniqueidentifier NOT NULL,
+        [ServiceCategoryId] uniqueidentifier NOT NULL,
+        [Name] nvarchar(255) NOT NULL,
+        [IsActive] bit NOT NULL,
+        [DisplayOrder] int NOT NULL,
+        [CreatedAt] datetime2 NOT NULL,
+        [UpdatedAt] datetime2 NULL,
+        CONSTRAINT [PK_ServiceFeatures] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_ServiceFeatures_ServiceCategories_ServiceCategoryId] FOREIGN KEY ([ServiceCategoryId]) REFERENCES [ServiceCategories] ([Id]) ON DELETE CASCADE
+    );
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260822164426_AddServiceFeaturesAndSpecifications'
+)
+BEGIN
+    CREATE INDEX [IX_PackageSpecifications_ServicePlanId] ON [PackageSpecifications] ([ServicePlanId]);
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260822164426_AddServiceFeaturesAndSpecifications'
+)
+BEGIN
+    CREATE INDEX [IX_ServiceFeatures_ServiceCategoryId] ON [ServiceFeatures] ([ServiceCategoryId]);
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260822164426_AddServiceFeaturesAndSpecifications'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260822164426_AddServiceFeaturesAndSpecifications', N'8.0.0');
+END;
+GO
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260826000000_AddUniqueIndexesForCustomerServiceAndReview'
+)
+BEGIN
+    DROP INDEX [IX_CustomerServices_OrderId] ON [CustomerServices];
+    CREATE UNIQUE INDEX [IX_CustomerServices_OrderId] ON [CustomerServices] ([OrderId]);
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260826000000_AddUniqueIndexesForCustomerServiceAndReview'
+)
+BEGIN
+    DROP INDEX [IX_CustomerReviews_OrderId] ON [CustomerReviews];
+    CREATE UNIQUE INDEX [IX_CustomerReviews_OrderId] ON [CustomerReviews] ([OrderId]) WHERE [OrderId] IS NOT NULL;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260826000000_AddUniqueIndexesForCustomerServiceAndReview'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260826000000_AddUniqueIndexesForCustomerServiceAndReview', N'8.0.0');
+END;
+GO
+
+COMMIT;
+GO

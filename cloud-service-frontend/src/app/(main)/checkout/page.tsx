@@ -57,14 +57,10 @@ export default function CheckoutPage() {
     };
 
     const subtotal = cart.reduce((acc, item) => {
-        const months = item.cycle === 'yearly' ? 12 : 1;
         const price = Number(item.price) || 0;
         const quantity = Math.max(1, Number(item.qty) || 1);
-        return acc + (price * months * quantity);
+        return acc + (price * quantity);
     }, 0);
-
-    const vatAmount = Math.round(subtotal * 0.1);
-    const totalWithVat = subtotal + vatAmount;
 
     const fetchQRCode = async (orderId: string, amount: number) => {
         try {
@@ -162,7 +158,7 @@ export default function CheckoutPage() {
             if (firstOrderId) {
                 // Fetch 1 mã QR dùng chung tổng tiền
                 // BE bỏ qua amount do client gửi và trả lại TotalAmount đã lưu trong database.
-                await fetchQRCode(firstOrderId, totalWithVat);
+                await fetchQRCode(firstOrderId, subtotal);
                 setDemoOrderIds(createdOrderIds);
                 setDemoPayment(null);
                 setIsSuccess(true);
@@ -221,7 +217,7 @@ export default function CheckoutPage() {
                                 <p className="text-[14px] text-on-surface-variant">Số TK: <strong className="text-on-surface">0123456789</strong></p>
                                 <p className="text-[14px] text-on-surface-variant">Chủ TK: <strong className="text-on-surface">CONG TY CLOUDNOVA</strong></p>
                                 <p className="text-[14px] text-on-surface-variant">Nội dung: <strong className="text-on-surface break-all">{qrCodeData.paymentString}</strong></p>
-                                <p className="text-[14px] text-error mt-2">Tổng thanh toán: <strong className="text-error">{formatCurrency(Number(qrCodeData.amount) || totalWithVat)}</strong></p>
+                                <p className="text-[14px] text-error mt-2">Tổng thanh toán: <strong className="text-error">{formatCurrency(Number(qrCodeData.amount) || subtotal)}</strong></p>
                             </div>
                         </div>
                     )}
@@ -290,7 +286,6 @@ export default function CheckoutPage() {
                                 </div>
                                 <div className="divide-y divide-outline-variant">
                                     {cart.map((item, index) => {
-                                        const months = item.cycle === 'yearly' ? 12 : 1;
                                         return (
                                             <div key={index} className="p-lg flex flex-col md:flex-row gap-md justify-between items-start md:items-center hover:bg-surface-container-lowest transition-colors">
                                                 <div>
@@ -300,7 +295,7 @@ export default function CheckoutPage() {
                                                 </div>
                                                 <div className="flex flex-col items-end gap-2">
                                                     <div className="font-headline-sm text-headline-sm text-on-background">
-                                                        {formatCurrency((Number(item.price) || 0) * months * Math.max(1, Number(item.qty) || 1))}
+                                                        {formatCurrency((Number(item.price) || 0) * Math.max(1, Number(item.qty) || 1))}
                                                     </div>
                                                     <button onClick={() => removeFromCart(index)} className="text-error font-body-sm flex items-center gap-1 hover:underline">
                                                         <span className="material-symbols-outlined text-[16px]">delete</span>
@@ -343,16 +338,8 @@ export default function CheckoutPage() {
 
                                 <div className="border-t border-outline-variant pt-md mb-lg">
                                     <div className="flex justify-between items-center mb-xs">
-                                        <span className="font-headline-sm text-headline-sm text-on-surface">Tổng cộng</span>
-                                        <span className="font-display-sm text-display-sm text-primary">{formatCurrency(subtotal)}</span>
-                                    </div>
-                                    <p className="font-body-sm text-body-sm text-on-surface-variant text-right">Chưa bao gồm 10% VAT</p>
-                                </div>
-                                
-                                <div className="border-t border-outline-variant pt-md mb-lg">
-                                    <div className="flex justify-between items-center mb-xs">
                                         <span className="font-headline-sm text-headline-sm text-on-surface">Tổng thanh toán</span>
-                                        <span className="font-display-sm text-display-sm text-error">{formatCurrency(totalWithVat)}</span>
+                                        <span className="font-display-sm text-display-sm text-error">{formatCurrency(subtotal)}</span>
                                     </div>
                                 </div>
 

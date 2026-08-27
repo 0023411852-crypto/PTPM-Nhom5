@@ -95,7 +95,7 @@ jobs:
         with:
           host: ${{ secrets.AZURE_HOST }}
           username: ${{ secrets.AZURE_USER }}
-          key: ${{ secrets.AZURE_PASSWORD }}
+          password: ${{ secrets.AZURE_PASSWORD }}
           script: |
             # Deploy đúng repository 1111 vào thư mục riêng trên VPS.
             APP_DIR="/home/azureuser/1111"
@@ -117,8 +117,8 @@ jobs:
             docker build -t "$FRONTEND_IMAGE" ./cloud-service-frontend
 
             # Dùng cấu hình production, không dùng compose development.
-            docker compose --env-file .env -f docker-compose.production.yml down
-            docker compose --env-file .env -f docker-compose.production.yml up -d
+            docker compose -f docker-compose.production.yml down
+            docker compose -f docker-compose.production.yml up -d
 
             # Xóa image trung gian/cũ để giải phóng bộ nhớ.
             docker image prune -f

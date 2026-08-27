@@ -24,17 +24,13 @@ namespace CloudService.Application.Services
 
         public async Task<PagedResponse<CustomerServiceDto>> GetMyServicesAsync(Guid customerId, PaginationFilter filter)
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
-            var query = _repository.GetQueryable().Where(x => x.CustomerId == customerId);
+            var totalCount = await _repository.CountAsync(q => q.Where(x => x.CustomerId == customerId));
             
-            var totalCount = query.Count();
-            
-            var paginatedItems = query
+            var paginatedItems = await _repository.ToListAsync(q => q
+                .Where(x => x.CustomerId == customerId)
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
+                .Take(filter.PageSize));
 
             var dtos = _mapper.Map<List<CustomerServiceDto>>(paginatedItems);
 
@@ -43,10 +39,7 @@ namespace CloudService.Application.Services
 
         public async Task<CustomerServiceDto?> GetServiceByIdAsync(Guid id, Guid customerId)
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
-            var entity = _repository.GetQueryable()
-                .FirstOrDefault(x => x.Id == id && x.CustomerId == customerId);
+            var entity = await _repository.FirstOrDefaultAsync(x => x.Id == id && x.CustomerId == customerId);
             if (entity == null) return null;
             return _mapper.Map<CustomerServiceDto>(entity);
         }

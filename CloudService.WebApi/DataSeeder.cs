@@ -16,7 +16,7 @@ namespace CloudService.WebApi
                 context.SaveChanges();
             }
 
-            if (!context.AppUsers.Any(u => u.Email == "admin@ptpm-nhom5.com"))
+            if (!context.AppUsers.Any(u => u.Email == "admin@cloudservice.vn"))
             {
                 var adminRole = context.Roles.FirstOrDefault(r => r.Name == "Admin");
                 if (adminRole != null)
@@ -25,8 +25,8 @@ namespace CloudService.WebApi
                     {
                         Id = Guid.NewGuid(),
                         FullName = "System Admin",
-                        Email = "admin@ptpm-nhom5.com",
-                        PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123!"),
+                        Email = "admin@cloudservice.vn",
+                        PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow,
                         RoleId = adminRole.Id

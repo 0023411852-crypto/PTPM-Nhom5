@@ -19,24 +19,36 @@ namespace CloudService.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter, [FromQuery] bool onlyPublished = false)
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter, [FromQuery] bool onlyPublished = true)
         {
+            if (!User.Identity?.IsAuthenticated ?? true || (!User.IsInRole("Admin") && !User.IsInRole("Editor")))
+            {
+                onlyPublished = true;
+            }
             var result = await _service.GetAllAsync(filter, onlyPublished);
             return Ok(result);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(Guid id)
+        public async Task<IActionResult> GetById(Guid id, [FromQuery] bool onlyPublished = false)
         {
-            var result = await _service.GetByIdAsync(id);
+            if (!User.Identity?.IsAuthenticated ?? true || (!User.IsInRole("Admin") && !User.IsInRole("Editor")))
+            {
+                onlyPublished = true;
+            }
+            var result = await _service.GetByIdAsync(id, onlyPublished);
             if (result == null) return NotFound();
             return Ok(result);
         }
 
         [HttpGet("slug/{slug}")]
-        public async Task<IActionResult> GetBySlug(string slug)
+        public async Task<IActionResult> GetBySlug(string slug, [FromQuery] bool onlyPublished = true)
         {
-            var result = await _service.GetBySlugAsync(slug);
+            if (!User.Identity?.IsAuthenticated ?? true || (!User.IsInRole("Admin") && !User.IsInRole("Editor")))
+            {
+                onlyPublished = true;
+            }
+            var result = await _service.GetBySlugAsync(slug, onlyPublished);
             if (result == null) return NotFound();
             return Ok(result);
         }

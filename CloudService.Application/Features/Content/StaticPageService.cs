@@ -41,19 +41,19 @@ namespace CloudService.Application.Services
             return new PagedResponse<StaticPageDto>(dtos, totalCount, filter.PageNumber, filter.PageSize);
         }
 
-        public async Task<StaticPageDto?> GetByIdAsync(Guid id)
+        public async Task<StaticPageDto?> GetByIdAsync(Guid id, bool onlyPublished = false)
         {
             var repo = _unitOfWork.Repository<StaticPage>();
             var entity = await repo.GetByIdAsync(id);
-            if (entity == null) return null;
+            if (entity == null || (onlyPublished && !entity.IsPublished)) return null;
             return _mapper.Map<StaticPageDto>(entity);
         }
 
-        public async Task<StaticPageDto?> GetBySlugAsync(string slug)
+        public async Task<StaticPageDto?> GetBySlugAsync(string slug, bool onlyPublished = true)
         {
             var repo = _unitOfWork.Repository<StaticPage>();
             var entity = await repo.FirstOrDefaultAsync(
-                x => x.Slug == slug && x.IsPublished);
+                x => x.Slug == slug && (!onlyPublished || x.IsPublished));
             if (entity == null) return null;
             return _mapper.Map<StaticPageDto>(entity);
         }

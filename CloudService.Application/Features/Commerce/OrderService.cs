@@ -147,6 +147,7 @@ namespace CloudService.Application.Services
             var planRepo = _unitOfWork.Repository<ServicePlan>();
             var plan = await planRepo.GetByIdAsync(dto.ServicePlanId);
             if (plan == null) throw new NotFoundException("Service Plan not found");
+            if (!plan.IsActive) throw new ValidationException("Service Plan is not active and cannot be purchased.");
 
             var priceRepo = _unitOfWork.Repository<PlanPrice>();
             var planPrice = await priceRepo.GetByIdAsync(dto.PlanPriceId);
@@ -248,7 +249,7 @@ namespace CloudService.Application.Services
             var orderRepo = _unitOfWork.Repository<OrderRequest>();
             var order = await orderRepo.FirstOrDefaultAsync(
                 x => x.Id == orderId && x.UserId == requesterId,
-                includeProperties: "ServicePlan");
+                includeProperties: "ServicePlan,PlanPrice");
             if (order == null || order.Status == OrderStatus.Cancelled)
                 return null;
 
@@ -297,7 +298,7 @@ namespace CloudService.Application.Services
                 VpsIP = demoIp,
                 VpsUser = demoUser,
                 VpsPassword = demoPassword,
-                ExpiryDate = DateTime.UtcNow.AddMonths(1),
+                ExpiryDate = DateTime.UtcNow.AddMonths(order.PlanPrice?.BillingCycle == 12 ? 12 : 1),
                 Status = "Active"
             };
 

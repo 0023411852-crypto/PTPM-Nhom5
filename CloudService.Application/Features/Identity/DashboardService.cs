@@ -24,29 +24,24 @@ namespace CloudService.Application.Services
 
         public async Task<EditorDashboardStatsDto> GetEditorStatsAsync()
         {
-            // This method currently uses synchronous IQueryable operations.
-            await Task.CompletedTask;
             var stats = new EditorDashboardStatsDto();
 
             var articleRepo = _unitOfWork.Repository<NewsArticle>();
             var ticketRepo = _unitOfWork.Repository<SupportTicket>();
 
-            var articleQuery = articleRepo.GetQueryable();
-            var ticketQuery = ticketRepo.GetQueryable();
-
             var firstDayOfMonth = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
 
-            stats.TotalViews = articleQuery.Sum(a => a.ViewCount);
+            var viewCounts = await articleRepo.SelectToListAsync(q => q.Select(a => a.ViewCount));
+            stats.TotalViews = viewCounts.Sum();
             
-            stats.NewArticlesCount = articleQuery.Count(a => a.CreatedAt >= firstDayOfMonth);
+            stats.NewArticlesCount = await articleRepo.CountAsync(q => q.Where(a => a.CreatedAt >= firstDayOfMonth));
 
-            stats.NewTicketsCount = ticketQuery.Count(t => t.Status == "Open" || t.Status == "Mới");
+            stats.NewTicketsCount = await ticketRepo.CountAsync(q => q.Where(t => t.Status == "Open" || t.Status == "Mới"));
 
-            var trending = articleQuery
+            var trending = await articleRepo.ToListAsync(q => q
                 .Where(a => a.IsPublished)
                 .OrderByDescending(a => a.ViewCount)
-                .Take(3)
-                .ToList();
+                .Take(3));
 
             stats.TrendingArticles = _mapper.Map<List<NewsArticleDto>>(trending);
 

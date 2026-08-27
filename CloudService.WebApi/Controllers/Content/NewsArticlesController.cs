@@ -21,8 +21,8 @@ namespace CloudService.WebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter, [FromQuery] bool onlyPublished = true, [FromQuery] string search = "")
         {
-            // Anonymous/public requests must never be able to list unpublished articles.
-            if (!User.Identity?.IsAuthenticated ?? true)
+            // Anonymous/public requests or non-admins must never be able to list unpublished articles.
+            if (!User.Identity?.IsAuthenticated ?? true || (!User.IsInRole("Admin") && !User.IsInRole("Editor")))
             {
                 onlyPublished = true;
             }
@@ -34,8 +34,8 @@ namespace CloudService.WebApi.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id, [FromQuery] bool onlyPublished = true)
         {
-            // Enforce onlyPublished=true for anonymous/public requests to prevent draft access
-            if (!User.Identity?.IsAuthenticated ?? true)
+            // Enforce onlyPublished=true for anonymous/public/non-admin requests to prevent draft access
+            if (!User.Identity?.IsAuthenticated ?? true || (!User.IsInRole("Admin") && !User.IsInRole("Editor")))
             {
                 onlyPublished = true;
             }

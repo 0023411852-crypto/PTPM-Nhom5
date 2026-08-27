@@ -50,7 +50,7 @@ namespace CloudService.WebApi.Middlewares
             {
                 Status = statusCode,
                 Title = GetTitle(statusCode),
-                Detail = exception.Message,
+                Detail = statusCode == (int)HttpStatusCode.InternalServerError ? "An unexpected error occurred on the server." : exception.Message,
                 Instance = context.Request.Path
             };
 
