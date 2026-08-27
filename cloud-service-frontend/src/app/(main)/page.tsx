@@ -36,6 +36,32 @@ type NewsArticle = {
   thumbnailUrl?: string;
 };
 
+type ApiKey = "services" | "plans" | "promotions" | "news";
+type ApiStatus = "loading" | "live" | "fallback" | "error";
+
+type ApiStatusMap = Record<ApiKey, ApiStatus>;
+
+async function requestJson(url: string) {
+  const response = await fetch(url, { headers: { Accept: "application/json" } });
+  if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+  return response.json();
+}
+
+function ApiBadge({ status }: { status: ApiStatus }) {
+  const labels: Record<ApiStatus, string> = {
+    loading: "Đang đồng bộ",
+    live: "Dữ liệu live",
+    fallback: "Nội dung mặc định",
+    error: "Tạm thời offline",
+  };
+  return <span className={`api-badge api-badge-${status}`}><span className="api-badge-dot" />{labels[status]}</span>;
+}
+
+function DataSkeleton({ variant }: { variant: "service" | "plan" | "news" }) {
+  if (variant === "news") return <div className="api-skeleton api-skeleton-news"><span /><span /><span /></div>;
+  return <div className={`api-skeleton api-skeleton-${variant}`}><span /><span /><span /><span /></div>;
+}
+
 const fallbackServices: ServiceCategory[] = [
   { id: "vps", name: "Cloud VPS", slug: "vps", icon: "dns", description: "Máy chủ ảo hiệu năng cao, triển khai nhanh và dễ dàng mở rộng." },
   { id: "hosting", name: "Web Hosting", slug: "hosting", icon: "language", description: "Không gian lưu trữ ổn định cho website, WordPress và ứng dụng web." },
@@ -74,12 +100,14 @@ export default function Home() {
   const [featuredPlans, setFeaturedPlans] = useState<ServicePlan[]>([]);
   const [activePromotions, setActivePromotions] = useState<Promotion[]>([]);
   const [latestNews, setLatestNews] = useState<NewsArticle[]>([]);
+  const [apiStatus, setApiStatus] = useState<ApiStatusMap>({ services: "loading", plans: "loading", promotions: "loading", news: "loading" });
 
   useEffect(() => {
-    fetch("/api/SiteSettings/public")
-      .then((res) => res.json())
+    let cancelled = false;
+
+    requestJson("/api/SiteSettings/public")
       .then((data) => {
-        if (Array.isArray(data)) {
+        if (!cancelled && Array.isArray(data)) {
           const found = data.find((item: { key?: string }) => item.key === "Slogan");
           if (found?.value) setSlogan(found.value);
         }
@@ -87,40 +115,57 @@ export default function Home() {
       .catch(() => undefined);
 
     const loadHomepageData = async () => {
-      try {
-        const [categoriesRes, plansRes, promotionsRes, newsRes] = await Promise.all([
-          fetch("/api/ServiceCategories?PageNumber=1&PageSize=6"),
-          fetch("/api/ServicePlans?PageNumber=1&PageSize=3"),
-          fetch("/api/Promotions?PageNumber=1&PageSize=3&onlyActive=true"),
-          fetch("/api/NewsArticles?onlyPublished=true&pageNumber=1&pageSize=3"),
-        ]);
+      const endpoints: Record<ApiKey, string> = {
+        services: "/api/ServiceCategories?PageNumber=1&PageSize=6",
+        plans: "/api/ServicePlans?PageNumber=1&PageSize=3",
+        promotions: "/api/Promotions?PageNumber=1&PageSize=3&onlyActive=true",
+        news: "/api/NewsArticles?onlyPublished=true&pageNumber=1&pageSize=3",
+      };
+      const results = await Promise.allSettled(Object.entries(endpoints).map(async ([key, url]) => [key as ApiKey, await requestJson(url)] as const));
+      if (cancelled) return;
 
-        if (categoriesRes.ok) {
-          const data = await categoriesRes.json();
-          setServices((data?.data || []).filter((service: ServiceCategory) => service.isActive !== false).slice(0, 6));
-        }
-        if (plansRes.ok) {
-          const data = await plansRes.json();
-          setFeaturedPlans((data?.data || []).filter((plan: ServicePlan) => plan.isActive !== false).slice(0, 3));
-        }
-        if (promotionsRes.ok) {
-          const data = await promotionsRes.json();
-          setActivePromotions((data?.data || []).slice(0, 3));
-        }
-        if (newsRes.ok) {
-          const data = await newsRes.json();
-          setLatestNews((data?.data || []).slice(0, 3));
-        }
-      } catch {
-        // The visual fallback keeps the homepage useful when the API is unavailable.
-      }
+      const nextStatus: Partial<ApiStatusMap> = {};
+      results.forEach((result) => {
+        if (result.status === "rejected") return;
+        const [key, data] = result.value;
+        const items = Array.isArray(data?.data) ? data.data : [];
+        nextStatus[key] = items.length > 0 ? "live" : "fallback";
+        if (key === "services") setServices(items.filter((service: ServiceCategory) => service.isActive !== false).slice(0, 6));
+        if (key === "plans") setFeaturedPlans(items.filter((plan: ServicePlan) => plan.isActive !== false).slice(0, 3));
+        if (key === "promotions") setActivePromotions(items.slice(0, 3));
+        if (key === "news") setLatestNews(items.slice(0, 3));
+      });
+      (Object.keys(endpoints) as ApiKey[]).forEach((key) => {
+        if (!nextStatus[key]) nextStatus[key] = "error";
+      });
+      setApiStatus((current) => ({ ...current, ...nextStatus }));
     };
 
     loadHomepageData();
+    return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    const revealItems = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));
+    if (typeof IntersectionObserver === "undefined") {
+      revealItems.forEach((item) => item.classList.add("is-visible"));
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      }
+    }), { threshold: 0.12 });
+    revealItems.forEach((item) => observer.observe(item));
+    return () => observer.disconnect();
+  }, [apiStatus]);
 
   const visibleServices = services.length > 0 ? services : fallbackServices;
   const spotlightPromotion = activePromotions[0];
+  const serviceIsLoading = apiStatus.services === "loading";
+  const plansAreLoading = apiStatus.plans === "loading";
+  const newsIsLoading = apiStatus.news === "loading";
 
   return (
     <main className="home-page flex-grow pt-16 overflow-hidden">
@@ -213,14 +258,14 @@ export default function Home() {
         <div className="max-w-[var(--spacing-container-max)] mx-auto">
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div className="max-w-[40rem]">
-              <p className="section-eyebrow">Hệ sinh thái dịch vụ</p>
+              <div className="flex flex-wrap items-center gap-3"><p className="section-eyebrow">Hệ sinh thái dịch vụ</p><ApiBadge status={apiStatus.services} /></div>
               <h2 className="section-title mt-3">Một nền tảng cho mọi<br className="hidden sm:block" /> bước tiến số.</h2>
               <p className="section-description mt-4">Từ ý tưởng đầu tiên đến hệ thống phục vụ hàng triệu người dùng, CloudNova cung cấp đầy đủ những mảnh ghép bạn cần.</p>
             </div>
             <Link href="/services" className="group inline-flex items-center gap-2 text-sm font-bold text-primary">Xem tất cả dịch vụ <Icon name="arrow_forward" className="text-[18px] transition-transform group-hover:translate-x-1" /></Link>
           </div>
           <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {visibleServices.map((service, index) => <Link key={service.id} href={`/services/${service.slug || ""}`} className={`service-card group ${index === 0 ? "lg:col-span-2 lg:flex lg:items-end" : ""}`}><div className="service-card-shine" /><div className={`relative z-10 flex h-full flex-col ${index === 0 ? "lg:flex-row lg:items-end lg:justify-between lg:gap-10" : ""}`}><div><div className="service-icon"><Icon name={service.icon || "cloud"} className="text-[22px]" /></div><h3 className="mt-6 text-xl font-bold tracking-[-0.02em] text-[#0b1c30]">{service.name}</h3><p className="mt-3 max-w-[27rem] text-sm leading-6 text-[#63718b]">{service.description || "Giải pháp hạ tầng ổn định, bảo mật và dễ dàng mở rộng."}</p></div><span className="mt-8 inline-flex h-10 w-10 items-center justify-center self-end rounded-full border border-[#d9e4f4] text-primary transition group-hover:border-primary group-hover:bg-primary group-hover:text-white"><Icon name="arrow_outward" className="text-[18px]" /></span></div></Link>)}
+            {serviceIsLoading ? Array.from({ length: 6 }).map((_, index) => <DataSkeleton key={index} variant="service" />) : visibleServices.map((service, index) => <Link key={service.id} href={`/services/${service.slug || ""}`} data-reveal className={`service-card group ${index === 0 ? "lg:col-span-2 lg:flex lg:items-end" : ""}`}><div className="service-card-shine" /><div className={`relative z-10 flex h-full flex-col ${index === 0 ? "lg:flex-row lg:items-end lg:justify-between lg:gap-10" : ""}`}><div><div className="service-icon"><Icon name={service.icon || "cloud"} className="text-[22px]" /></div><h3 className="mt-6 text-xl font-bold tracking-[-0.02em] text-[#0b1c30]">{service.name}</h3><p className="mt-3 max-w-[27rem] text-sm leading-6 text-[#63718b]">{service.description || "Giải pháp hạ tầng ổn định, bảo mật và dễ dàng mở rộng."}</p></div><span className="mt-8 inline-flex h-10 w-10 items-center justify-center self-end rounded-full border border-[#d9e4f4] text-primary transition group-hover:border-primary group-hover:bg-primary group-hover:text-white"><Icon name="arrow_outward" className="text-[18px]" /></span></div></Link>)}
           </div>
         </div>
       </section>
@@ -241,17 +286,17 @@ export default function Home() {
 
       <section className="bg-[#f1f5fc] px-gutter py-20 lg:py-28">
         <div className="max-w-[var(--spacing-container-max)] mx-auto">
-          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><div><p className="section-eyebrow">Bảng giá minh bạch</p><h2 className="section-title mt-3">Bắt đầu nhỏ.<br className="sm:hidden" /> Sẵn sàng lớn.</h2><p className="section-description mt-4">Chọn cấu hình phù hợp hôm nay, nâng cấp bất cứ lúc nào khi doanh nghiệp phát triển.</p></div><Link href="/pricing" className="group inline-flex items-center gap-2 text-sm font-bold text-primary">Xem bảng giá đầy đủ <Icon name="arrow_forward" className="text-[18px] transition-transform group-hover:translate-x-1" /></Link></div>
+          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><div><div className="flex flex-wrap items-center gap-3"><p className="section-eyebrow">Bảng giá minh bạch</p><ApiBadge status={apiStatus.plans} /></div><h2 className="section-title mt-3">Bắt đầu nhỏ.<br className="sm:hidden" /> Sẵn sàng lớn.</h2><p className="section-description mt-4">Chọn cấu hình phù hợp hôm nay, nâng cấp bất cứ lúc nào khi doanh nghiệp phát triển.</p></div><Link href="/pricing" className="group inline-flex items-center gap-2 text-sm font-bold text-primary">Xem bảng giá đầy đủ <Icon name="arrow_forward" className="text-[18px] transition-transform group-hover:translate-x-1" /></Link></div>
           <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-3">
-            {featuredPlans.length > 0 ? featuredPlans.map((plan, index) => <article key={plan.id} className={`price-card ${index === 1 ? "price-card-featured" : ""}`}><div className="flex items-start justify-between gap-3"><div><span className="rounded-full bg-[#eaf1ff] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">{plan.category?.name || "Cloud"}</span><h3 className="mt-5 text-2xl font-bold tracking-[-0.03em] text-[#0b1c30]">{plan.name}</h3></div>{index === 1 && <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold text-white">Phổ biến</span>}</div><p className="mt-3 min-h-10 text-sm leading-6 text-[#6e7d95]">{plan.description || "Cấu hình cân bằng cho website và ứng dụng đang tăng trưởng."}</p><div className="mt-8 border-t border-[#e5ebf4] pt-6"><span className="text-xs text-[#7c899d]">Từ</span><p className="mt-1 text-3xl font-bold tracking-[-0.04em] text-[#0b1c30]">{formatPrice(plan.prices?.[0]?.price)}<span className="text-sm font-medium text-[#7c899d]"> / tháng</span></p></div><Link href="/pricing" className={`mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition ${index === 1 ? "bg-primary text-white hover:bg-[#0639a0]" : "border border-[#d4dfef] text-[#17345e] hover:border-primary hover:text-primary"}`}>Xem chi tiết <Icon name="arrow_forward" className="text-[17px]" /></Link></article>) : ["VPS Starter", "VPS Business", "VPS Enterprise"].map((name, index) => <article key={name} className={`price-card ${index === 1 ? "price-card-featured" : ""}`}><div className="flex items-start justify-between"><span className="rounded-full bg-[#eaf1ff] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">Cloud VPS</span>{index === 1 && <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold text-white">Phổ biến</span>}</div><h3 className="mt-5 text-2xl font-bold text-[#0b1c30]">{name}</h3><p className="mt-3 min-h-10 text-sm leading-6 text-[#6e7d95]">Cấu hình linh hoạt cho từng giai đoạn phát triển.</p><div className="mt-8 border-t border-[#e5ebf4] pt-6"><span className="text-xs text-[#7c899d]">Từ</span><p className="mt-1 text-3xl font-bold text-[#0b1c30]">Liên hệ</p></div><Link href="/contact" className={`mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold ${index === 1 ? "bg-primary text-white" : "border border-[#d4dfef] text-[#17345e]"}`}>Tư vấn cấu hình <Icon name="arrow_forward" className="text-[17px]" /></Link></article>)}
+            {plansAreLoading ? Array.from({ length: 3 }).map((_, index) => <DataSkeleton key={index} variant="plan" />) : featuredPlans.length > 0 ? featuredPlans.map((plan, index) => <article key={plan.id} data-reveal className={`price-card ${index === 1 ? "price-card-featured" : ""}`}><div className="flex items-start justify-between gap-3"><div><span className="rounded-full bg-[#eaf1ff] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">{plan.category?.name || "Cloud"}</span><h3 className="mt-5 text-2xl font-bold tracking-[-0.03em] text-[#0b1c30]">{plan.name}</h3></div>{index === 1 && <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold text-white">Phổ biến</span>}</div><p className="mt-3 min-h-10 text-sm leading-6 text-[#6e7d95]">{plan.description || "Cấu hình cân bằng cho website và ứng dụng đang tăng trưởng."}</p><div className="mt-8 border-t border-[#e5ebf4] pt-6"><span className="text-xs text-[#7c899d]">Từ</span><p className="mt-1 text-3xl font-bold tracking-[-0.04em] text-[#0b1c30]">{formatPrice(plan.prices?.[0]?.price)}<span className="text-sm font-medium text-[#7c899d]"> / tháng</span></p></div><Link href="/pricing" className={`mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition ${index === 1 ? "bg-primary text-white hover:bg-[#0639a0]" : "border border-[#d4dfef] text-[#17345e] hover:border-primary hover:text-primary"}`}>Xem chi tiết <Icon name="arrow_forward" className="text-[17px]" /></Link></article>) : ["VPS Starter", "VPS Business", "VPS Enterprise"].map((name, index) => <article key={name} data-reveal className={`price-card ${index === 1 ? "price-card-featured" : ""}`}><div className="flex items-start justify-between"><span className="rounded-full bg-[#eaf1ff] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">Cloud VPS</span>{index === 1 && <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold text-white">Phổ biến</span>}</div><h3 className="mt-5 text-2xl font-bold text-[#0b1c30]">{name}</h3><p className="mt-3 min-h-10 text-sm leading-6 text-[#6e7d95]">Cấu hình linh hoạt cho từng giai đoạn phát triển.</p><div className="mt-8 border-t border-[#e5ebf4] pt-6"><span className="text-xs text-[#7c899d]">Từ</span><p className="mt-1 text-3xl font-bold text-[#0b1c30]">Liên hệ</p></div><Link href="/contact" className={`mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold ${index === 1 ? "bg-primary text-white" : "border border-[#d4dfef] text-[#17345e]"}`}>Tư vấn cấu hình <Icon name="arrow_forward" className="text-[17px]" /></Link></article>)}
           </div>
         </div>
       </section>
 
       <section className="bg-white px-gutter py-20 lg:py-28">
         <div className="max-w-[var(--spacing-container-max)] mx-auto grid lg:grid-cols-[1.15fr_0.85fr] gap-5">
-          <div className="promo-panel relative overflow-hidden rounded-[26px] p-8 sm:p-12"><div className="promo-panel-grid" /><div className="relative z-10 max-w-[36rem]"><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-cyan-200"><Icon name="local_fire_department" className="text-[18px]" /> Ưu đãi dành cho bạn</div><h2 className="mt-5 text-3xl font-bold tracking-[-0.035em] text-white sm:text-4xl">Hạ tầng tốt hơn.<br /><span className="text-cyan-300">Chi phí hợp lý hơn.</span></h2><p className="mt-4 max-w-[30rem] text-sm leading-6 text-blue-100/65">{spotlightPromotion?.description || "Khởi động dự án mới với ưu đãi hấp dẫn cho các gói dịch vụ Cloud đang được quan tâm."}</p><div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"><Link href="/promotions" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#07327d]">Xem ưu đãi <Icon name="arrow_forward" className="text-[17px]" /></Link>{spotlightPromotion?.discountPercentage ? <span className="text-sm font-semibold text-cyan-100">Tiết kiệm đến {spotlightPromotion.discountPercentage}%</span> : <span className="text-sm font-semibold text-cyan-100">Ưu đãi có thời hạn</span>}</div></div><div className="promo-sphere" /></div>
-          <div className="rounded-[26px] border border-[#e1e9f5] bg-[#f8faff] p-7 sm:p-9"><div className="flex items-center justify-between"><div><p className="section-eyebrow">Góc kiến thức</p><h2 className="mt-2 text-2xl font-bold tracking-[-0.03em] text-[#0b1c30]">Tin mới từ CloudNova</h2></div><Link href="/news" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d5e0ef] text-primary transition hover:bg-primary hover:text-white"><Icon name="arrow_outward" className="text-[17px]" /></Link></div><div className="mt-7 divide-y divide-[#e2eaf5]">{latestNews.length > 0 ? latestNews.map((article) => <Link href={`/news/${article.id}`} key={article.id} className="group block py-4 first:pt-0"><div className="flex items-center justify-between gap-3"><span className="text-[10px] font-bold uppercase tracking-[0.12em] text-primary">{article.category || "Tin tức"}</span><Icon name="arrow_forward" className="text-[16px] text-[#aab8ca] transition group-hover:translate-x-1 group-hover:text-primary" /></div><h3 className="mt-2 line-clamp-2 text-sm font-bold leading-5 text-[#203654] transition group-hover:text-primary">{article.title || "Cập nhật mới từ CloudNova"}</h3><p className="mt-2 text-[11px] text-[#8b98aa]">{article.createdAt ? new Date(article.createdAt).toLocaleDateString("vi-VN") : "Mới cập nhật"}</p></Link>) : ["5 điều cần biết trước khi triển khai Cloud VPS", "Tối ưu website để tăng tốc độ và trải nghiệm người dùng", "Bảo mật nhiều lớp cho hạ tầng doanh nghiệp"].map((title, index) => <Link href="/news" key={title} className="group block py-4 first:pt-0"><div className="flex items-center justify-between"><span className="text-[10px] font-bold uppercase tracking-[0.12em] text-primary">{index === 0 ? "Hướng dẫn" : "Kiến thức"}</span><Icon name="arrow_forward" className="text-[16px] text-[#aab8ca] transition group-hover:translate-x-1 group-hover:text-primary" /></div><h3 className="mt-2 text-sm font-bold leading-5 text-[#203654] transition group-hover:text-primary">{title}</h3><p className="mt-2 text-[11px] text-[#8b98aa]">Cập nhật gần đây</p></Link>)}</div></div>
+          <div className="promo-panel relative overflow-hidden rounded-[26px] p-8 sm:p-12"><div className="promo-panel-grid" /><div className="relative z-10 max-w-[36rem]"><div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-[0.15em] text-cyan-200"><span className="flex items-center gap-2"><Icon name="local_fire_department" className="text-[18px]" /> Ưu đãi dành cho bạn</span><ApiBadge status={apiStatus.promotions} /></div><h2 className="mt-5 text-3xl font-bold tracking-[-0.035em] text-white sm:text-4xl">Hạ tầng tốt hơn.<br /><span className="text-cyan-300">Chi phí hợp lý hơn.</span></h2><p className="mt-4 max-w-[30rem] text-sm leading-6 text-blue-100/65">{spotlightPromotion?.description || "Khởi động dự án mới với ưu đãi hấp dẫn cho các gói dịch vụ Cloud đang được quan tâm."}</p><div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"><Link href="/promotions" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#07327d]">Xem ưu đãi <Icon name="arrow_forward" className="text-[17px]" /></Link>{spotlightPromotion?.discountPercentage ? <span className="text-sm font-semibold text-cyan-100">Tiết kiệm đến {spotlightPromotion.discountPercentage}%</span> : <span className="text-sm font-semibold text-cyan-100">Ưu đãi có thời hạn</span>}</div></div><div className="promo-sphere" /></div>
+          <div className="rounded-[26px] border border-[#e1e9f5] bg-[#f8faff] p-7 sm:p-9"><div className="flex items-center justify-between"><div><div className="flex flex-wrap items-center gap-3"><p className="section-eyebrow">Góc kiến thức</p><ApiBadge status={apiStatus.news} /></div><h2 className="mt-2 text-2xl font-bold tracking-[-0.03em] text-[#0b1c30]">Tin mới từ CloudNova</h2></div><Link href="/news" className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d5e0ef] text-primary transition hover:bg-primary hover:text-white"><Icon name="arrow_outward" className="text-[17px]" /></Link></div><div className="mt-7 divide-y divide-[#e2eaf5]">{newsIsLoading ? <DataSkeleton variant="news" /> : latestNews.length > 0 ? latestNews.map((article) => <Link href={`/news/${article.id}`} key={article.id} data-reveal className="group block py-4 first:pt-0"><div className="flex items-center justify-between gap-3"><span className="text-[10px] font-bold uppercase tracking-[0.12em] text-primary">{article.category || "Tin tức"}</span><Icon name="arrow_forward" className="text-[16px] text-[#aab8ca] transition group-hover:translate-x-1 group-hover:text-primary" /></div><h3 className="mt-2 line-clamp-2 text-sm font-bold leading-5 text-[#203654] transition group-hover:text-primary">{article.title || "Cập nhật mới từ CloudNova"}</h3><p className="mt-2 text-[11px] text-[#8b98aa]">{article.createdAt ? new Date(article.createdAt).toLocaleDateString("vi-VN") : "Mới cập nhật"}</p></Link>) : ["5 điều cần biết trước khi triển khai Cloud VPS", "Tối ưu website để tăng tốc độ và trải nghiệm người dùng", "Bảo mật nhiều lớp cho hạ tầng doanh nghiệp"].map((title, index) => <Link href="/news" key={title} data-reveal className="group block py-4 first:pt-0"><div className="flex items-center justify-between"><span className="text-[10px] font-bold uppercase tracking-[0.12em] text-primary">{index === 0 ? "Hướng dẫn" : "Kiến thức"}</span><Icon name="arrow_forward" className="text-[16px] text-[#aab8ca] transition group-hover:translate-x-1 group-hover:text-primary" /></div><h3 className="mt-2 text-sm font-bold leading-5 text-[#203654] transition group-hover:text-primary">{title}</h3><p className="mt-2 text-[11px] text-[#8b98aa]">Cập nhật gần đây</p></Link>)}</div></div>
         </div>
       </section>
 
