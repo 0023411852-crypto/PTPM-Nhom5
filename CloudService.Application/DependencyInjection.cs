@@ -41,6 +41,9 @@ namespace CloudService.Application
             services.AddScoped<IEventHandler<UserLoggedOutEvent>, AuditLogEventHandler>();
             services.AddScoped<IEventHandler<PasswordChangedEvent>, AuditLogEventHandler>();
             services.AddScoped<IEventHandler<UserLockedEvent>, AuditLogEventHandler>();
+            services.AddScoped<IEventHandler<OrderPlacedEvent>, AuditLogEventHandler>();
+            services.AddScoped<IEventHandler<SupportTicketCreatedEvent>, AuditLogEventHandler>();
+            services.AddScoped<IEventHandler<PriceUpdatedEvent>, AuditLogEventHandler>();
             
             services.AddScoped<IEventHandler<PasswordChangedEvent>, SessionRevocationEventHandler>();
             services.AddScoped<IEventHandler<UserLockedEvent>, SessionRevocationEventHandler>();

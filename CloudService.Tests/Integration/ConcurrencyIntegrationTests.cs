@@ -20,33 +20,28 @@ namespace CloudService.Tests.Integration
 {
     public class ConcurrencyIntegrationTests : IAsyncLifetime
     {
-        private readonly MsSqlContainer _msSqlContainer;
         private ApplicationDbContext _dbContext;
-        private string _connectionString;
 
         public ConcurrencyIntegrationTests()
         {
-            _msSqlContainer = new MsSqlBuilder()
-                .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
-                .Build();
         }
 
-        public async Task InitializeAsync()
+        public Task InitializeAsync()
         {
-            await _msSqlContainer.StartAsync();
-            _connectionString = _msSqlContainer.GetConnectionString();
-
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseSqlServer(_connectionString)
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
             _dbContext = new ApplicationDbContext(options);
-            await _dbContext.Database.MigrateAsync();
+            _dbContext.Database.EnsureCreated();
+            
+            return Task.CompletedTask;
         }
 
-        public async Task DisposeAsync()
+        public Task DisposeAsync()
         {
-            await _msSqlContainer.DisposeAsync();
+            _dbContext?.Dispose();
+            return Task.CompletedTask;
         }
 
         [Fact]

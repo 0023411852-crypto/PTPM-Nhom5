@@ -6,7 +6,7 @@ import Modal from '@/components/admin/Modal';
 
 interface PlanPrice {
     id: string;
-    billingCycle: string;
+    billingCycle: number;
     price: number;
     setupFee: number | null;
     isActive: boolean;
@@ -32,6 +32,7 @@ interface Promotion {
     endDate?: string;
     isActive: boolean;
     discountPercentage?: number;
+    billingCycle?: number;
     servicePlanIds?: string[];
 }
 
@@ -164,7 +165,7 @@ export default function PricingPage() {
         return amount.toLocaleString('vi-VN') + 'đ';
     };
 
-    const handleAddToCart = (plan: any, priceAmount: number, urlCycle: string, priceObj: any) => {
+    const handleAddToCart = (plan: any, priceAmount: number, cycle: string, priceObj: any) => {
         // Chỉ cho phép 1 sản phẩm trong giỏ để tránh lỗi tạo nhiều đơn
         const cart = [];
         const newItem = {
@@ -172,7 +173,7 @@ export default function PricingPage() {
             planName: plan.name,
             priceId: priceObj?.id || '',
             price: priceAmount,
-            cycle: urlCycle,
+            cycle: cycle,
             qty: 1
         };
         cart.push(newItem);
@@ -281,7 +282,7 @@ export default function PricingPage() {
                 ) : (
                     <div className="bento-grid">
                         {plans.map((plan, index) => {
-                            const dbCycle = isAnnual ? '12' : '1';
+                            const dbCycle = isAnnual ? 12 : 1;
                             const urlCycle = isAnnual ? 'yearly' : 'monthly';
                             const priceObj = plan.prices?.find(p => p.billingCycle === dbCycle) 
                                              || plan.prices?.[0]; // Fallback to first price if missing
@@ -289,32 +290,27 @@ export default function PricingPage() {
                             let priceAmount = priceObj ? priceObj.price : 0;
                             const originalPrice = priceAmount;
 
-                            // Apply promotion discount
+                            // For 12-month cycle, multiply monthly price by 12
+                            if (isAnnual && dbCycle === 1) {
+                                priceAmount = priceAmount * 12;
+                            }
+
+                            // Apply promotion discount - only if billing cycle matches
                             let discountPercent = 0;
+                            const selectedBillingCycle = isAnnual ? 12 : 1;
                             if (isPromoActive && featuredPromo && featuredPromo.discountPercentage) {
-                                // Apply if no specific plan is set, OR if the specific plan matches the current plan
-                                if (!featuredPromo.servicePlanIds || featuredPromo.servicePlanIds.length === 0 || featuredPromo.servicePlanIds.includes(plan.id)) {
+                                // Check if promotion applies to this billing cycle
+                                const billingCycleMatch = !featuredPromo.billingCycle || featuredPromo.billingCycle === selectedBillingCycle;
+                                // Check if promotion applies to this plan
+                                const planMatch = !featuredPromo.servicePlanIds || featuredPromo.servicePlanIds.length === 0 || featuredPromo.servicePlanIds.includes(plan.id);
+                                
+                                if (billingCycleMatch && planMatch) {
                                     discountPercent = featuredPromo.discountPercentage;
                                 }
-                            }
-                            
-                            // Apply annual discount if applicable (on top of promotion or instead of it, let's say they stack)
-                            if (isAnnual) {
-                                // Based on UI: "GIẢM 20%" for annual
-                                discountPercent += 20;
                             }
 
                             if (discountPercent > 0) {
                                 priceAmount = priceAmount * (1 - discountPercent / 100);
-                            }
-                            
-                            // Calculate savings
-                            let savingsAmount = 0;
-                            if (isAnnual) {
-                                const monthlyPriceObj = plan.prices?.find(p => p.billingCycle === '1');
-                                if (monthlyPriceObj && priceObj) {
-                                    savingsAmount = (monthlyPriceObj.price * 12) - priceObj.price;
-                                }
                             }
 
                             const specs = parseSpecs(plan.specifications);
@@ -372,11 +368,6 @@ export default function PricingPage() {
                                                 <span className="font-body-sm text-body-sm text-secondary mb-1">/{urlCycle === 'monthly' ? 'th' : 'năm'}</span>
                                             </div>
                                         </div>
-                                        {isAnnual && savingsAmount > 0 && (
-                                            <div className="mt-1">
-                                                <span className="font-body-sm text-green-600 bg-green-50 px-2 py-1 rounded">Tiết kiệm {formatCurrency(savingsAmount)}</span>
-                                            </div>
-                                        )}
                                     </div>
                                     <ul className="flex-grow space-y-md mb-lg">
                                         {Object.entries(specs).map(([key, val]) => {

@@ -412,7 +412,7 @@ export default function ClientPortalPage() {
                                                         <p className="text-sm text-on-surface-variant">Chu kỳ: {item.cycle === 'yearly' ? '12 tháng' : '1 tháng'} | SL: {item.qty}</p>
                                                     </div>
                                                     <div className="font-headline-sm text-primary">
-                                                        {(item.price * (item.cycle === 'yearly' ? 12 : 1) * item.qty).toLocaleString('vi-VN')}đ
+                                                        {item.price.toLocaleString('vi-VN')}đ
                                                     </div>
                                                 </div>
                                             ))}

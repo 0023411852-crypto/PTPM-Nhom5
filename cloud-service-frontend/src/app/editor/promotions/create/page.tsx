@@ -23,6 +23,7 @@ function CreatePromotionPageContent() {
         startDate: new Date().toISOString().slice(0, 16),
         endDate: '',
         discountPercentage: 0,
+        billingCycle: 1,
         servicePlanIds: [] as string[]
     });
 
@@ -56,6 +57,7 @@ function CreatePromotionPageContent() {
                             startDate: new Date(data.startDate).toISOString().slice(0, 16),
                             endDate: data.endDate ? new Date(data.endDate).toISOString().slice(0, 16) : '',
                             discountPercentage: data.discountPercentage || 0,
+                            billingCycle: data.billingCycle || 1,
                             servicePlanIds: data.servicePlanIds || []
                         });
                     }
@@ -220,6 +222,15 @@ function CreatePromotionPageContent() {
                     <div className="space-y-2">
                         <label className="font-body-md text-body-md font-medium text-on-surface">% Giảm giá (Nhập số)</label>
                         <input required type="number" name="discountPercentage" value={formData.discountPercentage} onChange={handleChange} className="w-full h-11 px-4 rounded-lg border border-outline bg-surface text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow" placeholder="VD: 50" min="0" max="100" />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="font-body-md text-body-md font-medium text-on-surface">Chu kỳ thanh toán</label>
+                        <select name="billingCycle" value={formData.billingCycle} onChange={handleChange} className="w-full h-11 px-4 rounded-lg border border-outline bg-surface text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow">
+                            <option value="1">1 tháng (Theo tháng)</option>
+                            <option value="12">12 tháng (Theo năm)</option>
+                        </select>
+                        <p className="text-[12px] text-on-surface-variant">Khuyến mãi chỉ áp dụng cho đơn hàng có chu kỳ thanh toán tương ứng</p>
                     </div>
 
                     <div className="space-y-2 md:col-span-2 flex gap-8">

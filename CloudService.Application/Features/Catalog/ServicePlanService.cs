@@ -4,6 +4,7 @@ using CloudService.Application.Common;
 using CloudService.Application.DTOs.ServicePlans;
 using CloudService.Application.Interfaces;
 using CloudService.Domain.Entities;
+using CloudService.Domain.Events;
 using CloudService.Domain.Interfaces;
 using CloudService.Domain.Exceptions;
 
@@ -14,12 +15,14 @@ namespace CloudService.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IQRCodeService _qrCodeService;
+        private readonly IEventDispatcher _eventDispatcher;
 
-        public ServicePlanService(IUnitOfWork unitOfWork, IMapper mapper, IQRCodeService qrCodeService)
+        public ServicePlanService(IUnitOfWork unitOfWork, IMapper mapper, IQRCodeService qrCodeService, IEventDispatcher eventDispatcher)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _qrCodeService = qrCodeService;
+            _eventDispatcher = eventDispatcher;
         }
 
         public async Task<PagedResponse<ServicePlanDto>> GetAllAsync(PaginationFilter filter)
@@ -88,13 +91,27 @@ namespace CloudService.Application.Services
 
                 foreach (var priceDto in dto.Prices)
                 {
-                    int cycle = int.Parse(priceDto.BillingCycle);
-                    var existing = existingPrices.FirstOrDefault(p => p.BillingCycle == cycle);
+                    var existing = existingPrices.FirstOrDefault(p => p.BillingCycle == priceDto.BillingCycle);
                     if (existing != null)
                     {
+                        var oldPrice = existing.Price;
                         existing.Price = priceDto.Price;
                         existing.SetupFee = priceDto.SetupFee ?? 0;
                         existing.UpdatedAt = DateTime.UtcNow;
+                        
+                        // Dispatch price update event if price changed
+                        if (oldPrice != priceDto.Price)
+                        {
+                            await _eventDispatcher.DispatchAsync(new PriceUpdatedEvent
+                            {
+                                UserId = Guid.Empty,
+                                PlanPriceId = existing.Id,
+                                ServicePlanId = entity.Id,
+                                OldPrice = oldPrice,
+                                NewPrice = priceDto.Price,
+                                BillingCycle = existing.BillingCycle
+                            });
+                        }
                         
                         existingPrices.Remove(existing);
                     }

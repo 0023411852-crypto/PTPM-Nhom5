@@ -290,7 +290,7 @@ export default function CheckoutPage() {
                                             <div key={index} className="p-lg flex flex-col md:flex-row gap-md justify-between items-start md:items-center hover:bg-surface-container-lowest transition-colors">
                                                 <div>
                                                     <h3 className="font-headline-sm text-headline-sm text-primary mb-xs">{item.planName}</h3>
-                                                    <p className="font-body-sm text-body-sm text-on-surface-variant">Chu kỳ: {item.cycle === 'yearly' ? '1 Năm' : '1 Tháng'}</p>
+                                                    <p className="font-body-sm text-body-sm text-on-surface-variant">Chu kỳ: 1 Tháng</p>
                                                     <p className="font-body-sm text-body-sm text-on-surface-variant">Số lượng: {item.qty}</p>
                                                 </div>
                                                 <div className="flex flex-col items-end gap-2">

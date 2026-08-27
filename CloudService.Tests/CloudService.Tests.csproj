@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -23,6 +23,14 @@
   <ItemGroup>
     <ProjectReference Include="..\CloudService.Application\CloudService.Application.csproj" />
     <ProjectReference Include="..\CloudService.Domain\CloudService.Domain.csproj" />
+    <ProjectReference Include="..\CloudService.Infrastructure\CloudService.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.0" />
+    <PackageReference Include="Testcontainers.MsSql" Version="3.8.0" />
   </ItemGroup>
 
 </Project>

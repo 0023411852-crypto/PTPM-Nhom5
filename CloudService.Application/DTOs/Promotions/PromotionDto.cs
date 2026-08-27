@@ -16,6 +16,7 @@ namespace CloudService.Application.DTOs.Promotions
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public bool IsActive { get; set; }
+        public int? BillingCycle { get; set; }
     }
 
     public class CreatePromotionDto
@@ -42,6 +43,7 @@ namespace CloudService.Application.DTOs.Promotions
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public bool IsActive { get; set; } = true;
+        public int? BillingCycle { get; set; }
     }
 
     public class UpdatePromotionDto
@@ -68,5 +70,6 @@ namespace CloudService.Application.DTOs.Promotions
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public bool IsActive { get; set; }
+        public int? BillingCycle { get; set; }
     }
 }

@@ -20,6 +20,7 @@ namespace CloudService.Tests
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<IQRCodeService> _qrCodeServiceMock;
+        private readonly Mock<IEventDispatcher> _eventDispatcherMock;
         private readonly ServicePlanService _servicePlanService;
         private readonly Mock<IGenericRepository<ServicePlan>> _planRepoMock;
         private readonly Mock<IGenericRepository<ServiceCategory>> _categoryRepoMock;
@@ -29,6 +30,7 @@ namespace CloudService.Tests
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _mapperMock = new Mock<IMapper>();
             _qrCodeServiceMock = new Mock<IQRCodeService>();
+            _eventDispatcherMock = new Mock<IEventDispatcher>();
 
             _planRepoMock = new Mock<IGenericRepository<ServicePlan>>();
             _categoryRepoMock = new Mock<IGenericRepository<ServiceCategory>>();
@@ -38,7 +40,7 @@ namespace CloudService.Tests
 
             _qrCodeServiceMock.Setup(q => q.GenerateQRCodeBase64(It.IsAny<string>())).Returns("base64_qr_code");
 
-            _servicePlanService = new ServicePlanService(_unitOfWorkMock.Object, _mapperMock.Object, _qrCodeServiceMock.Object);
+            _servicePlanService = new ServicePlanService(_unitOfWorkMock.Object, _mapperMock.Object, _qrCodeServiceMock.Object, _eventDispatcherMock.Object);
         }
 
         [Fact]

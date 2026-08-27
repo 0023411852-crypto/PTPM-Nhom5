@@ -50,6 +50,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             title: "Hệ thống",
             links: [
                 { name: 'Tổng quan', href: '/admin', icon: 'dashboard' },
+                { name: 'Nhật ký hệ thống', href: '/admin/audit-logs', icon: 'history' },
                 { name: 'Cài đặt hệ thống', href: '/admin/settings', icon: 'settings' }
             ]
         },
@@ -57,10 +58,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             title: "Khách hàng & Dịch vụ",
             links: [
                 { name: 'Quản lý người dùng', href: '/admin/users', icon: 'group' },
-                { name: 'Quản lý Đối tác', href: '/admin/partner-requests', icon: 'handshake' },
+                { name: 'Quản lý Đối tác', href: '/admin/partners', icon: 'handshake' },
+                { name: 'Yêu cầu Đối tác', href: '/admin/partner-requests', icon: 'request_quote' },
                 { name: 'Quản lý Danh mục', href: '/admin/categories', icon: 'category' },
                 { name: 'Quản lý Máy chủ/VPS', href: '/admin/services', icon: 'dns' },
                 { name: 'Đơn hàng & Thanh toán', href: '/admin/orders', icon: 'receipt_long' },
+                { name: 'Yêu cầu hỗ trợ', href: '/admin/tickets', icon: 'support_agent' },
                 { name: 'Báo cáo doanh thu', href: '/admin/reports', icon: 'payments' },
             ]
         },

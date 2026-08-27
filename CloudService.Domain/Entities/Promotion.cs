@@ -28,5 +28,8 @@ namespace CloudService.Domain.Entities
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public bool IsActive { get; set; } = true;
+        
+        // BillingCycle: 1 for monthly, 12 for yearly, null for all cycles
+        public int? BillingCycle { get; set; }
     }
 }
