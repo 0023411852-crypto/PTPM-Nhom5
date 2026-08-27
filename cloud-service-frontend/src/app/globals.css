@@ -782,3 +782,29 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .home-page .trust-strip.is-visible [data-reveal] { animation: safe-card-reveal .55s ease both; }
 @keyframes safe-card-reveal { from { opacity: .72; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { .home-section-reveal.is-visible, .home-page .trust-strip.is-visible [data-reveal] { animation: none; } }
+
+
+/* Visible-first motion: animation enhances content without hiding it. */
+[data-reveal] { opacity: 1; transform: translateY(0); }
+[data-reveal].is-visible { animation: visible-card-reveal .72s cubic-bezier(.23, 1, .32, 1) both; }
+@keyframes visible-card-reveal { 0% { opacity: .78; transform: translateY(12px) scale(.985); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+.home-section-reveal { opacity: 1; transform: translateY(0); }
+.home-section-reveal.is-visible { animation: visible-section-reveal .82s cubic-bezier(.23, 1, .32, 1) both; }
+@keyframes visible-section-reveal { 0% { opacity: .86; transform: translateY(18px); } 100% { opacity: 1; transform: translateY(0); } }
+.home-hero .hero-dashboard { animation: dashboard-float 7s ease-in-out infinite; }
+@keyframes dashboard-float { 0%, 100% { transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg); } 50% { transform: translate3d(0, -9px, 0) rotateX(.7deg) rotateY(-.7deg); } }
+.home-hero .floating-chip { animation: chip-float 5s ease-in-out infinite; }
+.home-hero .floating-chip-top { animation-delay: -.8s; }
+.home-hero .floating-chip-bottom { animation-delay: -2.1s; }
+@keyframes chip-float { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(0, -7px, 0); } }
+.home-hero .hero-grid { animation: grid-breathe 8s ease-in-out infinite alternate; }
+@keyframes grid-breathe { from { opacity: .22; transform: scale(1); } to { opacity: .48; transform: scale(1.025); } }
+.home-page .service-card, .home-page .price-card, .home-page .quote-card, .home-page .benefit-card { transition: transform .28s cubic-bezier(.23, 1, .32, 1), box-shadow .28s ease, border-color .28s ease, background-color .28s ease; }
+.home-page .service-card:hover, .home-page .price-card:hover { box-shadow: 0 24px 56px rgba(33, 100, 175, .16); }
+.home-page .section-eyebrow { position: relative; width: fit-content; }
+.home-page .section-eyebrow::after { content: ""; display: block; width: 36px; height: 2px; margin-top: 7px; border-radius: 99px; background: linear-gradient(90deg, #1d76e8, #63d8ff); animation: eyebrow-line 3s ease-in-out infinite alternate; }
+@keyframes eyebrow-line { from { width: 26px; opacity: .6; } to { width: 58px; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal].is-visible, .home-section-reveal.is-visible { animation: none; }
+  .home-hero .hero-dashboard, .home-hero .floating-chip, .home-hero .hero-grid, .home-page .section-eyebrow::after { animation: none; }
+}
