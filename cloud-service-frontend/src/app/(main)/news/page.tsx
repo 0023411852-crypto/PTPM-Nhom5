@@ -23,7 +23,7 @@ interface NewsResponse {
 }
 
 const PAGE_SIZE = 6;
-const API_URL = "/api/NewsArticles";
+const API_URL = "/scraped-news-api";
 const API_BASE_URL = "";
 
 function resolveMediaUrl(url?: string | null) {
@@ -177,9 +177,9 @@ export default function NewsPage() {
                 <p className="font-body-md text-body-md text-secondary mb-lg line-clamp-3">{getExcerpt(featuredArticle.content)}</p>
                 <div className="flex items-center justify-between mt-auto pt-lg border-t border-outline-variant">
                   <span className="font-body-sm text-secondary">{formatDate(featuredArticle.createdAt)}</span>
-                  <Link href={`/news/${featuredArticle.id}`} className="text-primary font-body-sm font-semibold hover:underline flex items-center gap-1">
+                  <a href={featuredArticle.slug.startsWith('http') ? featuredArticle.slug : `/news/${featuredArticle.id}`} target="_blank" rel="noopener noreferrer" className="text-primary font-body-sm font-semibold hover:underline flex items-center gap-1">
                     Đọc bài viết <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                  </Link>
+                  </a>
                 </div>
               </div>
             </div>
@@ -212,7 +212,7 @@ export default function NewsPage() {
                       <p className="mb-lg line-clamp-3 font-body-sm text-secondary">{getExcerpt(article.content)}</p>
                       <div className="mt-auto flex items-center justify-between gap-sm border-t border-outline-variant/50 pt-md">
                         <span className="text-xs text-secondary">{formatDate(article.createdAt)}</span>
-                        <Link href={`/news/${article.id}`} className="font-body-sm text-primary hover:underline">Xem chi tiết →</Link>
+                        <a href={article.slug.startsWith('http') ? article.slug : `/news/${article.id}`} target="_blank" rel="noopener noreferrer" className="font-body-sm text-primary hover:underline">Xem chi tiết →</a>
                       </div>
                     </div>
                   </article>
@@ -233,12 +233,12 @@ export default function NewsPage() {
                   <h3 className="font-headline-sm text-headline-sm text-on-surface">Thông tin nổi bật</h3>
                 </div>
                 {featuredArticle && (
-                  <Link href={`/news/${featuredArticle.id}`} className="group block">
+                  <a href={featuredArticle.slug.startsWith('http') ? featuredArticle.slug : `/news/${featuredArticle.id}`} target="_blank" rel="noopener noreferrer" className="group block">
                     {resolveMediaUrl(featuredArticle.thumbnailUrl) ? <img src={resolveMediaUrl(featuredArticle.thumbnailUrl) || undefined} alt={featuredArticle.title} className="mb-md h-32 w-full rounded-lg object-cover" /> : <div className="mb-md flex h-32 w-full items-center justify-center rounded-lg bg-primary-container text-primary"><span className="material-symbols-outlined text-4xl">article</span></div>}
                     <p className="mb-xs font-label-caps text-label-caps uppercase text-primary">{featuredArticle.category || "Tin tức"}</p>
                     <h4 className="font-body-md font-semibold leading-snug text-on-surface group-hover:text-primary">{featuredArticle.title}</h4>
                     <p className="mt-sm line-clamp-2 font-body-sm text-secondary">{getExcerpt(featuredArticle.content)}</p>
-                  </Link>
+                  </a>
                 )}
               </div>
 
