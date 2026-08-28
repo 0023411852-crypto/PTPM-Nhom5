@@ -119,6 +119,7 @@ jobs:
             # Tạo file .env trên server để cung cấp biến môi trường cho docker-compose
             echo "JWT_SECRET=CloudNovaSecretKey2026!@#$" > .env
             echo "MSSQL_SA_PASSWORD=CloudNovaStr0ngPassword!2026" >> .env
+            echo "DATABASE_AUTO_MIGRATE=true" >> .env
 
             # Dùng cấu hình production, không dùng compose development.
             docker compose -f docker-compose.production.yml down

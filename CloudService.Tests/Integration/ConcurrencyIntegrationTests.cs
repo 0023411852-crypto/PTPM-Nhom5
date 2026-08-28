@@ -20,7 +20,7 @@ namespace CloudService.Tests.Integration
 {
     public class ConcurrencyIntegrationTests : IAsyncLifetime
     {
-        private ApplicationDbContext _dbContext;
+        private ApplicationDbContext _dbContext = default!;
 
         public ConcurrencyIntegrationTests()
         {
