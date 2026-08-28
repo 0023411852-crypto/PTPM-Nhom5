@@ -210,9 +210,9 @@ export default function PricingPage() {
     };
 
     return (
-        <main className="public-content flex-grow pt-16 pb-2xl relative">
+        <main className="public-content pricing-page flex-grow pt-16 pb-2xl relative">
             {toastMessage && (
-                <div className="fixed top-24 right-4 z-50 bg-primary text-white px-6 py-3 rounded-lg shadow-lg font-medium animate-fade-in">
+                <div className="pricing-toast fixed top-24 right-4 z-50 bg-primary text-white px-6 py-3 rounded-lg shadow-lg font-medium animate-fade-in">
                     <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined">check_circle</span>
                         {toastMessage}
@@ -221,9 +221,9 @@ export default function PricingPage() {
             )}
             
             {/* Promo Hero Section */}
-            <section className="hero-pattern relative overflow-hidden py-3xl px-gutter">
+            <section className="pricing-hero hero-pattern relative overflow-hidden py-3xl px-gutter">
                 <div className="max-w-container-max mx-auto text-center relative z-10 flex flex-col items-center">
-                    <div className="inline-flex items-center gap-sm bg-primary-fixed/50 text-primary-fixed-dim px-md py-sm rounded-full mb-lg border border-primary/10">
+                    <div className="pricing-hero-badge inline-flex items-center gap-sm bg-primary-fixed/50 text-primary-fixed-dim px-md py-sm rounded-full mb-lg border border-primary/10">
                         <span className="material-symbols-outlined text-[18px]">local_fire_department</span>
                         <span className="font-label-caps text-label-caps text-primary uppercase tracking-wider">Tháng Khuyến Mãi</span>
                     </div>
@@ -233,6 +233,15 @@ export default function PricingPage() {
                     <p className="font-body-lg text-body-lg text-on-surface-variant max-w-[42rem] mx-auto mb-xl">
                         Khám phá những chương trình khuyến mãi mới nhất từ CloudNova và tiết kiệm chi phí hạ tầng. Tối ưu hóa hiệu suất với chi phí thấp nhất.
                     </p>
+                    <div className="pricing-hero-signals" aria-label="Cam kết bảng giá">
+                        <span><span className="material-symbols-outlined">verified</span> Không phí ẩn</span>
+                        <span><span className="material-symbols-outlined">sync</span> Nâng cấp linh hoạt</span>
+                        <span><span className="material-symbols-outlined">bolt</span> Kích hoạt nhanh</span>
+                    </div>
+                    <div className="pricing-hero-console" aria-hidden="true">
+                        <div className="pricing-console-bar"><span></span><span></span><span></span><b>cloudnova / pricing</b><i>LIVE</i></div>
+                        <div className="pricing-console-grid"><div><small>Infrastructure</small><strong>Ready to scale</strong></div><div><small>Uptime SLA</small><strong>99.9%</strong></div><div><small>Support</small><strong>24/7</strong></div></div>
+                    </div>
                 </div>
                 {/* Decorative Elements */}
                 <div className="absolute top-1/4 left-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-0"></div>
@@ -241,9 +250,9 @@ export default function PricingPage() {
 
             {/* Featured Promotion */}
             {featuredPromo && (
-                <section className="px-gutter pb-3xl -mt-xl relative z-20">
+                <section className="pricing-promo px-gutter pb-3xl -mt-xl relative z-20">
                     <div className="max-w-container-max mx-auto">
-                        <div className="interactive-card bg-surface-container-lowest rounded-xl border border-outline-variant p-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:border-primary/50 transition-colors duration-300">
+                        <div className="pricing-promo-card interactive-card bg-surface-container-lowest rounded-xl border border-outline-variant p-xl shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:border-primary/50 transition-colors duration-300">
                             <div className="grid md:grid-cols-2 gap-xl items-center">
                                 <div>
                                     <span className="inline-block bg-error-container text-on-error-container font-label-caps text-label-caps px-2 py-1 rounded-md mb-md">HOT DEAL</span>
@@ -271,13 +280,13 @@ export default function PricingPage() {
                 </section>
             )}
 
-            <section id="pricing-plans" className="max-w-container-max mx-auto px-gutter pt-xl pb-2xl text-center">
+            <section id="pricing-plans" className="pricing-plans-section max-w-container-max mx-auto px-gutter pt-xl pb-2xl text-center">
                 <h1 className="font-display-lg text-display-lg text-on-background mb-md">Bảng giá minh bạch. Không chi phí ẩn.</h1>
                 <p className="font-body-lg text-body-lg text-secondary max-w-[42rem] mx-auto mb-2xl">
                     Chọn cấu hình phù hợp với nhu cầu của bạn và dễ dàng nâng cấp khi doanh nghiệp phát triển.
                 </p>
 
-                <div className="flex items-center justify-center gap-md mb-2xl">
+                <div className="pricing-toggle-shell flex items-center justify-center gap-md mb-2xl">
                     <span className="font-body-md text-body-md font-medium text-secondary">Thanh toán theo tháng</span>
                     <button 
                         onClick={() => setIsAnnual(!isAnnual)}
@@ -292,7 +301,7 @@ export default function PricingPage() {
                 </div>
             </section>
 
-            <section className="max-w-container-max mx-auto px-gutter mb-3xl">
+            <section className="pricing-cards-section max-w-container-max mx-auto px-gutter mb-3xl">
                 {loading ? (
                     <div className="text-center text-secondary py-xl">Đang tải bảng giá...</div>
                 ) : (
@@ -351,7 +360,7 @@ export default function PricingPage() {
 
                             if (isEnterprise) {
                                 return (
-                                    <div key={plan.id} className="interactive-card col-span-12 md:col-span-6 lg:col-span-3 flex flex-col bg-inverse-surface rounded-xl border border-inverse-surface p-lg">
+                                    <div key={plan.id} className="pricing-card pricing-card-enterprise interactive-card col-span-12 md:col-span-6 lg:col-span-3 flex flex-col bg-inverse-surface rounded-xl border border-inverse-surface p-lg">
                                         <div className="mb-lg">
                                             <h3 className="font-headline-md text-headline-md text-surface-container-lowest mb-sm">{plan.name}</h3>
                                             <div className="flex items-baseline gap-xs mt-md">
@@ -377,7 +386,7 @@ export default function PricingPage() {
                             }
 
                             return (
-                                <div key={plan.id} className={`interactive-card col-span-12 md:col-span-6 lg:col-span-3 flex flex-col ${isHighlighted ? 'bg-surface-container-lowest rounded-xl border-2 border-primary p-lg shadow-[0_4px_20px_rgba(0,0,0,0.05)] relative transform md:-translate-y-4' : 'bg-surface-container-lowest rounded-xl border border-outline-variant p-lg hover:border-primary transition-colors hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}>
+                                <div key={plan.id} className={`pricing-card interactive-card col-span-12 md:col-span-6 lg:col-span-3 flex flex-col ${isHighlighted ? 'bg-surface-container-lowest rounded-xl border-2 border-primary p-lg shadow-[0_4px_20px_rgba(0,0,0,0.05)] relative transform md:-translate-y-4' : 'bg-surface-container-lowest rounded-xl border border-outline-variant p-lg hover:border-primary transition-colors hover:shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}>
                                     {isHighlighted && (
                                         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary text-on-primary font-label-caps text-label-caps px-md py-xs rounded-full">
                                             PHỔ BIẾN NHẤT
@@ -437,7 +446,7 @@ export default function PricingPage() {
                 )}
             </section>
 
-            <section className="max-w-[56rem] mx-auto px-gutter mb-3xl text-center bg-surface-container rounded-xl p-2xl border border-outline-variant/50">
+            <section className="pricing-advisor max-w-[56rem] mx-auto px-gutter mb-3xl text-center bg-surface-container rounded-xl p-2xl border border-outline-variant/50">
                 <h2 className="font-headline-lg text-headline-lg text-on-background mb-md">Bạn chưa biết nên chọn gói nào?</h2>
                 <p className="font-body-md text-body-md text-secondary mb-xl">Đội ngũ kỹ thuật của chúng tôi sẵn sàng hỗ trợ bạn phân tích nhu cầu và lựa chọn giải pháp tối ưu nhất.</p>
                 <button onClick={() => setIsContactModalOpen(true)} className="bg-primary text-on-primary font-body-md text-body-md font-medium px-xl py-md rounded-lg hover:bg-primary-container transition-colors inline-flex items-center gap-sm">
@@ -447,7 +456,7 @@ export default function PricingPage() {
             </section>
 
             {/* Terms & Conditions */}
-            <section className="px-gutter pb-3xl bg-surface-container-lowest py-3xl border-t border-outline-variant/30 mt-3xl">
+            <section className="pricing-faq px-gutter pb-3xl bg-surface-container-lowest py-3xl border-t border-outline-variant/30 mt-3xl">
                 <div className="max-w-[48rem] mx-auto">
                     <h2 className="font-headline-md text-headline-md text-on-background mb-xl text-center">Điều kiện áp dụng chung</h2>
                     <div className="border border-outline-variant rounded-xl overflow-hidden divide-y divide-outline-variant bg-surface">
@@ -472,7 +481,7 @@ export default function PricingPage() {
             </section>
 
             {/* Final CTA */}
-            <section className="py-3xl px-gutter bg-surface-container">
+            <section className="pricing-final-cta py-3xl px-gutter bg-surface-container">
                 <div className="max-w-container-max mx-auto text-center flex flex-col items-center">
                     <h2 className="font-headline-lg text-headline-lg text-on-background mb-md">Đừng bỏ lỡ ưu đãi tiếp theo</h2>
                     <p className="font-body-lg text-body-lg text-on-surface-variant mb-xl max-w-[42rem]">
