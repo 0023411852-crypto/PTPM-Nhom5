@@ -47,34 +47,6 @@ namespace CloudService.WebApi
                 Console.WriteLine("Warning: Could not alter NewsArticles table: " + ex.Message);
             }
 
-            if (!context.Roles.Any())
-            {
-                var adminRole = new Role { Id = Guid.NewGuid(), Name = "Admin" };
-                var userRole = new Role { Id = Guid.NewGuid(), Name = "User" };
-                context.Roles.AddRange(adminRole, userRole);
-                context.SaveChanges();
-            }
-
-            if (!context.AppUsers.Any(u => u.Email == "admin@cloudservice.vn"))
-            {
-                var adminRole = context.Roles.FirstOrDefault(r => r.Name == "Admin");
-                if (adminRole != null)
-                {
-                    var adminUser = new AppUser
-                    {
-                        Id = Guid.NewGuid(),
-                        FullName = "System Admin",
-                        Email = "admin@cloudservice.vn",
-                        PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                        RoleId = adminRole.Id
-                    };
-                    context.AppUsers.Add(adminUser);
-                    context.SaveChanges();
-                }
-            }
-
             // Auto-run raw SQL seed files if database is empty (no categories)
             if (!context.ServiceCategories.Any())
             {
