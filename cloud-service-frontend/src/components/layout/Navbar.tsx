@@ -157,8 +157,8 @@ export default function Navbar() {
                       <p className="font-medium text-on-surface overflow-hidden text-ellipsis whitespace-nowrap">{fullName}</p>
                     </div>
                     
-                    {(role === 'admin' || role === 'editor') && (
-                      <Link href={`/${role}`} onClick={() => setShowDropdown(false)} className="flex items-center gap-3 px-4 py-2 text-primary font-medium hover:bg-primary/10 transition-colors">
+                    {(role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'editor') && (
+                      <Link href={`/${role?.toLowerCase()}`} onClick={() => setShowDropdown(false)} className="flex items-center gap-3 px-4 py-2 text-primary font-medium hover:bg-primary/10 transition-colors">
                         <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>admin_panel_settings</span>
                         Trang quản trị
                       </Link>
