@@ -161,6 +161,16 @@ namespace CloudService.Application.Services
             var basePrice = planPrice.Price * dto.BillingCycle;
             var subtotal = basePrice + planPrice.SetupFee;
 
+            if (dto.PromotionId.HasValue)
+            {
+                var explicitPromoRepo = _unitOfWork.Repository<Promotion>();
+                var explicitPromo = await explicitPromoRepo.GetByIdAsync(dto.PromotionId.Value, "ServicePlans");
+                if (explicitPromo != null && (explicitPromo.DiscountPercentage < 0 || explicitPromo.DiscountPercentage > 100))
+                {
+                    throw new ValidationException("Promotion discount must be between 0 and 100 percent");
+                }
+            }
+
             // Find and apply the best applicable promotion
             Promotion? promotion = null;
             decimal discountAmount = 0;
@@ -182,7 +192,10 @@ namespace CloudService.Application.Services
                 // Nếu FE gửi PromotionId = 10% nhưng hệ thống có 20% hợp lệ, sẽ tự động dùng 20%
                 promotion = applicablePromotions.OrderByDescending(p => p.DiscountPercentage).FirstOrDefault();
                 
-                discountAmount = Math.Round(subtotal * (promotion.DiscountPercentage / 100m), 2, MidpointRounding.AwayFromZero);
+                if (promotion != null)
+                {
+                    discountAmount = Math.Round(subtotal * (promotion.DiscountPercentage / 100m), 2, MidpointRounding.AwayFromZero);
+                }
                 
                 // Đảm bảo không giảm giá quá số tiền gốc
                 if (discountAmount > subtotal)
