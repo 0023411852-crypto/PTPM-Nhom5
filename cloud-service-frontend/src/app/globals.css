@@ -715,7 +715,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .mobile-drawer .site-nav-link:hover { background: rgba(35, 126, 227, .08); }
 
 
-.dashboard-sidebar { position: relative; isolation: isolate; overflow: hidden; }
+.dashboard-sidebar { isolation: isolate; overflow: hidden; }
 .dashboard-sidebar::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .5; background: radial-gradient(circle at 20% 0%, rgba(85, 195, 255, .2), transparent 30%), radial-gradient(circle at 90% 78%, rgba(133, 100, 255, .16), transparent 30%); pointer-events: none; }
 .dashboard-sidebar::after { content: ""; position: absolute; top: 0; right: 0; width: 1px; height: 100%; background: linear-gradient(180deg, transparent, rgba(124, 217, 255, .5), transparent); opacity: .65; pointer-events: none; }
 .dashboard-brand { letter-spacing: -.05em; background: linear-gradient(100deg, #fff, #8fdfff 58%, #b0a8ff); -webkit-background-clip: text; background-clip: text; color: transparent !important; text-shadow: 0 0 28px rgba(112, 221, 255, .12); }
@@ -1126,9 +1126,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .dashboard-main input:not([type="checkbox"]):not([type="radio"]):focus, .dashboard-main select:focus, .dashboard-main textarea:focus { border-color: #76b9e8; background: #fff; box-shadow: 0 0 0 4px rgba(65, 157, 220, .11); outline: none; }
 .dashboard-main .rounded-xl, .dashboard-main .rounded-2xl { box-shadow: 0 10px 26px rgba(27, 72, 119, .045); }
 .dashboard-main .bg-surface, .dashboard-main .bg-surface-container, .dashboard-main .bg-surface-container-lowest { border-color: #dbe9f4; }
-.dashboard-sidebar { width: 280px !important; }
-.dashboard-header { left: 280px !important; width: calc(100% - 280px) !important; }
-.admin-overview::before { left: 280px; }
+.dashboard-sidebar { width: 280px !important; position: fixed !important; z-index: 30 !important; }
+@media (min-width: 768px) {
+  .dashboard-header { left: 280px !important; width: calc(100% - 280px) !important; }
+  .admin-overview::before { left: 280px; }
+}
 .dashboard-nav-link { min-height: 42px; }
 .dashboard-nav-link .material-symbols-outlined { flex: 0 0 auto; }
 .dashboard-header input { min-width: 0; }
