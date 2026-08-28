@@ -74,6 +74,60 @@ namespace CloudService.WebApi
                     context.SaveChanges();
                 }
             }
+
+            // Auto-run raw SQL seed files if database is empty (no categories)
+            if (!context.ServiceCategories.Any())
+            {
+                try
+                {
+                    Console.WriteLine("[DataSeeder] Database is empty. Running seed_data_database_script_1.sql...");
+                    var seedDataPath = Path.Combine(Directory.GetCurrentDirectory(), "seed_data_database_script_1.sql");
+                    if (File.Exists(seedDataPath))
+                    {
+                        var sql = File.ReadAllText(seedDataPath);
+                        // Execute raw SQL script. Note: GO batches are not supported directly by ExecuteSqlRaw, 
+                        // so we need to split by GO or assume the script is clean.
+                        // For simplicity, we split the script by 'GO' commands.
+                        var commands = sql.Split(new[] { "GO\r\n", "GO\n", "GO " }, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var command in commands)
+                        {
+                            if (!string.IsNullOrWhiteSpace(command))
+                            {
+                                context.Database.ExecuteSqlRaw(command);
+                            }
+                        }
+                        Console.WriteLine("[DataSeeder] Successfully executed seed_data_database_script_1.sql.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[DataSeeder] File not found: {seedDataPath}");
+                    }
+
+                    Console.WriteLine("[DataSeeder] Running update_categories.sql...");
+                    var updateCategoriesPath = Path.Combine(Directory.GetCurrentDirectory(), "update_categories.sql");
+                    if (File.Exists(updateCategoriesPath))
+                    {
+                        var sql = File.ReadAllText(updateCategoriesPath);
+                        var commands = sql.Split(new[] { "GO\r\n", "GO\n", "GO " }, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var command in commands)
+                        {
+                            if (!string.IsNullOrWhiteSpace(command))
+                            {
+                                context.Database.ExecuteSqlRaw(command);
+                            }
+                        }
+                        Console.WriteLine("[DataSeeder] Successfully executed update_categories.sql.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[DataSeeder] File not found: {updateCategoriesPath}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("[DataSeeder] Error executing SQL seed scripts: " + ex.Message);
+                }
+            }
         }
     }
 }
