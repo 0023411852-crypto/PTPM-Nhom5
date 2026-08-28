@@ -9,7 +9,8 @@ function StaticPageForm() {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const basePath = pathname.startsWith('/admin') ? '/admin' : '/editor';
-    const editId = searchParams.get('id');
+    const rawId = searchParams.get('id');
+    const editId = rawId ? rawId.replace(/ /g, '-') : null;
 
     const [title, setTitle] = useState('');
     const [slug, setSlug] = useState('');
@@ -147,7 +148,7 @@ function StaticPageForm() {
                         </div>
                         <div className="mb-md">
                             <div className="flex items-center text-on-surface-variant font-body-sm bg-surface-container-low px-3 py-2 rounded">
-                                <span className="opacity-70">http://localhost:3000/</span>
+                                <span className="opacity-70">{typeof window !== 'undefined' ? window.location.origin : ''}/</span>
                                 <input 
                                     type="text" 
                                     placeholder="duong-dan-cua-ban" 
