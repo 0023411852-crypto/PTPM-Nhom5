@@ -818,3 +818,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .home-page .trust-strip { transition: box-shadow .25s ease, background-color .25s ease; }
 .home-page .trust-strip:hover { box-shadow: 0 20px 52px rgba(46, 88, 147, .14); }
 @media (prefers-reduced-motion: reduce) { .home-scroll-progress { display: none; } .home-hero .hero-dashboard, .home-hero .hero-aurora { translate: none; } }
+
+
+/* Customer portal navigation: calm active state with clear contrast. */
+.client-portal .client-nav-item { position: relative; min-height: 46px; color: #52657d; border: 1px solid transparent; background: transparent; text-align: left; }
+.client-portal .client-nav-item:hover { color: #174f91; background: #f3f8fe !important; border-color: #e0ebf8; transform: translateX(2px) !important; }
+.client-portal .client-nav-item.client-nav-active { color: #1557a6 !important; background: linear-gradient(100deg, #eaf4ff 0%, #f6faff 100%) !important; border-color: #c9def5; box-shadow: 0 7px 18px rgba(40, 108, 182, .09), inset 0 1px 0 rgba(255,255,255,.9); }
+.client-portal .client-nav-item.client-nav-active::before { content: ""; position: absolute; left: -1px; top: 9px; bottom: 9px; width: 3px; border-radius: 0 4px 4px 0; background: linear-gradient(180deg, #2d86dc, #65c9ef); box-shadow: 0 0 10px rgba(45, 134, 220, .22); }
+.client-portal .client-nav-item.client-nav-active .material-symbols-outlined { color: #1c6bb8; }
+.client-portal .client-nav-item .material-symbols-outlined { color: #6b7e96; transition: color .2s ease, transform .2s ease; }
+.client-portal .client-nav-item:hover .material-symbols-outlined { color: #2876c5; transform: scale(1.06); }
+@media (prefers-reduced-motion: reduce) { .client-portal .client-nav-item, .client-portal .client-nav-item .material-symbols-outlined { transition: none; } }

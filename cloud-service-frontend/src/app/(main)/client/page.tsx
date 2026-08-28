@@ -356,28 +356,28 @@ export default function ClientPortalPage() {
                         <div className="interactive-card bg-surface rounded-2xl border border-outline-variant p-md shadow-sm space-y-sm">
                             <button 
                                 onClick={() => setActiveTab('services')}
-                                className={`w-full flex items-center gap-md px-md py-sm rounded-xl transition-colors ${activeTab === 'services' ? 'bg-primary-container text-primary font-medium' : 'text-on-surface-variant hover:bg-surface-container'}`}
+                                className={`client-nav-item w-full flex items-center gap-md px-md py-sm rounded-xl transition-colors ${activeTab === 'services' ? 'client-nav-active font-medium' : 'text-on-surface-variant hover:bg-surface-container'}`}
                             >
                                 <span className="material-symbols-outlined text-[20px]">shopping_cart</span>
                                 Giỏ hàng & Quản lý dịch vụ
                             </button>
                             <button 
                                 onClick={() => setActiveTab('orders')}
-                                className={`w-full flex items-center gap-md px-md py-sm rounded-xl transition-colors ${activeTab === 'orders' ? 'bg-primary-container text-primary font-medium' : 'text-on-surface-variant hover:bg-surface-container'}`}
+                                className={`client-nav-item w-full flex items-center gap-md px-md py-sm rounded-xl transition-colors ${activeTab === 'orders' ? 'client-nav-active font-medium' : 'text-on-surface-variant hover:bg-surface-container'}`}
                             >
                                 <span className="material-symbols-outlined text-[20px]">receipt_long</span>
                                 Lịch sử đơn hàng
                             </button>
                             <button 
                                 onClick={() => setActiveTab('support')}
-                                className={`w-full flex items-center gap-md px-md py-sm rounded-xl transition-colors ${activeTab === 'support' ? 'bg-primary-container text-primary font-medium' : 'text-on-surface-variant hover:bg-surface-container'}`}
+                                className={`client-nav-item w-full flex items-center gap-md px-md py-sm rounded-xl transition-colors ${activeTab === 'support' ? 'client-nav-active font-medium' : 'text-on-surface-variant hover:bg-surface-container'}`}
                             >
                                 <span className="material-symbols-outlined text-[20px]">support_agent</span>
                                 Hỗ trợ kỹ thuật
                             </button>
                             <button 
                                 onClick={() => setActiveTab('profile')}
-                                className={`w-full flex items-center gap-md px-md py-sm rounded-xl transition-colors ${activeTab === 'profile' ? 'bg-primary-container text-primary font-medium' : 'text-on-surface-variant hover:bg-surface-container'}`}
+                                className={`client-nav-item w-full flex items-center gap-md px-md py-sm rounded-xl transition-colors ${activeTab === 'profile' ? 'client-nav-active font-medium' : 'text-on-surface-variant hover:bg-surface-container'}`}
                             >
                                 <span className="material-symbols-outlined text-[20px]">person</span>
                                 Hồ sơ cá nhân
