@@ -8,8 +8,8 @@ async function getStaticPages() {
       next: { revalidate: 60 },
     });
     if (!res.ok) return [];
-    const data = await res.json();
-    return data.items || [];
+    const json = await res.json();
+    return json.data || [];
   } catch {
     return [];
   }

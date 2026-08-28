@@ -230,7 +230,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </header>
 
                     <main className="dashboard-main flex-1 overflow-y-auto mt-16 p-4 md:p-lg bg-background w-full">
-                        <div className="max-w-[1600px] mx-auto w-full">
+                        <div className="max-w-[1600px] mr-auto w-full">
                             {children}
                         </div>
                     </main>

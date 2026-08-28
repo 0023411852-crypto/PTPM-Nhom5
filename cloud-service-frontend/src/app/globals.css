@@ -1115,9 +1115,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 
 /* Admin + Editor workspace layout refresh: presentation-only, keeps page logic untouched. */
 .dashboard-main { padding: 28px clamp(18px, 2.6vw, 46px) 52px !important; background: #f4f8fd !important; }
-.dashboard-main > * { width: 100%; max-width: 1480px; margin-left: auto; margin-right: auto; }
-.dashboard-main > [class*="max-w-"] { max-width: min(1480px, 100%) !important; }
-.dashboard-main [class*="max-w-[1200px]"], .dashboard-main [class*="max-w-[1000px]"], .dashboard-main [class*="max-w-[900px]"], .dashboard-main [class*="max-w-[800px]"] { max-width: min(1480px, 100%) !important; }
+
 .dashboard-main > .space-y-lg, .dashboard-main > .space-y-xl { width: 100%; }
 .dashboard-main > * > table, .dashboard-main table { width: 100%; }
 .dashboard-main .overflow-x-auto { width: 100%; border-radius: 16px; scrollbar-color: #9dc6e6 transparent; }
@@ -1141,18 +1139,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .dashboard-main .grid.lg\:grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 860px) {
-  .dashboard-sidebar { width: 84px !important; padding-left: 8px !important; padding-right: 8px !important; }
-  .dashboard-sidebar .dashboard-brand, .dashboard-sidebar h3, .dashboard-sidebar p, .dashboard-sidebar .dashboard-nav-label { display: none !important; }
-  .dashboard-sidebar > div:first-child { justify-content: center; padding-left: 0; padding-right: 0; }
-  .dashboard-sidebar .dashboard-nav-link { justify-content: center; margin-left: 0; margin-right: 0; padding-left: 10px; padding-right: 10px; border-right-width: 0 !important; border-bottom: 0 !important; }
-  .dashboard-sidebar .dashboard-nav-link .material-symbols-outlined { margin: 0; }
-  .dashboard-sidebar .dashboard-create-link { padding-left: 0; padding-right: 0; font-size: 0; }
-  .dashboard-sidebar .dashboard-profile-card { justify-content: center; padding: 7px; }
-  .dashboard-sidebar .dashboard-profile-card > a { flex: 0 0 auto; }.dashboard-sidebar .dashboard-profile-card > button { padding: 6px; }
-  .dashboard-sidebar .dashboard-profile-card p { display: none !important; }
-  .dashboard-shell > [class~="ml-[280px]"] { margin-left: 84px !important; }
-  .dashboard-header { left: 84px !important; width: calc(100% - 84px) !important; padding-left: 18px !important; padding-right: 18px !important; }
-  .admin-overview::before { left: 84px; }
+
   .dashboard-main { padding: 22px 18px 42px !important; }
   .dashboard-header > div:first-child { max-width: 18rem; }
 }
