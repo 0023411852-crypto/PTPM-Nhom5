@@ -76,6 +76,7 @@ export default function Navbar() {
   };
 
   return (
+    <>
     <nav className="site-nav fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-sm border-b border-outline-variant transition-all duration-300">
       <div className="site-nav-inner flex justify-between items-center h-16 px-gutter max-w-[var(--spacing-container-max)] mx-auto">
         <div className="flex items-center gap-md">
@@ -181,6 +182,7 @@ export default function Navbar() {
           </button>
         </div>
       </div>
+    </nav>
 
       {/* Mobile Menu Backdrop */}
       {isMobileMenuOpen && (
@@ -191,7 +193,7 @@ export default function Navbar() {
       )}
 
       {/* Mobile Menu Drawer */}
-      <div className={`mobile-drawer flex md:hidden fixed top-0 right-0 h-full w-64 bg-surface shadow-2xl flex-col z-50 transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`mobile-drawer flex md:hidden fixed top-0 right-0 h-[100dvh] w-64 bg-surface shadow-2xl flex-col z-50 transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex justify-between items-center p-4 border-b border-outline-variant">
           <span className="font-bold text-primary">Menu</span>
           <button onClick={() => setIsMobileMenuOpen(false)} className="text-on-surface outline-none">
@@ -215,6 +217,6 @@ export default function Navbar() {
           )}
         </div>
       </div>
-    </nav>
+    </>
   );
 }
