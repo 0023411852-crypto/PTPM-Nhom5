@@ -82,7 +82,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="dashboard-shell bg-background text-on-background font-body-md text-body-md overflow-hidden h-screen flex">
                 
                 {/* Sidebar */}
-                <aside className="dashboard-sidebar bg-inverse-surface text-on-secondary fixed left-0 top-0 h-full w-[260px] flex flex-col py-lg z-20">
+                <aside className="dashboard-sidebar bg-inverse-surface text-on-secondary fixed left-0 top-0 h-full w-[280px] flex flex-col py-lg z-20">
                     <div className="px-lg mb-lg">
                         <h1 className="dashboard-brand font-headline-md text-headline-md font-bold text-surface">CloudAdmin</h1>
                         <p className="font-body-sm text-body-sm text-on-secondary/70">Hạ tầng v2.4</p>
@@ -109,7 +109,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                                 }`}
                                             >
                                                 <span className={`material-symbols-outlined ${isActive ? 'filled-icon' : ''}`} data-icon={link.icon}>{link.icon}</span>
-                                                <span className="font-body-md text-body-md">{link.name}</span>
+                                                <span className="dashboard-nav-label font-body-md text-body-md">{link.name}</span>
                                             </Link>
                                         );
                                     })}
@@ -149,10 +149,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </aside>
 
                 {/* Main Content Area */}
-                <div className="flex-1 flex flex-col ml-[260px] h-full">
+                <div className="flex-1 flex flex-col ml-[280px] h-full">
                     
                     {/* Header */}
-                    <header className="dashboard-header dashboard-topbar bg-surface fixed top-0 right-0 left-[260px] h-16 border-b border-outline-variant shadow-sm z-10 flex justify-between items-center px-lg transition-all duration-150">
+                    <header className="dashboard-header dashboard-topbar bg-surface fixed top-0 right-0 left-[280px] h-16 border-b border-outline-variant shadow-sm z-10 flex justify-between items-center px-lg transition-all duration-150">
                         <div className="flex-1 max-w-[28rem] relative">
                             <span className="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
                             <input className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-sm pl-[36px] pr-sm font-body-sm text-body-sm focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" placeholder="Tìm kiếm tài nguyên, máy chủ, người dùng..." type="text"/>

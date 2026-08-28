@@ -67,7 +67,7 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
     return (
         <div className="dashboard-shell bg-background text-on-surface font-body-md antialiased overflow-hidden h-screen flex">
             
-            <nav className="dashboard-sidebar fixed left-0 top-0 h-full w-[260px] bg-on-secondary-fixed dark:bg-on-background flex flex-col py-lg px-md border-r border-outline-variant/20 z-20">
+            <nav className="dashboard-sidebar fixed left-0 top-0 h-full w-[280px] bg-on-secondary-fixed dark:bg-on-background flex flex-col py-lg px-md border-r border-outline-variant/20 z-20">
                 <div className="flex items-center gap-3 mb-xl px-sm">
                     <div className="w-8 h-8 rounded bg-primary-container flex items-center justify-center text-surface-container-lowest">
                         <span className="material-symbols-outlined text-[20px]">cloud</span>
@@ -97,7 +97,7 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
                                     }`}
                                 >
                                     <span className="material-symbols-outlined" style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>{link.icon}</span>
-                                    {link.name}
+                                    <span className="dashboard-nav-label">{link.name}</span>
                                 </Link>
                             </li>
                         );
@@ -113,7 +113,7 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
                                     className="dashboard-nav-link flex items-center gap-3 px-3 py-2 rounded-md font-body-md text-body-md text-surface-variant/70 hover:bg-primary-container/10 hover:text-surface-container-lowest transition-colors"
                                 >
                                     <span className="material-symbols-outlined">{link.icon}</span>
-                                    {link.name}
+                                    <span className="dashboard-nav-label">{link.name}</span>
                                 </Link>
                             </li>
                         ))}
@@ -123,15 +123,15 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
                                 className="w-full flex items-center gap-3 px-3 py-2 rounded-md font-body-md text-body-md text-surface-variant/70 hover:bg-error/10 hover:text-error transition-colors text-left"
                             >
                                 <span className="material-symbols-outlined">logout</span>
-                                Đăng xuất
+                                <span className="dashboard-nav-label">Đăng xuất</span>
                             </button>
                         </li>
                     </ul>
                 </div>
             </nav>
 
-            <div className="flex-1 ml-[260px] flex flex-col min-w-0">
-                <header className="dashboard-header dashboard-topbar fixed top-0 right-0 w-[calc(100%-260px)] h-16 bg-surface dark:bg-surface-dim border-b border-outline-variant flex justify-between items-center px-lg z-10">
+            <div className="flex-1 ml-[280px] flex flex-col min-w-0">
+                <header className="dashboard-header dashboard-topbar fixed top-0 right-0 w-[calc(100%-280px)] h-16 bg-surface dark:bg-surface-dim border-b border-outline-variant flex justify-between items-center px-lg z-10">
                     <div className="flex items-center gap-lg flex-1">
                         <span className="font-headline-md text-headline-md text-on-surface whitespace-nowrap">Tổng quan</span>
                         <div className="relative w-64 hidden lg:block">
