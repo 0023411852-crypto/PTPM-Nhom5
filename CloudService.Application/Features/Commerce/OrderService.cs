@@ -161,6 +161,16 @@ namespace CloudService.Application.Services
             var basePrice = planPrice.Price * dto.BillingCycle;
             var subtotal = basePrice + planPrice.SetupFee;
 
+            if (dto.PromotionId.HasValue)
+            {
+                var explicitPromoRepo = _unitOfWork.Repository<Promotion>();
+                var explicitPromo = await explicitPromoRepo.GetByIdAsync(dto.PromotionId.Value, "ServicePlans");
+                if (explicitPromo != null && (explicitPromo.DiscountPercentage < 0 || explicitPromo.DiscountPercentage > 100))
+                {
+                    throw new ValidationException("Promotion discount must be between 0 and 100 percent");
+                }
+            }
+
             // Find and apply the best applicable promotion
             Promotion? promotion = null;
             decimal discountAmount = 0;
