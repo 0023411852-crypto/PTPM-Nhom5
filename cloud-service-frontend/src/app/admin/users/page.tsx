@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 type UserRecord = {
     id: string;
@@ -39,7 +40,10 @@ export default function AdminUsersPage() {
     const [selectedUserName, setSelectedUserName] = useState('');
     const [loadingActivities, setLoadingActivities] = useState(false);
 
+    const [mounted, setMounted] = useState(false);
+
     useEffect(() => {
+        setMounted(true);
         fetchUsers();
     }, [pageNumber]);
 
@@ -383,8 +387,8 @@ export default function AdminUsersPage() {
             </div>
 
             {/* Modal Thêm người dùng */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            {mounted && isModalOpen && createPortal(
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
                     <div className="bg-surface rounded-2xl w-full max-w-[500px] shadow-xl overflow-hidden">
                         <div className="flex justify-between items-center p-md border-b border-outline-variant">
                             <h2 className="font-headline-sm text-headline-sm text-on-surface">Thêm người dùng mới</h2>
@@ -454,12 +458,13 @@ export default function AdminUsersPage() {
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* Modal Xem hoạt động */}
-            {isActivitiesModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            {mounted && isActivitiesModalOpen && createPortal(
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
                     <div className="bg-surface rounded-2xl w-full max-w-[600px] shadow-xl overflow-hidden flex flex-col max-h-[80vh]">
                         <div className="flex justify-between items-center p-md border-b border-outline-variant shrink-0">
                             <div>
@@ -504,7 +509,8 @@ export default function AdminUsersPage() {
                             )}
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

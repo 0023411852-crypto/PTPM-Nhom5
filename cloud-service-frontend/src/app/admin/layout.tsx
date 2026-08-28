@@ -8,6 +8,7 @@ import AdminGuard from '@/components/AdminGuard';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [userProfile, setUserProfile] = useState({
         fullName: 'Admin User',
         email: 'admin@cloudnova.com',
@@ -81,8 +82,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <AdminGuard>
             <div className="dashboard-shell bg-background text-on-background font-body-md text-body-md overflow-hidden h-screen flex">
                 
+                {/* Sidebar Overlay (Mobile) */}
+                {isMobileSidebarOpen && (
+                    <div 
+                        className="md:hidden fixed inset-0 bg-black/50 z-20"
+                        onClick={() => setIsMobileSidebarOpen(false)}
+                    />
+                )}
+                
                 {/* Sidebar */}
-                <aside className="dashboard-sidebar bg-inverse-surface text-on-secondary fixed left-0 top-0 h-full w-[280px] flex flex-col py-lg z-20">
+                <aside className={`dashboard-sidebar bg-inverse-surface text-on-secondary fixed left-0 top-0 h-full w-[280px] flex flex-col py-lg z-30 transition-transform duration-300 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
                     <div className="px-lg mb-lg">
                         <h1 className="dashboard-brand font-headline-md text-headline-md font-bold text-surface">CloudAdmin</h1>
                         <p className="font-body-sm text-body-sm text-on-secondary/70">Hạ tầng v2.4</p>
@@ -102,6 +111,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                             <Link 
                                                 key={link.name}
                                                 href={link.href}
+                                                onClick={() => setIsMobileSidebarOpen(false)}
                                                 className={`dashboard-nav-link flex items-center gap-md px-md py-sm mx-sm rounded-lg transition-colors duration-200 ${
                                                     isActive 
                                                         ? 'bg-primary-container text-on-primary-container' 
@@ -149,13 +159,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </aside>
 
                 {/* Main Content Area */}
-                <div className="flex-1 flex flex-col ml-[280px] h-full">
+                <div className="flex-1 flex flex-col md:ml-[280px] h-full w-full max-w-[100vw]">
                     
                     {/* Header */}
-                    <header className="dashboard-header dashboard-topbar bg-surface fixed top-0 right-0 left-[280px] h-16 border-b border-outline-variant shadow-sm z-10 flex justify-between items-center px-lg transition-all duration-150">
-                        <div className="flex-1 max-w-[28rem] relative">
-                            <span className="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
-                            <input className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-sm pl-[36px] pr-sm font-body-sm text-body-sm focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" placeholder="Tìm kiếm tài nguyên, máy chủ, người dùng..." type="text"/>
+                    <header className="dashboard-header dashboard-topbar bg-surface fixed top-0 right-0 left-0 md:left-[280px] h-16 border-b border-outline-variant shadow-sm z-10 flex justify-between items-center px-4 md:px-lg transition-all duration-150">
+                        <div className="flex items-center flex-1 max-w-[28rem] relative gap-2">
+                            <button 
+                                className="md:hidden text-on-surface-variant p-2 hover:bg-surface-container rounded-lg shrink-0"
+                                onClick={() => setIsMobileSidebarOpen(true)}
+                            >
+                                <span className="material-symbols-outlined">menu</span>
+                            </button>
+                            <div className="flex-1 relative">
+                                <span className="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+                                <input className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-sm pl-[36px] pr-sm font-body-sm text-body-sm focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" placeholder="Tìm kiếm..." type="text"/>
+                            </div>
                         </div>
                         <div className="flex items-center gap-md">
                             <button className="text-on-surface-variant hover:text-primary transition-colors relative">
@@ -211,8 +229,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         </div>
                     </header>
 
-                    <main className="dashboard-main flex-1 overflow-y-auto mt-16 p-lg bg-background">
-                        {children}
+                    <main className="dashboard-main flex-1 overflow-y-auto mt-16 p-4 md:p-lg bg-background w-full">
+                        <div className="max-w-[1600px] mx-auto w-full">
+                            {children}
+                        </div>
                     </main>
                 </div>
             </div>
