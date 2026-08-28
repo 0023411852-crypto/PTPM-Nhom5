@@ -94,7 +94,7 @@ Hệ thống đã được thiết lập sẵn các tài khoản demo sau khi b�
   - Mật khẩu: `123456`
 
 - **Tài khoản Khách hàng (Customer):**
-  - Email: `customer@cloudservice.vn`
+  - Email: `customer1@example.com`
   - Mật khẩu: `123456`
 
 - **Tài khoản Biên tập viên (Editor):**
