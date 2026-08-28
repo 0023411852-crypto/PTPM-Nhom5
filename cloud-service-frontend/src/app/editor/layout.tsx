@@ -135,15 +135,6 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
                             </li>
                         ))}
                         <li>
-                            <Link 
-                                href="/"
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md font-body-md text-body-md text-surface-variant/70 hover:bg-primary-container/10 hover:text-surface-container-lowest transition-colors text-left"
-                            >
-                                <span className="material-symbols-outlined">arrow_outward</span>
-                                <span className="dashboard-nav-label">Trang chủ</span>
-                            </Link>
-                        </li>
-                        <li>
                             <button 
                                 onClick={handleLogout}
                                 className="w-full flex items-center gap-3 px-3 py-2 rounded-md font-body-md text-body-md text-surface-variant/70 hover:bg-error/10 hover:text-error transition-colors text-left"
@@ -166,6 +157,14 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
                             <span className="material-symbols-outlined">menu</span>
                         </button>
                         <span className="font-headline-md text-headline-md text-on-surface whitespace-nowrap">Tổng quan</span>
+                        <Link 
+                            href="/"
+                            className="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors font-medium text-[13px] border border-transparent hover:border-primary/20"
+                            title="Ra giao diện bên ngoài"
+                        >
+                            Trang chủ
+                            <span className="material-symbols-outlined text-[16px]">arrow_outward</span>
+                        </Link>
                     </div>
 
                     <div className="flex items-center gap-md">
