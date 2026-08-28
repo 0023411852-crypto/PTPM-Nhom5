@@ -81,14 +81,15 @@ export default function PartnersPage() {
         }
     };
     return (
-        <div className="public-content w-full route-fade-in">
+        <div className="public-content partners-page w-full route-fade-in">
             {/* Hero Section */}
-            <section className="relative pt-3xl pb-2xl px-gutter overflow-hidden bg-surface">
-                <div className="absolute inset-0 bg-grid-pattern opacity-50"></div>
+            <section className="partners-hero relative pt-3xl pb-2xl px-gutter overflow-hidden bg-surface">
+                <div className="partners-hero-grid absolute inset-0 bg-grid-pattern opacity-50"></div>
+                <div className="partners-hero-beam" aria-hidden="true"></div>
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-[1000px] bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
                 
                 <div className="max-w-container-max mx-auto relative z-10 pt-16">
-                    <div className="interactive-card glass-panel shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-xl md:p-3xl max-w-[48rem] mx-auto text-center border border-outline-variant/30">
+                    <div className="partners-hero-card interactive-card glass-panel shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-2xl p-xl md:p-3xl max-w-[48rem] mx-auto text-center border border-outline-variant/30">
                         <h1 className="font-display-lg text-display-lg text-on-background mb-md hidden md:block">
                             Trở thành Đối tác của CloudNova
                         </h1>
@@ -111,8 +112,17 @@ export default function PartnersPage() {
                 </div>
             </section>
 
+            <section className="partners-signal-strip px-gutter" data-reveal>
+                <div className="max-w-container-max mx-auto grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[#d9e8f7] bg-[#d9e8f7] shadow-[0_18px_45px_rgba(34,84,143,.1)] md:grid-cols-4">
+                    <div className="partner-signal-cell"><span className="partner-signal-icon"><span className="material-symbols-outlined">payments</span></span><span><strong>30%</strong><small>Mức hoa hồng tối đa</small></span></div>
+                    <div className="partner-signal-cell"><span className="partner-signal-icon"><span className="material-symbols-outlined">support_agent</span></span><span><strong>24/7</strong><small>Đồng hành kỹ thuật</small></span></div>
+                    <div className="partner-signal-cell"><span className="partner-signal-icon"><span className="material-symbols-outlined">school</span></span><span><strong>100%</strong><small>Tài nguyên đào tạo</small></span></div>
+                    <div className="partner-signal-cell"><span className="partner-signal-icon"><span className="material-symbols-outlined">rocket_launch</span></span><span><strong>5 phút</strong><small>Bắt đầu chương trình</small></span></div>
+                </div>
+            </section>
+
             {/* Trusted By Section */}
-            <section className="py-xl bg-surface-container-lowest border-y border-outline-variant/30">
+            <section className="partners-trusted py-xl bg-surface-container-lowest border-y border-outline-variant/30">
                 <div className="max-w-container-max mx-auto px-gutter text-center mb-lg">
                     <p className="font-label-caps text-label-caps text-secondary uppercase tracking-wider">
                         Được tin tưởng bởi các đối tác hàng đầu
@@ -136,8 +146,26 @@ export default function PartnersPage() {
                 </div>
             </section>
 
+            <section className="partners-journey px-gutter py-3xl" data-reveal>
+                <div className="max-w-container-max mx-auto">
+                    <div className="grid grid-cols-1 gap-2xl lg:grid-cols-[.72fr_1.28fr] lg:items-center">
+                        <div>
+                            <span className="partners-section-label">Partner journey</span>
+                            <h2 className="mt-lg font-headline-lg text-headline-lg text-on-background">Bắt đầu đơn giản. Tăng trưởng bền vững.</h2>
+                            <p className="mt-lg max-w-[34rem] font-body-lg text-body-lg text-secondary">Chương trình Đối tác CloudNova được thiết kế để bạn có đủ công cụ, kiến thức và hỗ trợ cần thiết từ ngày đầu tiên.</p>
+                            <div className="mt-xl flex items-center gap-sm text-[length:var(--text-body-sm)] font-semibold text-primary"><span className="partner-live-dot"></span> Sẵn sàng đồng hành cùng bạn</div>
+                        </div>
+                        <div className="partners-steps grid grid-cols-1 gap-md md:grid-cols-3">
+                            <div className="partner-step-card"><span className="partner-step-number">01</span><span className="partner-step-icon material-symbols-outlined">person_add</span><h3>Đăng ký</h3><p>Chia sẻ nhu cầu và mô hình hợp tác của bạn.</p></div>
+                            <div className="partner-step-card"><span className="partner-step-number">02</span><span className="partner-step-icon material-symbols-outlined">handshake</span><h3>Kết nối</h3><p>Đội ngũ tư vấn xác nhận và xây kế hoạch phù hợp.</p></div>
+                            <div className="partner-step-card"><span className="partner-step-number">03</span><span className="partner-step-icon material-symbols-outlined">trending_up</span><h3>Tăng trưởng</h3><p>Nhận hỗ trợ, tài nguyên và hoa hồng dài hạn.</p></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* Benefits Grid */}
-            <section className="py-3xl px-gutter bg-background">
+            <section className="partners-benefits py-3xl px-gutter bg-background">
                 <div className="max-w-container-max mx-auto">
                     <div className="text-center mb-2xl">
                         <h2 className="font-headline-lg text-headline-lg text-on-background hidden md:block">Lợi ích hợp tác</h2>
@@ -182,7 +210,7 @@ export default function PartnersPage() {
             </section>
 
             {/* Partner Tiers Section */}
-            <section id="policies" className="py-3xl px-gutter bg-surface">
+            <section id="policies" className="partners-tiers py-3xl px-gutter bg-surface">
                 <div className="max-w-container-max mx-auto">
                     <div className="text-center mb-2xl">
                         <h2 className="font-headline-lg text-headline-lg text-on-background mb-sm hidden md:block">Cấp độ Đối tác</h2>
@@ -288,7 +316,7 @@ export default function PartnersPage() {
             </section>
 
             {/* Footer CTA */}
-            <section className="bg-primary-container text-on-primary-container py-24 px-gutter">
+            <section className="partners-cta bg-primary-container text-on-primary-container py-24 px-gutter">
                 <div className="max-w-container-max mx-auto flex flex-col items-center text-center gap-xl">
                     <h2 className="font-display-lg text-display-lg hidden md:block">Sẵn sàng phát triển cùng CloudNova?</h2>
                     <h2 className="font-headline-lg-mobile text-headline-lg-mobile md:hidden">Sẵn sàng phát triển cùng CloudNova?</h2>
