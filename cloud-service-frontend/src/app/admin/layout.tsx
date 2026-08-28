@@ -128,13 +128,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         ))}
                     </nav>
                     <div className="px-md mt-auto">
-                        <Link 
-                            href="/"
-                            className="dashboard-nav-link flex items-center gap-md px-md py-sm mb-4 rounded-lg text-surface-variant hover:text-surface hover:bg-primary-fixed-variant/10 transition-colors duration-200"
-                        >
-                            <span className="material-symbols-outlined">arrow_outward</span>
-                            <span className="dashboard-nav-label font-body-md text-body-md">Trang chủ</span>
-                        </Link>
                         <div className="dashboard-profile-card flex items-center justify-between gap-2 p-sm rounded-lg hover:bg-primary-fixed-variant/10 transition-colors group">
                             <Link href="/admin/profile" className="flex items-center gap-sm flex-1 min-w-0 cursor-pointer">
                                 <div className="w-8 h-8 rounded-full bg-surface-container overflow-hidden shrink-0">
@@ -177,6 +170,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             >
                                 <span className="material-symbols-outlined">menu</span>
                             </button>
+                            <Link 
+                                href="/"
+                                className="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors font-medium text-[13px] border border-transparent hover:border-primary/20"
+                                title="Ra giao diện bên ngoài"
+                            >
+                                Trang chủ
+                                <span className="material-symbols-outlined text-[16px]">arrow_outward</span>
+                            </Link>
                         </div>
                         <div className="flex items-center gap-md">
                             <button className="text-on-surface-variant hover:text-primary transition-colors relative">
