@@ -97,10 +97,10 @@ jobs:
           username: ${{ secrets.AZURE_USER }}
           password: ${{ secrets.AZURE_PASSWORD }}
           script: |
-            # Deploy đúng repository 1111 vào thư mục riêng trên VPS.
-            APP_DIR="/home/azureuser/1111"
+            # Deploy đúng repository PTPM-Nhom5 vào thư mục riêng trên VPS.
+            APP_DIR="/home/azureuser/PTPM-Nhom5"
             if [ ! -d "$APP_DIR/.git" ]; then
-              git clone https://github.com/0023411852-crypto/1111.git "$APP_DIR"
+              git clone https://github.com/0023411852-crypto/PTPM-Nhom5.git "$APP_DIR"
             fi
 
             cd "$APP_DIR"
@@ -115,6 +115,10 @@ jobs:
             export FRONTEND_IMAGE="cloudservice-frontend:latest"
             docker build -t "$API_IMAGE" -f CloudService.WebApi/Dockerfile .
             docker build -t "$FRONTEND_IMAGE" ./cloud-service-frontend
+
+            # Tạo file .env trên server để cung cấp biến môi trường cho docker-compose
+            echo "JWT_SECRET=CloudNovaSecretKey2026!@#$" > .env
+            echo "MSSQL_SA_PASSWORD=CloudNovaStr0ngPassword!2026" >> .env
 
             # Dùng cấu hình production, không dùng compose development.
             docker compose -f docker-compose.production.yml down
