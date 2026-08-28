@@ -135,6 +135,15 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
                             </li>
                         ))}
                         <li>
+                            <Link 
+                                href="/"
+                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md font-body-md text-body-md text-surface-variant/70 hover:bg-primary-container/10 hover:text-surface-container-lowest transition-colors text-left"
+                            >
+                                <span className="material-symbols-outlined">arrow_outward</span>
+                                <span className="dashboard-nav-label">Trang chủ</span>
+                            </Link>
+                        </li>
+                        <li>
                             <button 
                                 onClick={handleLogout}
                                 className="w-full flex items-center gap-3 px-3 py-2 rounded-md font-body-md text-body-md text-surface-variant/70 hover:bg-error/10 hover:text-error transition-colors text-left"

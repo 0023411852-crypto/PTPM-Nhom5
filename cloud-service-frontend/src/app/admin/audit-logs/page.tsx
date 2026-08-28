@@ -117,7 +117,7 @@ export default function AdminAuditLogsPage() {
             </div>
 
             {/* Filters */}
-            <div className="bg-surface rounded-xl border border-outline-variant p-md mb-lg flex gap-md items-end">
+            <div className="bg-surface rounded-xl border border-outline-variant p-md mb-lg flex flex-col md:flex-row gap-md md:items-end">
                 <div className="flex-1">
                     <label className="block text-[13px] font-medium text-on-surface mb-1">Lọc theo hành động</label>
                     <select 
@@ -165,7 +165,7 @@ export default function AdminAuditLogsPage() {
             {/* Logs Table */}
             <div className="bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
                             <tr className="bg-surface-container-low border-b border-outline-variant">
                                 <th className="p-md font-medium text-on-surface text-[14px]">Thời gian</th>

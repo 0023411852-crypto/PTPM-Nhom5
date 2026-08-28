@@ -140,7 +140,7 @@ export default function AdminOrdersPage() {
             
             <div className="bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse min-w-[1000px]">
                         <thead>
                             <tr className="bg-surface-container-lowest border-b border-outline-variant">
                                 <th className="p-md font-medium text-on-surface-variant text-[14px]">STT</th>

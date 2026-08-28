@@ -223,7 +223,7 @@ export default function EditorMediaPage() {
                     <div key={item.id} className="bg-surface rounded-xl border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden group hover:border-primary transition-all">
                         <div className="aspect-square w-full relative overflow-hidden bg-surface-container-low flex items-center justify-center">
                             {renderPreview(item)}
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <div className="absolute inset-0 bg-black/20 lg:bg-black/40 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                 <a 
                                     href={item.fileUrl.startsWith('http') ? item.fileUrl : `${item.fileUrl}`}
                                     target="_blank" 

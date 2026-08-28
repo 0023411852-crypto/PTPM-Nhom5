@@ -260,7 +260,7 @@ export default function AdminServiceCategoriesPage() {
 
       <div className="overflow-hidden rounded-xl border border-outline-variant bg-surface shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left">
+          <table className="w-full border-collapse text-left min-w-[800px]">
             <thead>
               <tr className="border-b border-outline-variant bg-surface-container-low/50 font-label-caps text-label-caps text-outline">
                 <th className="px-md py-sm font-semibold">Tên danh mục</th>

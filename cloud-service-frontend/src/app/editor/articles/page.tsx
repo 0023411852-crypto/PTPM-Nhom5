@@ -160,7 +160,7 @@ export default function EditorArticlesPage() {
 
             <div className="bg-surface border border-outline-variant rounded-xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse whitespace-nowrap">
+                    <table className="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
                         <thead className="bg-surface-container-low border-b border-outline-variant">
                             <tr>
                                 <th className="font-label-caps text-label-caps text-on-surface-variant px-md py-3 font-semibold uppercase tracking-wider">Tiêu đề</th>
@@ -215,7 +215,7 @@ export default function EditorArticlesPage() {
                                             </span>
                                         </td>
                                         <td className="px-md py-4 text-right">
-                                            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex items-center justify-end gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                                                 <Link href={`${basePath}/articles/create?id=${article.id}`} className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded transition-colors" title="Sửa">
                                                     <span className="material-symbols-outlined text-[20px]">edit</span>
                                                 </Link>
