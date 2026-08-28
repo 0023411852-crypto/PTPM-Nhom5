@@ -192,7 +192,10 @@ namespace CloudService.Application.Services
                 // Nếu FE gửi PromotionId = 10% nhưng hệ thống có 20% hợp lệ, sẽ tự động dùng 20%
                 promotion = applicablePromotions.OrderByDescending(p => p.DiscountPercentage).FirstOrDefault();
                 
-                discountAmount = Math.Round(subtotal * (promotion.DiscountPercentage / 100m), 2, MidpointRounding.AwayFromZero);
+                if (promotion != null)
+                {
+                    discountAmount = Math.Round(subtotal * (promotion.DiscountPercentage / 100m), 2, MidpointRounding.AwayFromZero);
+                }
                 
                 // Đảm bảo không giảm giá quá số tiền gốc
                 if (discountAmount > subtotal)
