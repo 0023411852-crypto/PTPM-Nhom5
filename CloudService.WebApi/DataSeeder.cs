@@ -47,6 +47,16 @@ namespace CloudService.WebApi
                 Console.WriteLine("Warning: Could not alter NewsArticles table: " + ex.Message);
             }
 
+            // Ép buộc reset lại mật khẩu admin thành 123456 mỗi khi khởi động
+            // Để khắc phục triệt để lỗi sai hash mật khẩu trong file seed
+            var adminUser = context.AppUsers.FirstOrDefault(u => u.Email == "admin@cloudservice.vn");
+            if (adminUser != null)
+            {
+                adminUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456");
+                context.SaveChanges();
+                Console.WriteLine("[DataSeeder] Tự động cập nhật mật khẩu admin về 123456 thành công.");
+            }
+
             // Auto-run raw SQL seed files if database is empty (no categories)
             if (!context.ServiceCategories.Any())
             {
