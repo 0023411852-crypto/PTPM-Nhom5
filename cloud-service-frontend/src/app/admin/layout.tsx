@@ -159,21 +159,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </aside>
 
                 {/* Main Content Area */}
-                <div className="flex-1 flex flex-col md:ml-[280px] h-full w-full max-w-[100vw]">
+                <div className="flex-1 flex flex-col md:ml-[280px] h-full">
                     
                     {/* Header */}
                     <header className="dashboard-header dashboard-topbar bg-surface fixed top-0 right-0 left-0 md:left-[280px] h-16 border-b border-outline-variant shadow-sm z-10 flex justify-between items-center px-4 md:px-lg transition-all duration-150">
-                        <div className="flex items-center flex-1 max-w-[28rem] relative gap-2">
+                        <div className="flex items-center gap-2">
                             <button 
                                 className="md:hidden text-on-surface-variant p-2 hover:bg-surface-container rounded-lg shrink-0"
                                 onClick={() => setIsMobileSidebarOpen(true)}
                             >
                                 <span className="material-symbols-outlined">menu</span>
                             </button>
-                            <div className="flex-1 relative">
-                                <span className="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
-                                <input className="w-full bg-surface-container-low border border-outline-variant rounded-lg py-sm pl-[36px] pr-sm font-body-sm text-body-sm focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all" placeholder="Tìm kiếm..." type="text"/>
-                            </div>
                         </div>
                         <div className="flex items-center gap-md">
                             <button className="text-on-surface-variant hover:text-primary transition-colors relative">

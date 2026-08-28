@@ -134,10 +134,6 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
                 <header className="dashboard-header dashboard-topbar fixed top-0 right-0 w-[calc(100%-280px)] h-16 bg-surface dark:bg-surface-dim border-b border-outline-variant flex justify-between items-center px-lg z-10">
                     <div className="flex items-center gap-lg flex-1">
                         <span className="font-headline-md text-headline-md text-on-surface whitespace-nowrap">Tổng quan</span>
-                        <div className="relative w-64 hidden lg:block">
-                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-                            <input className="w-full bg-surface-container-low border border-outline-variant rounded-md pl-10 pr-4 py-1.5 font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="Tìm kiếm..." type="text"/>
-                        </div>
                     </div>
 
                     <div className="flex items-center gap-md">
