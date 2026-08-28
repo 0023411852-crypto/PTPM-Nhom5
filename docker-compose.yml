@@ -4,13 +4,13 @@ services:
     container_name: sqlserver-db
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:?MSSQL_SA_PASSWORD is required}"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-CloudNovaStr0ngPassword!2026}"
     ports:
       - "1433:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -Q \"SELECT 1\" -C || exit 1"]
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD:-CloudNovaStr0ngPassword!2026}\" -Q \"SELECT 1\" -C || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 20
@@ -26,8 +26,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CloudServiceDB_v2;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"
-      JwtSettings__Secret: "${JWT_SECRET:?JWT_SECRET is required}"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=${DB_NAME:-CloudServiceDB};User Id=sa;Password=${MSSQL_SA_PASSWORD:-CloudNovaStr0ngPassword!2026};TrustServerCertificate=True;"
+      JwtSettings__Secret: "${JWT_SECRET:-CloudNovaSecretKey2026_VerySecure32BytesLong}"
       JwtSettings__Issuer: CloudServiceApp
       JwtSettings__Audience: CloudServiceUsers
       JwtSettings__ExpirationInMinutes: "1440"
