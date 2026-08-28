@@ -171,7 +171,7 @@ export default function Navbar() {
               <Link href="/login" className="nav-cta hidden md:block text-[length:var(--text-label-caps)] font-semibold text-primary border border-primary px-4 py-2 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer active:scale-95 duration-200">
                 Đăng nhập
               </Link>
-              <Link href="/register" className="nav-cta text-[length:var(--text-label-caps)] font-semibold bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-container transition-colors cursor-pointer active:scale-95 duration-200">
+              <Link href="/register" className="nav-cta hidden md:block text-[length:var(--text-label-caps)] font-semibold bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-container transition-colors cursor-pointer active:scale-95 duration-200">
                 Đăng ký ngay
               </Link>
             </>
