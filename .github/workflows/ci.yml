@@ -117,7 +117,7 @@ jobs:
             docker build -t "$FRONTEND_IMAGE" ./cloud-service-frontend
 
             # Tạo file .env trên server để cung cấp biến môi trường cho docker-compose
-            echo "JWT_SECRET=CloudNovaSecretKey2026!@#$" > .env
+            echo "JWT_SECRET=CloudNovaSecretKey2026!@#$VerySecure32BytesLong" > .env
             echo "MSSQL_SA_PASSWORD=CloudNovaStr0ngPassword!2026" >> .env
             echo "DATABASE_AUTO_MIGRATE=true" >> .env
 
