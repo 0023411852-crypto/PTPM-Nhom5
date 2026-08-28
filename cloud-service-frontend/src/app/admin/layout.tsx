@@ -128,6 +128,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         ))}
                     </nav>
                     <div className="px-md mt-auto">
+                        <Link 
+                            href="/"
+                            className="dashboard-nav-link flex items-center gap-md px-md py-sm mb-4 rounded-lg text-surface-variant hover:text-surface hover:bg-primary-fixed-variant/10 transition-colors duration-200"
+                        >
+                            <span className="material-symbols-outlined">arrow_outward</span>
+                            <span className="dashboard-nav-label font-body-md text-body-md">Trang chủ</span>
+                        </Link>
                         <div className="dashboard-profile-card flex items-center justify-between gap-2 p-sm rounded-lg hover:bg-primary-fixed-variant/10 transition-colors group">
                             <Link href="/admin/profile" className="flex items-center gap-sm flex-1 min-w-0 cursor-pointer">
                                 <div className="w-8 h-8 rounded-full bg-surface-container overflow-hidden shrink-0">
@@ -159,7 +166,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </aside>
 
                 {/* Main Content Area */}
-                <div className="flex-1 flex flex-col md:ml-[280px] h-full">
+                <div className="flex-1 flex flex-col md:ml-[280px] h-full min-w-0">
                     
                     {/* Header */}
                     <header className="dashboard-header dashboard-topbar bg-surface fixed top-0 right-0 left-0 md:left-[280px] h-16 border-b border-outline-variant shadow-sm z-10 flex justify-between items-center px-4 md:px-lg transition-all duration-150">

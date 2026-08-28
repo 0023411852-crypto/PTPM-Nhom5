@@ -116,7 +116,7 @@ export default function AdminTicketsPage() {
     return (
         <div className="flex flex-col lg:flex-row gap-lg h-[calc(100vh-120px)]">
             {/* Ticket List */}
-            <div className="w-full lg:w-1/3 bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
+            <div className={`${selectedTicket ? 'hidden lg:flex' : 'flex'} w-full lg:w-1/3 bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden flex-col`}>
                 <div className="p-md border-b border-outline-variant bg-surface-container-lowest">
                     <h2 className="font-headline-sm text-headline-sm text-on-surface">Danh sách Yêu cầu</h2>
                 </div>
@@ -142,14 +142,22 @@ export default function AdminTicketsPage() {
             </div>
 
             {/* Ticket Detail & Chat */}
-            <div className="w-full lg:w-2/3 bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
+            <div className={`${selectedTicket ? 'flex' : 'hidden lg:flex'} w-full lg:w-2/3 bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden flex-col`}>
                 {selectedTicket ? (
                     <>
                         <div className="p-lg border-b border-outline-variant bg-surface-container-lowest flex justify-between items-start">
-                            <div>
+                            <div className="flex gap-3">
+                                <button 
+                                    className="lg:hidden text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center pt-1" 
+                                    onClick={() => setSelectedTicket(null)}
+                                >
+                                    <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+                                </button>
+                                <div>
                                 <h2 className="font-headline-sm text-headline-sm text-on-surface mb-1">{selectedTicket.title}</h2>
                                 <p className="text-[14px] text-on-surface-variant font-medium">Người gửi: {selectedTicket.customerName || 'Khách ẩn danh'} ({selectedTicket.customerEmail || 'Không có email'})</p>
                                 <p className="text-[12px] text-on-surface-variant opacity-70">Ticket ID: {selectedTicket.id}</p>
+                            </div>
                             </div>
                             {selectedTicket.status === 'Open' && (
                                 <button onClick={handleCloseTicket} className="px-sm py-xs bg-error/10 text-error rounded font-medium text-[13px] hover:bg-error/20 transition-colors">
