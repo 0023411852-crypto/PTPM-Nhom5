@@ -177,12 +177,13 @@ export default function TopCustomersPage() {
             <main className="flex-grow pt-[104px] pb-10 px-4 md:px-12 max-w-[1440px] mx-auto w-full">
                 {/* VIP Leaderboard Section */}
                 <section className="mb-16">
-                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 text-center">Bảng Xếp Hạng Khách Hàng VIP</h1>
-                    <p className="text-lg text-gray-600 dark:text-gray-300 text-center w-full max-w-[800px] mx-auto mb-10">
+                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 text-center">Bảng Xếp Hạng Khách Hàng VIP</h1>
+                    <p className="text-lg text-gray-600 text-center w-full max-w-[800px] mx-auto mb-10">
                         Vinh danh những doanh nghiệp hàng đầu đã tin tưởng và đồng hành cùng cơ sở hạ tầng đám mây cao cấp của CloudNova.
                     </p>
-                    <div className="interactive-card bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-xl">
-                        <table className="w-full text-left border-collapse">
+                    <div className="interactive-card bg-white/80 backdrop-blur-md rounded-xl border border-gray-200 shadow-xl overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse min-w-[500px]">
                             <thead>
                                 <tr className="bg-gray-50 dark:bg-gray-900/50 text-gray-700 dark:text-gray-300 font-semibold text-sm uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
                                     <th className="py-4 px-6 w-24 text-center">Hạng</th>
@@ -240,6 +241,7 @@ export default function TopCustomersPage() {
                                 })}
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </section>
                 
@@ -247,10 +249,10 @@ export default function TopCustomersPage() {
                 <section className="mb-16">
                     <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-10">
                         <div className="md:flex-1">
-                            <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Dịch vụ nổi bật</p>
-                            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mt-2">Mã QR theo từng gói dịch vụ</h2>
+                            <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600">Dịch vụ nổi bật</p>
+                            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Mã QR theo từng gói dịch vụ</h2>
                         </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 md:w-80 md:text-right">Quét mã để xem nhanh thông tin gói và mức giá hiện có.</p>
+                        <p className="text-sm text-gray-500 md:w-80 md:text-right">Quét mã để xem nhanh thông tin gói và mức giá hiện có.</p>
                     </div>
                     {loadingPlans ? (
                         <p className="text-gray-500 dark:text-gray-400">Đang tải gói dịch vụ...</p>
@@ -280,9 +282,9 @@ export default function TopCustomersPage() {
                 {/* Customer Review Form */}
                 <section className="interactive-card mb-16 rounded-2xl border border-indigo-100 bg-white/80 p-6 shadow-sm dark:border-indigo-900 dark:bg-gray-800/80 md:p-8">
                     <div className="mb-6">
-                        <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Chia sẻ trải nghiệm</p>
-                        <h2 className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">Đánh giá dịch vụ CloudNova</h2>
-                        <p className="mt-2 text-gray-600 dark:text-gray-300">Đăng nhập để gửi đánh giá và chia sẻ trải nghiệm của bạn với cộng đồng.</p>
+                        <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600">Chia sẻ trải nghiệm</p>
+                        <h2 className="mt-2 text-2xl font-bold text-gray-900">Đánh giá dịch vụ CloudNova</h2>
+                        <p className="mt-2 text-gray-600">Đăng nhập để gửi đánh giá và chia sẻ trải nghiệm của bạn với cộng đồng.</p>
                     </div>
                     <form onSubmit={handleReviewSubmit} className="space-y-5">
                         <div>
@@ -327,7 +329,7 @@ export default function TopCustomersPage() {
 
                 {/* Testimonials Section */}
                 <section>
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-10 text-center">Đánh Giá Từ Khách Hàng</h2>
+                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-10 text-center">Đánh Giá Từ Khách Hàng</h2>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {reviews.map(review => (

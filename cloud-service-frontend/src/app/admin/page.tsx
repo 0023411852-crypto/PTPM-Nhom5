@@ -10,6 +10,10 @@ type AdminStats = {
     activeTickets: number;
     pendingOrders: number;
     openTickets: number;
+    activityFlow?: {
+        data: number[];
+        growth: string;
+    };
 };
 
 type KpiCardProps = {
@@ -22,7 +26,7 @@ type KpiCardProps = {
     trend?: string;
 };
 
-const chartBars = [42, 58, 49, 71, 64, 83, 76, 92, 70, 87, 79, 96];
+
 
 const fallbackStats: AdminStats = {
     totalRevenue: 0,
@@ -89,6 +93,17 @@ export default function AdminDashboardPage() {
     const ticketCount = currentStats.openTickets || 0;
     const pendingOrderCount = currentStats.pendingOrders || 0;
 
+    const activityData = currentStats.activityFlow?.data || [0,0,0,0,0,0,0,0,0,0,0,0];
+    const activityGrowth = currentStats.activityFlow?.growth || "+0.0%";
+    const maxActivity = Math.max(...activityData, 1); // Avoid division by 0
+    
+    const monthLabels = [];
+    const now = new Date();
+    for (let i = 0; i < 6; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - 11 + i * 2, 1);
+        monthLabels.push(`Th${d.getMonth() + 1}`);
+    }
+
     return (
         <div className="admin-overview dashboard-page route-fade-in">
             <section className="admin-welcome-panel">
@@ -130,16 +145,25 @@ export default function AdminDashboardPage() {
                         <div><span className="admin-section-kicker">ACTIVITY FLOW</span><h2>Hoạt động nền tảng</h2></div>
                         <span className="admin-period-chip"><span className="admin-live-dot" /> 12 tháng gần nhất</span>
                     </div>
-                    <div className="admin-chart-summary"><strong>+24.8%</strong><span>tăng trưởng hoạt động</span></div>
+                    <div className="admin-chart-summary"><strong>{activityGrowth}</strong><span>người dùng mới</span></div>
                     <div className="admin-chart-area" aria-label="Biểu đồ hoạt động nền tảng minh họa">
-                        <div className="admin-chart-yaxis"><span>100</span><span>75</span><span>50</span><span>25</span><span>0</span></div>
+                        <div className="admin-chart-yaxis">
+                            <span>{Math.round(maxActivity)}</span>
+                            <span>{Math.round(maxActivity * 0.75)}</span>
+                            <span>{Math.round(maxActivity * 0.5)}</span>
+                            <span>{Math.round(maxActivity * 0.25)}</span>
+                            <span>0</span>
+                        </div>
                         <div className="admin-chart-plot">
                             <div className="admin-chart-gridline admin-chart-gridline-one" /><div className="admin-chart-gridline admin-chart-gridline-two" /><div className="admin-chart-gridline admin-chart-gridline-three" /><div className="admin-chart-gridline admin-chart-gridline-four" />
-                            <div className="admin-bars">{chartBars.map((height, index) => <span key={index} className="admin-bar" style={{ height: `${height}%`, animationDelay: `${index * 70}ms` }} />)}</div>
+                            <div className="admin-bars">{activityData.map((val, index) => {
+                                const height = (val / maxActivity) * 100;
+                                return <span key={index} className="admin-bar" style={{ height: `${height}%`, animationDelay: `${index * 70}ms` }} title={`${val} người dùng`} />
+                            })}</div>
                             <div className="admin-chart-line" />
                         </div>
                     </div>
-                    <div className="admin-chart-labels"><span>Th1</span><span>Th3</span><span>Th5</span><span>Th7</span><span>Th9</span><span>Th11</span></div>
+                    <div className="admin-chart-labels">{monthLabels.map((lbl, idx) => <span key={idx}>{lbl}</span>)}</div>
                 </article>
 
                 <article className="admin-surface admin-health-card">
@@ -148,7 +172,7 @@ export default function AdminDashboardPage() {
                     <div className="admin-health-list">
                         <div><span><i className="admin-health-dot admin-health-dot-green" />Cloud VPS cluster</span><b>Operational</b></div>
                         <div><span><i className="admin-health-dot admin-health-dot-green" />Payment gateway</span><b>Operational</b></div>
-                        <div><span><i className="admin-health-dot admin-health-dot-blue" />API response time</span><b>124 ms</b></div>
+
                     </div>
                     <Link href="/admin/audit-logs" className="admin-outline-action">Mở nhật ký hệ thống <span className="material-symbols-outlined">arrow_forward</span></Link>
                 </article>

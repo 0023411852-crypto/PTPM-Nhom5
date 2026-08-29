@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 type UserRecord = {
     id: string;
@@ -39,7 +40,10 @@ export default function AdminUsersPage() {
     const [selectedUserName, setSelectedUserName] = useState('');
     const [loadingActivities, setLoadingActivities] = useState(false);
 
+    const [mounted, setMounted] = useState(false);
+
     useEffect(() => {
+        setMounted(true);
         fetchUsers();
     }, [pageNumber]);
 
@@ -235,14 +239,14 @@ export default function AdminUsersPage() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-xl">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-xl">
                 <div>
                     <h1 className="font-display-sm text-display-sm text-on-surface mb-xs">Quản lý Người dùng</h1>
                     <p className="text-on-surface-variant text-[14px]">Phân quyền và quản lý trạng thái tài khoản hệ thống.</p>
                 </div>
                 <button 
                     onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-sm bg-primary text-on-primary px-4 py-2 rounded-lg hover:bg-primary-container transition-colors font-medium text-[14px]"
+                    className="flex items-center justify-center gap-sm bg-primary text-on-primary px-4 py-2 rounded-lg hover:bg-primary-container transition-colors font-medium text-[14px] w-full sm:w-auto"
                 >
                     <span className="material-symbols-outlined text-[20px]">person_add</span>
                     Thêm người dùng
@@ -251,7 +255,7 @@ export default function AdminUsersPage() {
 
             <div className="bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
                             <tr className="bg-surface-container-low border-b border-outline-variant">
                                 <th className="p-md font-medium text-on-surface text-[14px]">Tên / Email</th>
@@ -383,8 +387,8 @@ export default function AdminUsersPage() {
             </div>
 
             {/* Modal Thêm người dùng */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            {mounted && isModalOpen && createPortal(
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
                     <div className="bg-surface rounded-2xl w-full max-w-[500px] shadow-xl overflow-hidden">
                         <div className="flex justify-between items-center p-md border-b border-outline-variant">
                             <h2 className="font-headline-sm text-headline-sm text-on-surface">Thêm người dùng mới</h2>
@@ -454,12 +458,13 @@ export default function AdminUsersPage() {
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* Modal Xem hoạt động */}
-            {isActivitiesModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            {mounted && isActivitiesModalOpen && createPortal(
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
                     <div className="bg-surface rounded-2xl w-full max-w-[600px] shadow-xl overflow-hidden flex flex-col max-h-[80vh]">
                         <div className="flex justify-between items-center p-md border-b border-outline-variant shrink-0">
                             <div>
@@ -504,7 +509,8 @@ export default function AdminUsersPage() {
                             )}
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
