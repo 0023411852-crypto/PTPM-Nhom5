@@ -437,6 +437,7 @@ namespace CloudService.Application.Services
 
                 order.Status = OrderStatus.Completed;
                 order.UpdatedAt = DateTime.UtcNow;
+                orderRepo.Update(order);
 
                 var random = new Random();
                 var demoIp = $"10.{random.Next(0, 255)}.{random.Next(0, 255)}.{random.Next(10, 254)}";
