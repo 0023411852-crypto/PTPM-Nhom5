@@ -17,5 +17,6 @@ namespace CloudService.Application.Interfaces
         Task<Guid> CreateOrderBatchAsync(Guid userId, CreateOrderBatchDto dto);
         Task<decimal?> GetPaymentAmountForGroupAsync(Guid groupId, Guid requesterId, bool isAdmin);
         Task<List<DemoPaymentResultDto>> ConfirmDemoPaymentGroupAsync(Guid groupId, Guid requesterId);
+        Task<List<DemoPaymentResultDto>> ConfirmPayOsPaymentGroupAsync(Guid groupId);
     }
 }

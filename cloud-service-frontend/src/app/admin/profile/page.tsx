@@ -110,6 +110,7 @@ export default function AdminProfilePage() {
             const payload = { 
                 fullName: user.fullName || '', 
                 email: user.email || '', 
+                phoneNumber: user.phone || '',
                 avatarUrl: user.avatar || ''
             };
             

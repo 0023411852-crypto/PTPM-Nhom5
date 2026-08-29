@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import React, { useState, useEffect } from 'react';
+import Modal from "@/components/admin/Modal";
 
 type ServiceFeature = {
     id: string;
@@ -26,6 +27,8 @@ export default function ServicesPage() {
     const [filter, setFilter] = useState('Tất cả');
     const [categories, setCategories] = useState<ServiceCategory[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isContactOpen, setIsContactOpen] = useState(false);
+    const [contactInfo, setContactInfo] = useState({ phone: "1900 xxxx", email: "contact@cloudnova.vn" });
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -44,7 +47,24 @@ export default function ServicesPage() {
             }
         };
 
+        const fetchSettings = async () => {
+            try {
+                const res = await fetch('/api/SiteSettings/public');
+                if (res.ok) {
+                    const settings = await res.json();
+                    if (Array.isArray(settings)) {
+                        const phone = settings.find(s => s.key === "PhoneNumber");
+                        const email = settings.find(s => s.key === "ContactEmail");
+                        setContactInfo({ phone: phone?.value || "1900 xxxx", email: email?.value || "contact@cloudnova.vn" });
+                    }
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải cấu hình:", error);
+            }
+        };
+
         fetchCategories();
+        fetchSettings();
     }, []);
     
     const categoryTabs = ['Tất cả', ...Array.from(new Set(categories.map(c => c.name)))];
@@ -237,11 +257,14 @@ export default function ServicesPage() {
 <h2 className="font-headline-lg text-headline-lg mb-sm text-on-background">Chưa biết nên chọn dịch vụ nào?</h2>
 <p className="font-body-md text-body-md text-on-surface-variant mb-xl">Đội ngũ CloudNova sẵn sàng tư vấn giải pháp phù hợp với nhu cầu và ngân sách của bạn.</p>
 <div className="flex flex-col sm:flex-row gap-md justify-center">
-<button onClick={() => alert('Vui lòng gọi hotline: 1900 xxxx hoặc gửi email đến contact@cloudnova.vn')} className="bg-primary text-on-primary px-lg py-md rounded-lg font-semibold hover:bg-primary-container transition-colors shadow-sm">Nhận tư vấn</button>
+<button onClick={() => setIsContactOpen(true)} className="bg-primary text-on-primary px-lg py-md rounded-lg font-semibold hover:bg-primary-container transition-colors shadow-sm">Nhận tư vấn</button>
 <Link href="/pricing" className="bg-surface-container-lowest border border-outline-variant text-on-surface px-lg py-md rounded-lg font-semibold hover:bg-surface-container-high transition-colors shadow-sm inline-flex items-center justify-center">Xem bảng giá</Link>
 </div>
 </div>
 </section>
+
+<Modal isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} title="Thông tin liên hệ" maxWidth="max-w-[30rem]" footer={<button onClick={() => setIsContactOpen(false)} className="w-full rounded-lg bg-primary px-4 py-2 font-medium text-on-primary">Đóng</button>}><div className="space-y-4 py-4 text-center"><div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary-container/20"><span className="material-symbols-outlined text-3xl text-primary">support_agent</span></div><p className="text-body-lg text-on-surface">Vui lòng liên hệ với chúng tôi để được tư vấn chi tiết:</p><div className="rounded-xl border border-outline-variant p-4"><a href={`tel:${contactInfo.phone}`} className="mb-3 flex justify-center gap-3 font-semibold hover:text-primary"><span className="material-symbols-outlined text-primary">call</span>{contactInfo.phone}</a><a href={`mailto:${contactInfo.email}`} className="flex justify-center gap-3 text-primary hover:underline"><span className="material-symbols-outlined">mail</span>{contactInfo.email}</a></div></div></Modal>
+
 </main>
 
 </>

@@ -1,0 +1,28 @@
+﻿
+"use client";
+
+import Link from "next/link";
+import React from "react";
+
+export default function CheckoutSuccessPage() {
+    return (
+        <div className="public-content checkout-page pt-32 pb-2xl min-h-screen px-gutter route-fade-in flex items-center justify-center">
+            <div className="interactive-card max-w-[500px] w-full bg-surface rounded-2xl shadow-sm border border-outline-variant p-2xl text-center">
+                <div className="w-20 h-20 bg-primary-container text-primary rounded-full flex items-center justify-center mx-auto mb-lg">
+                    <span className="material-symbols-outlined text-[40px]">check_circle</span>
+                </div>
+                <h1 className="font-display-sm text-display-sm text-on-surface mb-sm">Thanh toán Thành công!</h1>
+                <p className="font-body-lg text-body-lg text-on-surface-variant mb-xl">
+                    Cảm ơn bạn đã thanh toán. Dịch vụ của bạn đã được kích hoạt.
+                </p>
+                <div className="flex gap-md justify-center">
+                    <Link href="/admin/services" className="px-lg py-md bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors shadow-md">
+                        Đến trang Quản lý Dịch vụ
+                    </Link>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+

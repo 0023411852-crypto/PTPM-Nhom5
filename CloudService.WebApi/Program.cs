@@ -14,6 +14,14 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
+// Cấu hình PayOS
+var payOsConfig = builder.Configuration.GetSection("PayOS");
+builder.Services.AddSingleton(new PayOS.PayOSClient(
+    payOsConfig["ClientId"] ?? "",
+    payOsConfig["ApiKey"] ?? "",
+    payOsConfig["ChecksumKey"] ?? ""
+));
+
 builder.Services.AddControllers();
 
 // Configure CORS
