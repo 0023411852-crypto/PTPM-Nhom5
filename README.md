@@ -77,7 +77,16 @@ dotnet ef database update \
   --startup-project CloudService.WebApi
 ```
 
-`database_script.sql` tạo schema thủ công; `seed_data_database_script_1.sql` chứa dữ liệu mẫu cho toàn bộ hệ thống (Danh mục, VPS, Hosting, bài viết, tài khoản...). Script seed **đã tạo sẵn tài khoản đăng nhập Admin và Customer**, bạn có thể sử dụng ngay mà không cần đăng ký.
+`database_script.sql` (nằm trong thư mục `scripts/schema/`) có thể dùng để tạo schema thủ công nếu không dùng EF Core. 
+
+Sau khi update database xong, để khởi tạo dữ liệu mẫu cho toàn bộ hệ thống (Danh mục, VPS, Hosting, bài viết, tài khoản...), bạn cần chạy ứng dụng Seeder độc lập:
+
+```bash
+cd Seeder
+dotnet run
+```
+
+Dữ liệu mẫu chứa trong thư mục `Seeder/Data/` **đã tạo sẵn tài khoản đăng nhập Admin và Customer**, bạn có thể sử dụng ngay mà không cần đăng ký.
 
 ## Kịch bản demo
 

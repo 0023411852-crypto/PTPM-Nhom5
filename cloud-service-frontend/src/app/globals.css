@@ -1153,3 +1153,5 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .dashboard-main .p-lg { padding: 15px; }.dashboard-main .p-xl { padding: 18px; }
 }
 @media (prefers-reduced-motion: reduce) { .dashboard-main > *, .dashboard-main .interactive-card, .dashboard-nav-link, .dashboard-sidebar, .dashboard-header { animation: none !important; transition: none !important; } }
+
+.modal-open-lock { position: fixed; width: 100%; height: 100%; overflow: hidden; touch-action: none; }

@@ -33,6 +33,17 @@ services:
       sqlserver:
         condition: service_healthy
 
+  seeder:
+    image: "${SEEDER_IMAGE:-cloudservice-seeder:latest}"
+    environment:
+      - ConnectionString=Server=sqlserver,1433;Database=${DB_NAME:-CloudServiceDB_v2};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      api:
+        condition: service_started
+    command: ["Server=sqlserver,1433;Database=${DB_NAME:-CloudServiceDB_v2};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"]
+
   frontend:
     image: "${FRONTEND_IMAGE:?FRONTEND_IMAGE is required}"
     restart: unless-stopped
