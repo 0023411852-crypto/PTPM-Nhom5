@@ -13,12 +13,12 @@ interface NewsArticle {
   createdAt: string;
 }
 
-const API_BASE_URL = "";
+const API_BASE_URL = process.env.API_PROXY_URL || "http://localhost:5154";
 
 function resolveMediaUrl(url?: string | null) {
   if (!url) return null;
   if (/^(https?:|data:|blob:)/i.test(url)) return url;
-  return `${API_BASE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+  return `/uploads/${url.startsWith("/") ? "" : url}`;
 }
 
 async function getArticle(id: string): Promise<NewsArticle | null> {

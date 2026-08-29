@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import Modal from "@/components/admin/Modal";
 
 type ServiceCategory = {
   id: string;
@@ -102,6 +103,8 @@ export default function Home() {
   const [activePromotions, setActivePromotions] = useState<Promotion[]>([]);
   const [latestNews, setLatestNews] = useState<NewsArticle[]>([]);
   const [apiStatus, setApiStatus] = useState<ApiStatusMap>({ services: "loading", plans: "loading", promotions: "loading", news: "loading" });
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [contactInfo, setContactInfo] = useState({ phone: '1900 xxxx', email: 'contact@cloudnova.vn' });
 
   useEffect(() => {
     let cancelled = false;
@@ -111,6 +114,12 @@ export default function Home() {
         if (!cancelled && Array.isArray(data)) {
           const found = data.find((item: { key?: string }) => item.key === "Slogan");
           if (found?.value) setSlogan(found.value);
+          const phoneSetting = data.find((s: { key?: string }) => s.key === 'PhoneNumber');
+          const emailSetting = data.find((s: { key?: string }) => s.key === 'ContactEmail');
+          setContactInfo(prev => ({
+              phone: phoneSetting?.value || prev.phone,
+              email: emailSetting?.value || prev.email
+          }));
         }
       })
       .catch(() => undefined);
@@ -322,7 +331,7 @@ export default function Home() {
         <div className="max-w-[var(--spacing-container-max)] mx-auto">
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><div><div className="flex flex-wrap items-center gap-3"><p className="section-eyebrow">Bảng giá minh bạch</p><ApiBadge status={apiStatus.plans} /></div><h2 className="section-title mt-3">Bắt đầu nhỏ.<br className="sm:hidden" /> Sẵn sàng lớn.</h2><p className="section-description mt-4">Chọn cấu hình phù hợp hôm nay, nâng cấp bất cứ lúc nào khi doanh nghiệp phát triển.</p></div><Link href="/pricing" className="group inline-flex items-center gap-2 text-sm font-bold text-primary">Xem bảng giá đầy đủ <Icon name="arrow_forward" className="text-[18px] transition-transform group-hover:translate-x-1" /></Link></div>
           <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-3">
-            {plansAreLoading ? Array.from({ length: 3 }).map((_, index) => <DataSkeleton key={index} variant="plan" />) : featuredPlans.length > 0 ? featuredPlans.map((plan, index) => <article key={plan.id} data-reveal className={`price-card ${index === 1 ? "price-card-featured" : ""}`}><div className="flex items-start justify-between gap-3"><div><span className="rounded-full bg-[#eaf1ff] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">{plan.category?.name || "Cloud"}</span><h3 className="mt-5 text-2xl font-bold tracking-[-0.03em] text-[#0b1c30]">{plan.name}</h3></div>{index === 1 && <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold text-white">Phổ biến</span>}</div><p className="mt-3 min-h-10 text-sm leading-6 text-[#6e7d95]">{plan.description || "Cấu hình cân bằng cho website và ứng dụng đang tăng trưởng."}</p><div className="mt-8 border-t border-[#e5ebf4] pt-6"><span className="text-xs text-[#7c899d]">Từ</span><p className="mt-1 text-3xl font-bold tracking-[-0.04em] text-[#0b1c30]">{formatPrice(plan.prices?.[0]?.price)}<span className="text-sm font-medium text-[#7c899d]"> / tháng</span></p></div><Link href="/pricing" className={`mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition ${index === 1 ? "bg-primary text-white hover:bg-[#0639a0]" : "border border-[#d4dfef] text-[#17345e] hover:border-primary hover:text-primary"}`}>Xem chi tiết <Icon name="arrow_forward" className="text-[17px]" /></Link></article>) : ["VPS Starter", "VPS Business", "VPS Enterprise"].map((name, index) => <article key={name} data-reveal className={`price-card ${index === 1 ? "price-card-featured" : ""}`}><div className="flex items-start justify-between"><span className="rounded-full bg-[#eaf1ff] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">Cloud VPS</span>{index === 1 && <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold text-white">Phổ biến</span>}</div><h3 className="mt-5 text-2xl font-bold text-[#0b1c30]">{name}</h3><p className="mt-3 min-h-10 text-sm leading-6 text-[#6e7d95]">Cấu hình linh hoạt cho từng giai đoạn phát triển.</p><div className="mt-8 border-t border-[#e5ebf4] pt-6"><span className="text-xs text-[#7c899d]">Từ</span><p className="mt-1 text-3xl font-bold text-[#0b1c30]">Liên hệ</p></div><Link href="/contact" className={`mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold ${index === 1 ? "bg-primary text-white" : "border border-[#d4dfef] text-[#17345e]"}`}>Tư vấn cấu hình <Icon name="arrow_forward" className="text-[17px]" /></Link></article>)}
+            {plansAreLoading ? Array.from({ length: 3 }).map((_, index) => <DataSkeleton key={index} variant="plan" />) : featuredPlans.length > 0 ? featuredPlans.map((plan, index) => <article key={plan.id} data-reveal className={`price-card ${index === 1 ? "price-card-featured" : ""}`}><div className="flex items-start justify-between gap-3"><div><span className="rounded-full bg-[#eaf1ff] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">{plan.category?.name || "Cloud"}</span><h3 className="mt-5 text-2xl font-bold tracking-[-0.03em] text-[#0b1c30]">{plan.name}</h3></div>{index === 1 && <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold text-white">Phổ biến</span>}</div><p className="mt-3 min-h-10 text-sm leading-6 text-[#6e7d95]">{plan.description || "Cấu hình cân bằng cho website và ứng dụng đang tăng trưởng."}</p><div className="mt-8 border-t border-[#e5ebf4] pt-6"><span className="text-xs text-[#7c899d]">Từ</span><p className="mt-1 text-3xl font-bold tracking-[-0.04em] text-[#0b1c30]">{formatPrice(plan.prices?.[0]?.price)}<span className="text-sm font-medium text-[#7c899d]"> / tháng</span></p></div><Link href="/pricing" className={`mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition ${index === 1 ? "bg-primary text-white hover:bg-[#0639a0]" : "border border-[#d4dfef] text-[#17345e] hover:border-primary hover:text-primary"}`}>Xem chi tiết <Icon name="arrow_forward" className="text-[17px]" /></Link></article>) : ["VPS Starter", "VPS Business", "VPS Enterprise"].map((name, index) => <article key={name} data-reveal className={`price-card ${index === 1 ? "price-card-featured" : ""}`}><div className="flex items-start justify-between"><span className="rounded-full bg-[#eaf1ff] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">Cloud VPS</span>{index === 1 && <span className="rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold text-white">Phổ biến</span>}</div><h3 className="mt-5 text-2xl font-bold text-[#0b1c30]">{name}</h3><p className="mt-3 min-h-10 text-sm leading-6 text-[#6e7d95]">Cấu hình linh hoạt cho từng giai đoạn phát triển.</p><div className="mt-8 border-t border-[#e5ebf4] pt-6"><span className="text-xs text-[#7c899d]">Từ</span><p className="mt-1 text-3xl font-bold text-[#0b1c30]">Liên hệ</p></div><button onClick={() => setIsContactModalOpen(true)} className={`mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold ${index === 1 ? "bg-primary text-white" : "border border-[#d4dfef] text-[#17345e]"}`}>Tư vấn cấu hình <Icon name="arrow_forward" className="text-[17px]" /></button></article>)}
           </div>
         </div>
       </section>
@@ -338,7 +347,36 @@ export default function Home() {
         <div className="max-w-[var(--spacing-container-max)] mx-auto"><div className="mx-auto max-w-[38rem] text-center"><p className="section-eyebrow">Khách hàng nói gì</p><h2 className="section-title mt-3">Được tin tưởng để<br />vận hành mỗi ngày.</h2></div><div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3"><blockquote data-reveal className="quote-card md:translate-y-5"><div className="flex gap-1 text-amber-400"><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /></div><p className="mt-6 text-base leading-7 text-[#314766]">“Dịch vụ VPS ổn định, hỗ trợ kỹ thuật nhanh chóng. Đội ngũ CloudNova luôn phản hồi rất có trách nhiệm.”</p><footer className="mt-8 flex items-center gap-3"><span className="avatar-circle">NA</span><span><b className="block text-sm text-[#0b1c30]">Nguyễn Anh</b><small className="text-xs text-[#8390a3]">Founder, ABC Tech</small></span></footer></blockquote><blockquote className="quote-card"><div className="flex gap-1 text-amber-400"><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /></div><p className="mt-6 text-base leading-7 text-[#314766]">“Chuyển hệ thống lên Cloud rất nhẹ nhàng. Chi phí rõ ràng và hiệu năng tốt hơn hẳn so với trước đây.”</p><footer className="mt-8 flex items-center gap-3"><span className="avatar-circle avatar-purple">ML</span><span><b className="block text-sm text-[#0b1c30]">Minh Linh</b><small className="text-xs text-[#8390a3]">CTO, Studio 11</small></span></footer></blockquote><blockquote data-reveal className="quote-card md:translate-y-5"><div className="flex gap-1 text-amber-400"><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /><Icon name="star" className="text-[17px] filled-icon" /></div><p className="mt-6 text-base leading-7 text-[#314766]">“Website luôn nhanh và ổn định dù lượng truy cập tăng. Đây là lựa chọn rất đáng tin cậy cho doanh nghiệp.”</p><footer className="mt-8 flex items-center gap-3"><span className="avatar-circle avatar-cyan">TH</span><span><b className="block text-sm text-[#0b1c30]">Thanh Hà</b><small className="text-xs text-[#8390a3]">CEO, Retail Hub</small></span></footer></blockquote></div></div>
       </section>
 
-      <section data-home-reveal className="home-section-reveal home-cta relative overflow-hidden px-gutter py-20 lg:py-24"><div className="cta-rings" /><div className="relative z-10 mx-auto max-w-[46rem] text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-200">Sẵn sàng bắt đầu?</p><h2 className="mt-4 text-4xl font-bold tracking-[-0.045em] text-white sm:text-5xl">Đưa ý tưởng của bạn<br /><span className="text-cyan-300">lên một tầm cao mới.</span></h2><p className="mx-auto mt-5 max-w-[34rem] text-base leading-7 text-blue-100/65">Hãy để CloudNova đồng hành cùng bạn xây dựng một nền tảng nhanh, an toàn và sẵn sàng mở rộng.</p><div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row"><Link href="/pricing" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-4 text-sm font-bold text-[#07327d]">Khám phá bảng giá <Icon name="arrow_forward" className="text-[18px]" /></Link><Link href="/contact" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-4 text-sm font-semibold text-white">Liên hệ tư vấn <Icon name="support_agent" className="text-[18px]" /></Link></div></div></section>
+      <section data-home-reveal className="home-section-reveal home-cta relative overflow-hidden px-gutter py-20 lg:py-24"><div className="cta-rings" /><div className="relative z-10 mx-auto max-w-[46rem] text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-200">Sẵn sàng bắt đầu?</p><h2 className="mt-4 text-4xl font-bold tracking-[-0.045em] text-white sm:text-5xl">Đưa ý tưởng của bạn<br /><span className="text-cyan-300">lên một tầm cao mới.</span></h2><p className="mx-auto mt-5 max-w-[34rem] text-base leading-7 text-blue-100/65">Hãy để CloudNova đồng hành cùng bạn xây dựng một nền tảng nhanh, an toàn và sẵn sàng mở rộng.</p><div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row"><Link href="/pricing" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-4 text-sm font-bold text-[#07327d]">Khám phá bảng giá <Icon name="arrow_forward" className="text-[18px]" /></Link><button onClick={() => setIsContactModalOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-4 text-sm font-semibold text-white">Liên hệ tư vấn <Icon name="support_agent" className="text-[18px]" /></button></div></div></section>
+
+      <Modal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+        title="Thông tin liên hệ"
+        maxWidth="max-w-[30rem]"
+        footer={
+          <button onClick={() => setIsContactModalOpen(false)} className="px-4 py-2 bg-[#0639a0] text-white rounded-lg font-medium shadow-sm w-full">
+            Đóng
+          </button>
+        }
+      >
+        <div className="space-y-4 text-center py-4">
+          <div className="w-16 h-16 bg-[#eaf1ff] rounded-full flex items-center justify-center mx-auto mb-4">
+            <Icon name="support_agent" className="text-[#0639a0] text-3xl" />
+          </div>
+          <p className="text-base text-[#0b1c30]">Vui lòng liên hệ với chúng tôi qua các kênh sau để được tư vấn chi tiết:</p>
+          <div className="bg-[#f8faff] p-4 rounded-xl border border-[#e1e9f5] inline-block w-full mt-4">
+            <div className="flex items-center gap-3 justify-center mb-3">
+              <Icon name="call" className="text-[#0639a0]" />
+              <span className="text-lg text-[#0b1c30] font-semibold">{contactInfo.phone}</span>
+            </div>
+            <div className="flex items-center gap-3 justify-center">
+              <Icon name="mail" className="text-[#0639a0]" />
+              <a href={`mailto:${contactInfo.email}`} className="text-base text-[#0639a0] hover:underline">{contactInfo.email}</a>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </main>
   );
 }
