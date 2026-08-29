@@ -113,8 +113,10 @@ jobs:
             # Production compose dùng image; build image từ source mới nhất trên server.
             export API_IMAGE="cloudservice-api:latest"
             export FRONTEND_IMAGE="cloudservice-frontend:latest"
+            export SEEDER_IMAGE="cloudservice-seeder:latest"
             docker build -t "$API_IMAGE" -f CloudService.WebApi/Dockerfile .
             docker build -t "$FRONTEND_IMAGE" ./cloud-service-frontend
+            docker build -t "$SEEDER_IMAGE" -f Seeder/Dockerfile .
 
             # Tạo file .env trên server để cung cấp biến môi trường cho docker-compose
             echo "JWT_SECRET=CloudNovaSecretKey2026_VerySecure32BytesLong" > .env
