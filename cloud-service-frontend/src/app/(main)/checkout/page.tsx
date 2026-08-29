@@ -38,7 +38,21 @@ export default function CheckoutPage() {
         expiryDate: string;
     } | null>(null);
 
+    const [isSingleOrder, setIsSingleOrder] = useState(false);
+
     useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const singleOrderId = urlParams.get('orderId');
+        
+        if (singleOrderId) {
+            setOrderGroupId(singleOrderId); // Tạm dùng state này cho cả group và single
+            setIsSingleOrder(true);
+            setIsSuccess(true);
+            
+            // Gọi fetchQRCode ngay với singleOrderId (amount truyền tạm 0 vì BE tự tính lại)
+            // Cần đợi token set xong, nên ta tách fetch này xuống một effect khác hoặc xử lý sau.
+        }
+
         const storedToken = localStorage.getItem("token");
         if (storedToken) setToken(storedToken);
 
@@ -50,9 +64,19 @@ export default function CheckoutPage() {
         }
     }, []);
 
+
     const removeFromCart = (index: number) => {
         const newCart = [...cart];
         newCart.splice(index, 1);
+        setCart(newCart);
+        localStorage.setItem("cart", JSON.stringify(newCart));
+        window.dispatchEvent(new Event('cartUpdated'));
+    };
+
+    const handleUpdateQty = (index: number, newQty: number) => {
+        if (newQty < 1) return;
+        const newCart = [...cart];
+        newCart[index].qty = newQty;
         setCart(newCart);
         localStorage.setItem("cart", JSON.stringify(newCart));
         window.dispatchEvent(new Event('cartUpdated'));
@@ -66,9 +90,12 @@ export default function CheckoutPage() {
 
     const [orderGroupId, setOrderGroupId] = useState<string | null>(null);
 
-    const fetchQRCode = async (groupId: string, amount: number) => {
+    const fetchQRCode = async (id: string, amount: number, isSingle: boolean = false) => {
         try {
-            const res = await fetch(`/api/Orders/group/${groupId}/payment-qr?amount=${amount}`, {
+            const endpoint = isSingle 
+                ? `/api/Orders/${id}/payment-qr` 
+                : `/api/Orders/group/${id}/payment-qr?amount=${amount}`;
+            const res = await fetch(endpoint, {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
@@ -85,12 +112,21 @@ export default function CheckoutPage() {
         }
     };
 
+    // Effect để fetch QR nếu có singleOrderId và token
+    useEffect(() => {
+        if (isSingleOrder && orderGroupId && token) {
+            fetchQRCode(orderGroupId, 0, true);
+        }
+    }, [isSingleOrder, orderGroupId, token]);
     const handleConfirmDemoPayment = async () => {
         if (!orderGroupId || !token || isDemoConfirming) return;
         setIsDemoConfirming(true);
         setErrorMsg('');
         try {
-            const res = await fetch(`/api/Orders/group/${orderGroupId}/demo-payment`, {
+            const endpoint = isSingleOrder 
+                ? `/api/Orders/${orderGroupId}/demo-payment` 
+                : `/api/Orders/group/${orderGroupId}/demo-payment`;
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -119,7 +155,10 @@ export default function CheckoutPage() {
         setIsPayOsSubmitting(true);
         setErrorMsg('');
         try {
-            const res = await fetch(`/api/PayOS/create-payment-link/${orderGroupId}`, {
+            const endpoint = isSingleOrder 
+                ? `/api/PayOS/create-payment-link/single/${orderGroupId}` 
+                : `/api/PayOS/create-payment-link/${orderGroupId}`;
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -340,8 +379,15 @@ export default function CheckoutPage() {
                                             <div key={index} className="p-lg flex flex-col md:flex-row gap-md justify-between items-start md:items-center hover:bg-surface-container-lowest transition-colors">
                                                 <div>
                                                     <h3 className="font-headline-sm text-headline-sm text-primary mb-xs">{item.planName}</h3>
-                                                    <p className="font-body-sm text-body-sm text-on-surface-variant">Chu kỳ: 1 Tháng</p>
-                                                    <p className="font-body-sm text-body-sm text-on-surface-variant">Số lượng: {item.qty}</p>
+                                                    <p className="font-body-sm text-body-sm text-on-surface-variant mb-xs">Chu kỳ: 1 Tháng</p>
+                                                    <div className="flex items-center gap-2 font-body-sm text-body-sm text-on-surface-variant">
+                                                        <span>Số lượng:</span>
+                                                        <div className="flex items-center gap-1">
+                                                            <button onClick={() => handleUpdateQty(index, item.qty - 1)} className="w-6 h-6 flex items-center justify-center bg-surface-container rounded hover:bg-surface-container-high transition-colors text-on-surface font-medium border border-outline-variant">-</button>
+                                                            <span className="w-8 text-center font-medium text-on-surface">{item.qty}</span>
+                                                            <button onClick={() => handleUpdateQty(index, item.qty + 1)} className="w-6 h-6 flex items-center justify-center bg-surface-container rounded hover:bg-surface-container-high transition-colors text-on-surface font-medium border border-outline-variant">+</button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <div className="flex flex-col items-end gap-2">
                                                     <div className="font-headline-sm text-headline-sm text-on-background">

@@ -337,6 +337,23 @@ export default function ClientPortalPage() {
         }
     };
 
+    const handleRemoveCartItem = (index: number) => {
+        const newCart = [...cartItems];
+        newCart.splice(index, 1);
+        setCartItems(newCart);
+        localStorage.setItem("cart", JSON.stringify(newCart));
+        window.dispatchEvent(new Event('cartUpdated'));
+    };
+
+    const handleUpdateQty = (index: number, newQty: number) => {
+        if (newQty < 1) return;
+        const newCart = [...cartItems];
+        newCart[index].qty = newQty;
+        setCartItems(newCart);
+        localStorage.setItem("cart", JSON.stringify(newCart));
+        window.dispatchEvent(new Event('cartUpdated'));
+    };
+
     if (!token) return <div className="text-center p-2xl">Đang chuyển hướng...</div>;
 
     return (
@@ -406,13 +423,27 @@ export default function ClientPortalPage() {
                                     ) : (
                                         <div className="space-y-md">
                                             {cartItems.map((item, idx) => (
-                                                <div key={idx} className="flex justify-between items-center border border-outline-variant rounded-xl p-md">
-                                                    <div>
+                                                <div key={idx} className="flex flex-col sm:flex-row justify-between items-start sm:items-center border border-outline-variant rounded-xl p-md gap-sm">
+                                                    <div className="flex-1">
                                                         <h3 className="font-headline-sm text-on-surface">{item.planName}</h3>
-                                                        <p className="text-sm text-on-surface-variant">Chu kỳ: {item.cycle === 'yearly' ? '12 tháng' : '1 tháng'} | SL: {item.qty}</p>
+                                                        <div className="flex items-center gap-md mt-sm text-sm text-on-surface-variant">
+                                                            <span>Chu kỳ: {item.cycle === 'yearly' ? '12 tháng' : '1 tháng'}</span>
+                                                            <div className="flex items-center gap-2">
+                                                                <span>SL:</span>
+                                                                <button onClick={() => handleUpdateQty(idx, item.qty - 1)} className="w-6 h-6 flex items-center justify-center bg-surface-container rounded hover:bg-surface-container-high transition-colors text-on-surface font-medium border border-outline-variant">-</button>
+                                                                <span className="w-6 text-center font-medium text-on-surface">{item.qty}</span>
+                                                                <button onClick={() => handleUpdateQty(idx, item.qty + 1)} className="w-6 h-6 flex items-center justify-center bg-surface-container rounded hover:bg-surface-container-high transition-colors text-on-surface font-medium border border-outline-variant">+</button>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div className="font-headline-sm text-primary">
-                                                        {item.price.toLocaleString('vi-VN')}đ
+                                                    <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto mt-sm sm:mt-0">
+                                                        <div className="font-headline-sm text-primary">
+                                                            {(item.price * item.qty).toLocaleString('vi-VN')}đ
+                                                        </div>
+                                                        <button onClick={() => handleRemoveCartItem(idx)} className="text-error hover:text-error-container text-sm flex items-center gap-1 mt-xs transition-colors">
+                                                            <span className="material-symbols-outlined text-[16px]">delete</span>
+                                                            Xóa
+                                                        </button>
                                                     </div>
                                                 </div>
                                             ))}
@@ -470,7 +501,7 @@ export default function ClientPortalPage() {
                                                         VPS demo
                                                     </span>
                                                 ) : (
-                                                    <button onClick={() => window.open(`http://${svc.vpsIP}`, '_blank')} className="px-md py-sm bg-surface-container text-primary font-medium rounded-lg hover:bg-surface-variant transition-colors whitespace-nowrap">
+                                                    <button onClick={() => window.open('/coming-soon', '_blank')} className="px-md py-sm bg-surface-container text-primary font-medium rounded-lg hover:bg-surface-variant transition-colors whitespace-nowrap">
                                                         Truy cập Control Panel
                                                     </button>
                                                 )}
