@@ -556,7 +556,7 @@ export default function ClientPortalPage() {
                                 
                                 {loadingOrders ? (
                                     <div className="text-center py-xl text-secondary">Đang tải dữ liệu...</div>
-                                ) : orders.filter(o => o.status === 'Pending').length === 0 ? (
+                                ) : orders.filter(o => o.status === 'Pending' || o.status === 0).length === 0 ? (
                                     <div className="text-center py-2xl">
                                         <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-md">
                                             <span className="material-symbols-outlined text-[32px] text-secondary">pending_actions</span>
@@ -565,7 +565,7 @@ export default function ClientPortalPage() {
                                     </div>
                                 ) : (
                                     <div className="space-y-md">
-                                        {orders.filter(o => o.status === 'Pending').map(order => (
+                                        {orders.filter(o => o.status === 'Pending' || o.status === 0).map(order => (
                                             <div key={order.id} className="client-item-card border border-warning/30 bg-warning/5 rounded-xl p-lg flex flex-col md:flex-row gap-lg justify-between items-start md:items-center hover:border-warning/60 transition-colors">
                                                 <div>
                                                     <div className="flex items-center gap-sm mb-xs">
@@ -605,7 +605,7 @@ export default function ClientPortalPage() {
                                 
                                 {loadingOrders ? (
                                     <div className="text-center py-xl text-secondary">Đang tải dữ liệu...</div>
-                                ) : orders.filter(o => o.status !== 'Pending').length === 0 ? (
+                                ) : orders.filter(o => o.status !== 'Pending' && o.status !== 0).length === 0 ? (
                                     <div className="text-center py-2xl">
                                         <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-md">
                                             <span className="material-symbols-outlined text-[32px] text-secondary">receipt_long</span>
@@ -615,14 +615,14 @@ export default function ClientPortalPage() {
                                     </div>
                                 ) : (
                                     <div className="space-y-md">
-                                        {orders.filter(o => o.status !== 'Pending').map(order => (
+                                        {orders.filter(o => o.status !== 'Pending' && o.status !== 0).map(order => (
                                             <div key={order.id} className="client-item-card border border-outline-variant rounded-xl p-lg flex flex-col md:flex-row gap-lg justify-between items-start md:items-center hover:border-primary transition-colors">
                                                 <div>
                                                     <div className="flex items-center gap-sm mb-xs">
                                                         <h3 className="font-headline-md text-headline-md text-on-surface">Đơn hàng #{order.id.substring(0, 8)}</h3>
-                                                        {order.status === 'Completed' && <span className="bg-success/10 text-success font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Hoàn thành</span>}
-                                                        {order.status === 'Cancelled' && <span className="bg-error/10 text-error font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Đã huỷ</span>}
-                                                        {order.status === 'Failed' && <span className="bg-error/20 text-error font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Thất bại / Hết hạn</span>}
+                                                        {(order.status === 'Completed' || order.status === 2) && <span className="bg-success/10 text-success font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Hoàn thành</span>}
+                                                        {(order.status === 'Cancelled' || order.status === 3) && <span className="bg-error/10 text-error font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Đã huỷ</span>}
+                                                        {(order.status === 'Failed' || order.status === 4) && <span className="bg-error/20 text-error font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Thất bại / Hết hạn</span>}
                                                     </div>
                                                     <p className="text-[14px] text-on-surface-variant mb-md">Ngày đặt: {new Date(order.orderDate).toLocaleString('vi-VN')} • Tổng tiền: {order.totalAmount.toLocaleString('vi-VN')}đ</p>
                                                     {order.customerNotes && <p className="text-[13px] text-error mt-1 italic">{order.customerNotes}</p>}
@@ -636,7 +636,7 @@ export default function ClientPortalPage() {
                                                     >
                                                         {loadingOrderDetail ? 'Đang tải...' : 'Xem chi tiết'}
                                                     </button>
-                                                    {order.status === 'Completed' && !order.isReviewed && (
+                                                    {(order.status === 'Completed' || order.status === 2) && !order.isReviewed && (
                                                         <button 
                                                             onClick={() => setReviewOrderId(order.id)}
                                                             className="px-md py-sm bg-surface-container text-primary font-medium rounded-lg hover:bg-surface-variant transition-colors whitespace-nowrap"
@@ -644,7 +644,7 @@ export default function ClientPortalPage() {
                                                             Đánh giá ngay
                                                         </button>
                                                     )}
-                                                    {order.status === 'Completed' && order.isReviewed && (
+                                                    {(order.status === 'Completed' || order.status === 2) && order.isReviewed && (
                                                         <button 
                                                             disabled
                                                             className="px-md py-sm bg-surface-container-low text-on-surface-variant font-medium rounded-lg cursor-not-allowed whitespace-nowrap"
