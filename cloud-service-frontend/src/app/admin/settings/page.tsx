@@ -24,10 +24,13 @@ export default function AdminSettingsPage() {
                     { key: 'PhoneNumber', value: '1900 xxxx', description: 'Số điện thoại hotline hỗ trợ' },
                     { key: 'ContactEmail', value: 'contact@cloudnova.vn', description: 'Email liên hệ tư vấn' }
                 ];
-                let merged = [...data];
+                let merged = Array.isArray(data) ? [...data] : (data?.data ? [...data.data] : []);
                 defaultSettings.forEach(def => {
-                    if (!merged.find(s => s.key === def.key)) {
+                    const existing = merged.find(s => s.key?.toLowerCase() === def.key.toLowerCase());
+                    if (!existing) {
                         merged.push(def);
+                    } else {
+                        existing.key = def.key; // Normalize key name
                     }
                 });
                 setSettings(merged);
@@ -50,7 +53,7 @@ export default function AdminSettingsPage() {
             
             // Call API to update each setting sequentially
             for (const setting of settings) {
-                await fetch(`/api/SiteSettings/${setting.key}`, {
+                const res = await fetch(`/api/SiteSettings/${setting.key}`, {
                     method: "PUT",
                     headers: { 
                         "Content-Type": "application/json",
@@ -58,6 +61,9 @@ export default function AdminSettingsPage() {
                     },
                     body: JSON.stringify(setting.value)
                 });
+                if (!res.ok) {
+                    throw new Error(`Cập nhật thất bại cho ${setting.key}`);
+                }
             }
 
             alert("Đã lưu Cấu hình Website thành công!");

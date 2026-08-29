@@ -94,7 +94,7 @@ export default function ServicesPage() {
 <p className="font-body-lg text-body-lg text-on-surface-variant mb-xl max-w-[42rem]">Từ website cá nhân đến hệ thống doanh nghiệp, CloudNova cung cấp hạ tầng Cloud mạnh mẽ, ổn định và dễ mở rộng.</p>
 <div className="flex flex-col sm:flex-row gap-md justify-center md:justify-start">
 <Link href="/pricing" className="bg-primary text-on-primary px-lg py-md rounded-lg font-semibold hover:bg-primary-container transition-colors inline-flex items-center justify-center">Xem bảng giá</Link>
-<button onClick={() => alert('Vui lòng gọi hotline: 1900 xxxx hoặc gửi email đến contact@cloudnova.vn')} className="border border-primary text-primary px-lg py-md rounded-lg font-semibold hover:bg-surface-container transition-colors">Tư vấn miễn phí</button>
+<button onClick={() => setIsContactOpen(true)} className="border border-primary text-primary px-lg py-md rounded-lg font-semibold hover:bg-surface-container transition-colors">Tư vấn miễn phí</button>
 </div>
 </div>
 <div className="hidden md:flex justify-center items-center">
