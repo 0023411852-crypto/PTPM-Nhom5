@@ -160,6 +160,8 @@ export default function AdminOrdersPage() {
                             ) : filteredOrders.map((order, index) => {
                                 const isCompleted = order.status === 2 || order.status === 'Completed';
                                 const isPending = order.status === 0 || order.status === 'Pending';
+                                const isCancelled = order.status === 3 || order.status === 'Cancelled';
+                                const isFailed = order.status === 4 || order.status === 'Failed';
                                 
                                 return (
                                 <tr key={order.id} className="border-b border-outline-variant last:border-0 hover:bg-surface-container-lowest transition-colors">
@@ -171,9 +173,12 @@ export default function AdminOrdersPage() {
                                     <td className="p-md">
                                         <span className={`px-2 py-1 rounded-full text-[12px] font-bold uppercase ${
                                             isCompleted ? 'bg-green-100 text-green-700' : 
-                                            isPending ? 'bg-yellow-100 text-yellow-700' : 'bg-surface-container text-on-surface-variant'
+                                            isPending ? 'bg-yellow-100 text-yellow-700' : 
+                                            isCancelled ? 'bg-red-100 text-red-700' :
+                                            isFailed ? 'bg-red-200 text-red-800' :
+                                            'bg-surface-container text-on-surface-variant'
                                         }`}>
-                                            {isCompleted ? 'ĐÃ HOÀN THÀNH' : isPending ? 'CHỜ XỬ LÝ' : 'ĐANG XỬ LÝ'}
+                                            {isCompleted ? 'ĐÃ HOÀN THÀNH' : isPending ? 'CHỜ XỬ LÝ' : isCancelled ? 'ĐÃ HỦY' : isFailed ? 'KHÔNG THÀNH CÔNG' : 'ĐANG XỬ LÝ'}
                                         </span>
                                     </td>
                                     <td className="p-md">

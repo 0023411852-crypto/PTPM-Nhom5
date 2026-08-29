@@ -116,6 +116,7 @@ builder.Services.AddHealthChecks()
 
 // Đăng ký Background Service
 builder.Services.AddHostedService<CloudService.WebApi.BackgroundServices.UserCleanupBackgroundService>();
+builder.Services.AddHostedService<CloudService.WebApi.BackgroundServices.OrderExpirationBackgroundService>();
 
 var app = builder.Build();
 

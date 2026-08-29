@@ -71,7 +71,16 @@ namespace CloudService.WebApi.Controllers.Commerce
             try
             {
                 var createPayment = await _payOS.PaymentRequests.CreateAsync(paymentData);
-                return Ok(new { checkoutUrl = createPayment.CheckoutUrl });
+                return Ok(new { 
+                    checkoutUrl = createPayment.CheckoutUrl,
+                    qrCode = createPayment.QrCode,
+                    bin = createPayment.Bin,
+                    accountNumber = createPayment.AccountNumber,
+                    accountName = createPayment.AccountName,
+                    amount = createPayment.Amount,
+                    description = createPayment.Description,
+                    orderCode = createPayment.OrderCode
+                });
             }
             catch (Exception ex)
             {
