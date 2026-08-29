@@ -111,7 +111,6 @@ export default async function Footer() {
               <FooterLink href="/news">Tin tức</FooterLink>
               <FooterLink href="/huong-dan">Hướng dẫn triển khai</FooterLink>
               <FooterLink href="/api-docs">API Documentation</FooterLink>
-              <FooterLink href="/lien-he">Tư vấn cấu hình</FooterLink>
               <FooterLink href="/login">Cổng khách hàng</FooterLink>
             </ul>
           </div>
@@ -119,7 +118,6 @@ export default async function Footer() {
           <div>
             <FooterHeading>Hỗ trợ</FooterHeading>
             <ul className="footer-links mt-lg flex flex-col gap-sm">
-              <FooterLink href="/lien-he">Liên hệ hỗ trợ</FooterLink>
               <FooterLink href="/register">Đăng ký tài khoản</FooterLink>
               <FooterLink href="/about">Về CloudNova</FooterLink>
               <FooterLink href="/news">Góc kiến thức</FooterLink>
