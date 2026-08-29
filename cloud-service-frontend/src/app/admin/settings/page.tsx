@@ -18,7 +18,20 @@ export default function AdminSettingsPage() {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             const data = await res.json();
-            if (res.ok) setSettings(data);
+            if (res.ok) {
+                const defaultSettings = [
+                    { key: 'site_name', value: 'CloudNova', description: 'Tên hiển thị của website' },
+                    { key: 'PhoneNumber', value: '1900 xxxx', description: 'Số điện thoại hotline hỗ trợ' },
+                    { key: 'ContactEmail', value: 'contact@cloudnova.vn', description: 'Email liên hệ tư vấn' }
+                ];
+                let merged = [...data];
+                defaultSettings.forEach(def => {
+                    if (!merged.find(s => s.key === def.key)) {
+                        merged.push(def);
+                    }
+                });
+                setSettings(merged);
+            }
         } catch (e) {
             console.error(e);
         } finally {

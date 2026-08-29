@@ -279,18 +279,20 @@ export default function AdminServiceCategoriesPage() {
                   <td className="px-md py-md font-body-md font-medium text-on-surface">{category.name}</td>
                   <td className="max-w-[34rem] px-md py-md font-body-sm text-on-surface-variant">{category.description || '—'}</td>
                   <td className="px-md py-md">
-                    <span className={`inline-flex items-center gap-xs font-body-sm ${category.isActive ? 'text-primary' : 'text-error'}`}>
-                      <span className="h-2 w-2 rounded-full bg-current" />
+                    <span className={`whitespace-nowrap inline-flex items-center gap-xs font-body-sm ${category.isActive ? 'text-primary' : 'text-error'}`}>
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-current" />
                       {category.isActive ? 'Đang hoạt động' : 'Tạm dừng'}
                     </span>
                   </td>
-                  <td className="space-x-sm px-md py-md text-right">
-                    <button type="button" onClick={() => openEdit(category)} className="p-1 text-on-surface-variant hover:text-primary" title="Chỉnh sửa">
-                      <span className="material-symbols-outlined text-[20px]">edit</span>
-                    </button>
-                    <button type="button" onClick={() => { setDeletingId(category.id); setIsDeleteOpen(true); }} className="p-1 text-on-surface-variant hover:text-error" title="Xóa">
-                      <span className="material-symbols-outlined text-[20px]">delete</span>
-                    </button>
+                  <td className="px-md py-md">
+                    <div className="flex items-center justify-end gap-1 sm:gap-2 whitespace-nowrap">
+                      <button type="button" onClick={() => openEdit(category)} className="p-1.5 text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-container rounded-lg" title="Chỉnh sửa">
+                        <span className="material-symbols-outlined text-[20px]">edit</span>
+                      </button>
+                      <button type="button" onClick={() => { setDeletingId(category.id); setIsDeleteOpen(true); }} className="p-1.5 text-on-surface-variant hover:text-error transition-colors hover:bg-error/10 rounded-lg" title="Xóa">
+                        <span className="material-symbols-outlined text-[20px]">delete</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

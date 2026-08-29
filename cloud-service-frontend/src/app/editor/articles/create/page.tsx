@@ -49,8 +49,12 @@ function EditorForm() {
         formData.append('file', file);
 
         try {
+            const token = localStorage.getItem('token');
             const res = await fetch('/api/Upload', {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
                 body: formData,
             });
 

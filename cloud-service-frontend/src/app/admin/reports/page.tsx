@@ -115,7 +115,7 @@ export default function AdminReportsPage() {
 
     return (
         <div className="max-w-container-max mx-auto space-y-lg pb-xl">
-            <div className="flex justify-between items-end">
+            <div className="flex flex-col sm:flex-row justify-between gap-md sm:items-end">
                 <div>
                     <h2 className="font-headline-lg text-headline-lg text-on-surface">Báo cáo doanh thu</h2>
                     <p className="font-body-sm text-body-sm text-on-surface-variant mt-unit">Thống kê và phân tích tài chính hệ thống</p>
@@ -198,18 +198,20 @@ export default function AdminReportsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg">
                 <div className="bg-surface rounded-xl border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-lg min-h-[400px] flex flex-col">
                     <h3 className="font-headline-md text-[20px] font-semibold text-on-surface mb-lg">Biểu đồ tăng trưởng</h3>
-                    <div className="flex-1 flex items-end justify-between border-b border-outline-variant pt-8 pb-2">
-                        {report.barChartData.map((data, index) => (
-                            <div key={index} className="flex flex-col items-center justify-end h-full gap-2 group w-full">
-                                <div className="w-12 bg-primary rounded-t-sm transition-all duration-500 ease-in-out group-hover:bg-primary-container relative" 
-                                     style={{ height: `${(data.value / maxChartVal) * 100}%`, minHeight: '10px' }}>
-                                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface text-[12px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                        {data.value.toFixed(1)}M
+                    <div className="flex-1 overflow-x-auto pb-2">
+                        <div className="flex items-end justify-between border-b border-outline-variant pt-8 pb-2 min-w-[600px] h-full gap-2">
+                            {report.barChartData.map((data, index) => (
+                                <div key={index} className="flex flex-col items-center justify-end h-full gap-2 group flex-1">
+                                    <div className="w-8 sm:w-12 bg-primary rounded-t-sm transition-all duration-500 ease-in-out group-hover:bg-primary-container relative" 
+                                         style={{ height: `${(data.value / maxChartVal) * 100}%`, minHeight: '10px' }}>
+                                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface text-[12px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                            {data.value.toFixed(1)}M
+                                        </div>
                                     </div>
+                                    <span className="font-label-md text-label-md text-on-surface-variant shrink-0 text-[10px] sm:text-xs">{data.label}</span>
                                 </div>
-                                <span className="font-label-md text-label-md text-on-surface-variant shrink-0">{data.label}</span>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </div>
                 <div className="bg-surface rounded-xl border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-lg min-h-[400px] flex flex-col">

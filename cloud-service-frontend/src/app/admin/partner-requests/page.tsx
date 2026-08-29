@@ -275,7 +275,7 @@ export default function AdminPartnerRequestsPage() {
                                         {new Date(req.createdAt).toLocaleDateString('vi-VN')}
                                     </td>
                                     <td className="p-4">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(req.status)}`}>
+                                        <span className={`whitespace-nowrap px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(req.status)}`}>
                                             {getStatusText(req.status)}
                                         </span>
                                     </td>
