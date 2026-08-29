@@ -759,55 +759,55 @@ export default function ClientPortalPage() {
             </div>
 
             {selectedOrder && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-md backdrop-blur-sm">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 md:p-6 backdrop-blur-sm">
                     <div className="flex max-h-[90vh] w-full max-w-[56rem] flex-col overflow-hidden rounded-2xl bg-surface shadow-xl">
-                        <div className="flex items-center justify-between border-b border-outline-variant p-xl">
+                        <div className="flex items-center justify-between border-b border-outline-variant p-4 md:p-6">
                             <div>
                                 <p className="font-label-caps text-label-caps uppercase tracking-wider text-primary">Chi tiết đơn hàng</p>
                                 <h2 className="font-headline-sm text-headline-sm text-on-surface">#{selectedOrder.id.substring(0, 8)}</h2>
                             </div>
-                            <button type="button" onClick={() => { setSelectedOrder(null); setOrderDetailError(''); }} className="text-on-surface-variant hover:text-on-surface"><span className="material-symbols-outlined text-[24px]">close</span></button>
+                            <button type="button" onClick={() => { setSelectedOrder(null); setOrderDetailError(''); }} className="text-on-surface-variant hover:text-on-surface p-2 -mr-2"><span className="material-symbols-outlined text-[24px]">close</span></button>
                         </div>
-                        <div className="space-y-lg overflow-y-auto p-xl">
-                            {orderDetailError && <p className="rounded-lg bg-error-container/20 p-md text-error">{orderDetailError}</p>}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-xl">
-                                <div className="space-y-lg">
-                                    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-lg">
-                                        <div className="mb-sm flex items-center justify-between gap-md"><h3 className="font-headline-sm text-headline-sm text-on-surface">{selectedOrder.servicePlanName || 'Gói dịch vụ'}</h3><span className="rounded-full bg-primary-container px-sm py-xs text-sm font-semibold text-primary">{selectedOrder.categoryName || 'Dịch vụ'}</span></div>
+                        <div className="space-y-6 overflow-y-auto p-4 md:p-6">
+                            {orderDetailError && <p className="rounded-lg bg-error-container/20 p-4 text-error">{orderDetailError}</p>}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div className="space-y-6">
+                                    <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 md:p-5">
+                                        <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2"><h3 className="font-headline-sm text-headline-sm text-on-surface">{selectedOrder.servicePlanName || 'Gói dịch vụ'}</h3><span className="w-fit rounded-full bg-primary-container px-3 py-1 text-sm font-semibold text-primary">{selectedOrder.categoryName || 'Dịch vụ'}</span></div>
                                         <p className="text-sm text-on-surface-variant">{selectedOrder.servicePlanDescription || 'Không có mô tả.'}</p>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {parseOrderSpecifications(selectedOrder.servicePlanSpecifications).map(([key, value]) => (
-                                            <div key={key} className="rounded-lg border border-outline-variant p-md">
+                                            <div key={key} className="rounded-lg border border-outline-variant p-4">
                                                 <p className="text-xs uppercase tracking-wide text-on-surface-variant">{key}</p>
-                                                <p className="mt-1 font-semibold text-on-surface">{String(value)}</p>
+                                                <p className="mt-1 font-semibold text-on-surface break-words">{String(value)}</p>
                                             </div>
                                         ))}
-                                        <div className="rounded-lg border border-outline-variant p-md">
+                                        <div className="rounded-lg border border-outline-variant p-4">
                                             <p className="text-xs uppercase tracking-wide text-on-surface-variant">Chu kỳ thanh toán</p>
                                             <p className="mt-1 font-semibold text-on-surface">{selectedOrder.billingCycle ? `${selectedOrder.billingCycle} tháng` : '—'}</p>
                                         </div>
-                                        <div className="rounded-lg border border-outline-variant p-md">
+                                        <div className="rounded-lg border border-outline-variant p-4">
                                             <p className="text-xs uppercase tracking-wide text-on-surface-variant">Trạng thái</p>
                                             <p className="mt-1 font-semibold text-primary">{selectedOrder.status}</p>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="space-y-lg flex flex-col">
-                                    <div className="space-y-sm rounded-xl border border-outline-variant p-lg text-sm bg-surface-container-lowest flex-grow flex flex-col">
+                                <div className="space-y-6 flex flex-col">
+                                    <div className="space-y-3 rounded-xl border border-outline-variant p-4 md:p-5 text-sm bg-surface-container-lowest flex-grow flex flex-col">
                                         <h4 className="font-semibold text-base mb-2 border-b border-outline-variant pb-2">Thanh toán</h4>
-                                        <div className="flex justify-between gap-md"><span className="text-on-surface-variant">Ngày đặt</span><strong>{new Date(selectedOrder.orderDate).toLocaleString('vi-VN')}</strong></div>
-                                        <div className="flex justify-between gap-md"><span className="text-on-surface-variant">Giá gói</span><strong>{selectedOrder.price.toLocaleString('vi-VN')}đ</strong></div>
-                                        <div className="flex justify-between gap-md"><span className="text-on-surface-variant">Phí khởi tạo</span><strong>{selectedOrder.setupFee.toLocaleString('vi-VN')}đ</strong></div>
-                                        {selectedOrder.promotionCode && <div className="flex justify-between gap-md"><span className="text-on-surface-variant">Mã khuyến mãi</span><strong>{selectedOrder.promotionCode}{selectedOrder.discountPercentage ? ` (-${selectedOrder.discountPercentage}%)` : ''}</strong></div>}
-                                        <div className="flex justify-between gap-md border-t border-outline-variant pt-sm mt-auto text-base"><span className="font-semibold">Tổng tiền</span><strong className="text-primary text-lg">{selectedOrder.totalAmount.toLocaleString('vi-VN')}đ</strong></div>
+                                        <div className="flex justify-between gap-2"><span className="text-on-surface-variant">Ngày đặt</span><strong>{new Date(selectedOrder.orderDate).toLocaleString('vi-VN')}</strong></div>
+                                        <div className="flex justify-between gap-2"><span className="text-on-surface-variant">Giá gói</span><strong>{selectedOrder.price.toLocaleString('vi-VN')}đ</strong></div>
+                                        <div className="flex justify-between gap-2"><span className="text-on-surface-variant">Phí khởi tạo</span><strong>{selectedOrder.setupFee.toLocaleString('vi-VN')}đ</strong></div>
+                                        {selectedOrder.promotionCode && <div className="flex justify-between gap-2"><span className="text-on-surface-variant">Mã khuyến mãi</span><strong className="text-right">{selectedOrder.promotionCode}{selectedOrder.discountPercentage ? ` (-${selectedOrder.discountPercentage}%)` : ''}</strong></div>}
+                                        <div className="flex justify-between gap-2 border-t border-outline-variant pt-3 mt-auto text-base"><span className="font-semibold">Tổng tiền</span><strong className="text-primary text-lg text-right">{selectedOrder.totalAmount.toLocaleString('vi-VN')}đ</strong></div>
                                     </div>
-                                    {selectedOrder.customerNotes && <div className="rounded-lg bg-surface-container-low p-md text-sm mt-4"><strong>Ghi chú của bạn:</strong> {selectedOrder.customerNotes}</div>}
+                                    {selectedOrder.customerNotes && <div className="rounded-lg bg-surface-container-low p-4 text-sm mt-4"><strong>Ghi chú của bạn:</strong> <p className="mt-1 break-words">{selectedOrder.customerNotes}</p></div>}
                                 </div>
                             </div>
                         </div>
-                        <div className="border-t border-outline-variant p-xl flex justify-end">
-                            <button type="button" onClick={() => setSelectedOrder(null)} className="rounded-lg bg-primary px-xl py-sm font-medium text-on-primary hover:bg-primary-container transition-colors">Đóng</button>
+                        <div className="border-t border-outline-variant p-4 md:p-6 flex justify-end">
+                            <button type="button" onClick={() => setSelectedOrder(null)} className="rounded-lg bg-primary px-6 py-2.5 font-medium text-on-primary hover:bg-primary-container transition-colors w-full sm:w-auto">Đóng</button>
                         </div>
                     </div>
                 </div>
@@ -815,16 +815,16 @@ export default function ClientPortalPage() {
 
             {/* Review Modal */}
             {reviewOrderId && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-md bg-black/50 backdrop-blur-sm">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-black/50 backdrop-blur-sm">
                     <div className="client-modal bg-surface rounded-2xl w-full max-w-[32rem] shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="p-xl border-b border-outline-variant flex justify-between items-center">
-                            <h2 className="font-headline-sm text-headline-sm text-on-surface">Đánh giá đơn hàng #{reviewOrderId.substring(0, 8)}</h2>
-                            <button onClick={() => setReviewOrderId(null)} className="text-on-surface-variant hover:text-on-surface transition-colors">
+                        <div className="p-4 md:p-6 border-b border-outline-variant flex justify-between items-center">
+                            <h2 className="font-headline-sm text-headline-sm text-on-surface text-base md:text-lg">Đánh giá đơn hàng #{reviewOrderId.substring(0, 8)}</h2>
+                            <button onClick={() => setReviewOrderId(null)} className="text-on-surface-variant hover:text-on-surface transition-colors p-2 -mr-2">
                                 <span className="material-symbols-outlined text-[24px]">close</span>
                             </button>
                         </div>
-                        <form onSubmit={handleSubmitReview} className="p-xl overflow-y-auto">
-                            <div className="space-y-md">
+                        <form onSubmit={handleSubmitReview} className="p-4 md:p-6 overflow-y-auto">
+                            <div className="space-y-4 md:space-y-6">
                                 <div>
                                     <label className="block text-sm font-medium text-on-surface-variant mb-2">Đánh giá của bạn</label>
                                     <div className="flex gap-2">
@@ -833,7 +833,7 @@ export default function ClientPortalPage() {
                                                 key={star} 
                                                 type="button"
                                                 onClick={() => setReviewRating(star)}
-                                                className={`text-[32px] material-symbols-outlined ${star <= reviewRating ? 'text-[#FFB800] star-filled' : 'text-outline-variant'}`}
+                                                className={`text-[32px] md:text-[36px] material-symbols-outlined transition-transform hover:scale-110 ${star <= reviewRating ? 'text-[#FFB800] star-filled' : 'text-outline-variant'}`}
                                             >
                                                 {star <= reviewRating ? 'star' : 'star_border'}
                                             </button>
@@ -846,18 +846,18 @@ export default function ClientPortalPage() {
                                         value={reviewContent}
                                         onChange={e => setReviewContent(e.target.value)}
                                         rows={4} 
-                                        className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface focus:border-primary outline-none resize-none" 
+                                        className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface text-on-surface focus:border-primary outline-none resize-none" 
                                         placeholder="Chia sẻ trải nghiệm của bạn về dịch vụ..."
                                         required
                                     ></textarea>
                                 </div>
                             </div>
                             
-                            <div className="mt-xl flex justify-end gap-md">
-                                <button type="button" onClick={() => setReviewOrderId(null)} className="px-lg py-sm text-on-surface-variant hover:bg-surface-container rounded-lg font-medium transition-colors">
+                            <div className="mt-6 md:mt-8 flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4">
+                                <button type="button" onClick={() => setReviewOrderId(null)} className="px-6 py-2.5 text-on-surface-variant border border-outline-variant hover:bg-surface-container rounded-lg font-medium transition-colors w-full sm:w-auto">
                                     Hủy
                                 </button>
-                                <button type="submit" disabled={submittingReview} className="px-lg py-sm bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors disabled:opacity-70">
+                                <button type="submit" disabled={submittingReview} className="px-6 py-2.5 bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors disabled:opacity-70 w-full sm:w-auto">
                                     {submittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}
                                 </button>
                             </div>

@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface ModalProps {
     isOpen: boolean;
@@ -11,6 +12,11 @@ interface ModalProps {
 
 export default function Modal({ isOpen, onClose, title, children, footer, maxWidth = 'max-w-[32rem]' }: ModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     // Close on escape key
     useEffect(() => {
@@ -28,11 +34,23 @@ export default function Modal({ isOpen, onClose, title, children, footer, maxWid
         }
     };
 
-    if (!isOpen) return null;
+    // Prevent body scroll when modal is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
 
-    return (
+    if (!isOpen || !mounted) return null;
+
+    return createPortal(
         <div 
-            className="fixed inset-0 z-50 flex items-center justify-center bg-on-background/40 backdrop-blur-sm p-gutter animate-fade-in"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-on-background/40 backdrop-blur-sm p-4 md:p-6 animate-fade-in"
             onClick={handleBackdropClick}
         >
             <div 
@@ -62,6 +80,7 @@ export default function Modal({ isOpen, onClose, title, children, footer, maxWid
                     </div>
                 )}
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
