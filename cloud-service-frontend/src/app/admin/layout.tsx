@@ -18,7 +18,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const router = useRouter();
     const pathname = usePathname();
 
-    const loadProfileData = () => {
+    const loadProfileData = async () => {
         const name = localStorage.getItem('fullName');
         const email = localStorage.getItem('email');
         const avatar = localStorage.getItem('avatar');
@@ -28,12 +28,51 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             email: email || prev.email,
             avatar: avatar || prev.avatar
         }));
+
+        // Fetch latest profile to ensure avatar is up-to-date (especially after login)
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const res = await fetch('/api/Users/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.avatarUrl && data.avatarUrl !== avatar) {
+                        localStorage.setItem('avatar', data.avatarUrl);
+                        setUserProfile(prev => ({ ...prev, avatar: data.avatarUrl }));
+                    }
+                    if (data.fullName && data.fullName !== name) {
+                        localStorage.setItem('fullName', data.fullName);
+                        setUserProfile(prev => ({ ...prev, fullName: data.fullName }));
+                    }
+                    if (data.email && data.email !== email) {
+                        localStorage.setItem('email', data.email);
+                        setUserProfile(prev => ({ ...prev, email: data.email }));
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to fetch profile in layout", e);
+            }
+        }
     };
 
     useEffect(() => {
         loadProfileData();
-        window.addEventListener('profileUpdated', loadProfileData);
-        return () => window.removeEventListener('profileUpdated', loadProfileData);
+        
+        const handleProfileUpdated = () => {
+            const name = localStorage.getItem('fullName');
+            const email = localStorage.getItem('email');
+            const avatar = localStorage.getItem('avatar');
+            setUserProfile(prev => ({
+                fullName: name || prev.fullName,
+                email: email || prev.email,
+                avatar: avatar || prev.avatar
+            }));
+        };
+
+        window.addEventListener('profileUpdated', handleProfileUpdated);
+        return () => window.removeEventListener('profileUpdated', handleProfileUpdated);
     }, []);
 
     const handleLogout = () => {

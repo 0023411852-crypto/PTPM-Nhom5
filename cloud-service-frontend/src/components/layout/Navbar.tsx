@@ -27,11 +27,35 @@ export default function Navbar() {
   }, [isMobileMenuOpen]);
 
   React.useEffect(() => {
-    const syncAuthState = () => {
-      setToken(localStorage.getItem("token"));
+    const syncAuthState = async () => {
+      const currentToken = localStorage.getItem("token");
+      setToken(currentToken);
       setFullName(localStorage.getItem("fullName") || "User");
-      setAvatarUrl(localStorage.getItem("avatarUrl") || localStorage.getItem("avatar") || "");
+      
+      const currentAvatar = localStorage.getItem("avatarUrl") || localStorage.getItem("avatar") || "";
+      setAvatarUrl(currentAvatar);
       setRole(localStorage.getItem("role") || "");
+
+      if (currentToken) {
+          try {
+              const res = await fetch('/api/Users/me', {
+                  headers: { 'Authorization': `Bearer ${currentToken}` }
+              });
+              if (res.ok) {
+                  const data = await res.json();
+                  if (data.avatarUrl && data.avatarUrl !== currentAvatar) {
+                      localStorage.setItem('avatarUrl', data.avatarUrl);
+                      setAvatarUrl(data.avatarUrl);
+                  }
+                  if (data.fullName && data.fullName !== localStorage.getItem('fullName')) {
+                      localStorage.setItem('fullName', data.fullName);
+                      setFullName(data.fullName);
+                  }
+              }
+          } catch (e) {
+              console.error("Failed to fetch profile in navbar", e);
+          }
+      }
     };
 
     const syncCartState = () => {
@@ -43,20 +67,28 @@ export default function Navbar() {
       }
     };
 
+    // Use a lightweight sync for storage events, and full sync for mount/authChanged
+    const lightweightSync = () => {
+      setToken(localStorage.getItem("token"));
+      setFullName(localStorage.getItem("fullName") || "User");
+      setAvatarUrl(localStorage.getItem("avatarUrl") || localStorage.getItem("avatar") || "");
+      setRole(localStorage.getItem("role") || "");
+    };
+
     syncAuthState();
     syncCartState();
 
     window.addEventListener("authChanged", syncAuthState);
-    window.addEventListener("profileUpdated", syncAuthState);
-    window.addEventListener("storage", syncAuthState);
-    document.addEventListener("visibilitychange", syncAuthState);
+    window.addEventListener("profileUpdated", lightweightSync);
+    window.addEventListener("storage", lightweightSync);
+    document.addEventListener("visibilitychange", lightweightSync);
     window.addEventListener("cartUpdated", syncCartState);
 
     return () => {
       window.removeEventListener("authChanged", syncAuthState);
-      window.removeEventListener("profileUpdated", syncAuthState);
-      window.removeEventListener("storage", syncAuthState);
-      document.removeEventListener("visibilitychange", syncAuthState);
+      window.removeEventListener("profileUpdated", lightweightSync);
+      window.removeEventListener("storage", lightweightSync);
+      document.removeEventListener("visibilitychange", lightweightSync);
       window.removeEventListener("cartUpdated", syncCartState);
     };
   }, []);
