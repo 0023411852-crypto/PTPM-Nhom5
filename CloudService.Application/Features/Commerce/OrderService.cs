@@ -289,7 +289,22 @@ namespace CloudService.Application.Services
             try
             {
                 order.Status = OrderStatus.Completed;
+                
+                var sp = order.ServicePlan;
+                var pp = order.PlanPrice;
+                var usr = order.User;
+                var promo = order.Promotion;
+                order.ServicePlan = null!;
+                order.PlanPrice = null!;
+                order.User = null!;
+                order.Promotion = null;
+                
                 orderRepo.Update(order);
+                
+                order.ServicePlan = sp;
+                order.PlanPrice = pp;
+                order.User = usr;
+                order.Promotion = promo;
 
                 var serviceRepo = _unitOfWork.Repository<CustomerService>();
 
@@ -437,7 +452,22 @@ namespace CloudService.Application.Services
 
                 order.Status = OrderStatus.Completed;
                 order.UpdatedAt = DateTime.UtcNow;
+                
+                var sp = order.ServicePlan;
+                var pp = order.PlanPrice;
+                var usr = order.User;
+                var promo = order.Promotion;
+                order.ServicePlan = null!;
+                order.PlanPrice = null!;
+                order.User = null!;
+                order.Promotion = null;
+                
                 orderRepo.Update(order);
+                
+                order.ServicePlan = sp;
+                order.PlanPrice = pp;
+                order.User = usr;
+                order.Promotion = promo;
 
                 var random = new Random();
                 var demoIp = $"10.{random.Next(0, 255)}.{random.Next(0, 255)}.{random.Next(10, 254)}";
