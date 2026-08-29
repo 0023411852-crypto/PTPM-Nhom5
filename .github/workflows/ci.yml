@@ -122,6 +122,7 @@ jobs:
             echo "JWT_SECRET=CloudNovaSecretKey2026_VerySecure32BytesLong" > .env
             echo "MSSQL_SA_PASSWORD=CloudNovaStr0ngPassword!2026" >> .env
             echo "DATABASE_AUTO_MIGRATE=true" >> .env
+            echo "DEMO_PAYMENT_ENABLED=true" >> .env
 
             # Dùng cấu hình production, không dùng compose development.
             docker compose -f docker-compose.production.yml down
