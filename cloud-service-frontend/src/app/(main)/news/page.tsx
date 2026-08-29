@@ -23,7 +23,7 @@ interface NewsResponse {
 }
 
 const PAGE_SIZE = 6;
-const API_URL = "/scraped-news-api";
+const API_URL = "/api/newsarticles";
 const API_BASE_URL = "";
 
 function resolveMediaUrl(url?: string | null) {
@@ -56,7 +56,7 @@ export default function NewsPage() {
   useEffect(() => {
     const controller = new AbortController();
 
-        async function loadArticles() {
+    async function loadArticles() {
       setLoading(true);
       setError("");
       try {
@@ -141,11 +141,10 @@ export default function NewsPage() {
                 type="button"
                 onClick={() => setCategory(item)}
                 aria-selected={category === item}
-                className={`whitespace-nowrap px-4 py-2 rounded-full font-body-sm font-semibold transition-colors ${
-                  category === item
+                className={`whitespace-nowrap px-4 py-2 rounded-full font-body-sm font-semibold transition-colors ${category === item
                     ? "bg-primary-container text-on-primary-container"
                     : "bg-transparent text-secondary hover:bg-surface-container hover:text-on-surface border border-transparent hover:border-outline-variant"
-                }`}
+                  }`}
               >
                 {item}
               </button>
