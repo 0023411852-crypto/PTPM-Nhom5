@@ -33,7 +33,8 @@ const CountdownTimer = ({ orderDate }: { orderDate: string }) => {
     const [timeLeft, setTimeLeft] = useState<number>(0);
 
     useEffect(() => {
-        const orderTime = new Date(orderDate).getTime();
+        const utcDateStr = orderDate.endsWith('Z') ? orderDate : `${orderDate}Z`;
+        const orderTime = new Date(utcDateStr).getTime();
         const expireTime = orderTime + 15 * 60 * 1000; // 15 mins
         
         const updateTimer = () => {
@@ -572,7 +573,7 @@ export default function ClientPortalPage() {
                                                         <h3 className="font-headline-md text-headline-md text-on-surface">Đơn hàng #{order.id.substring(0, 8)}</h3>
                                                         <span className="bg-warning/10 text-warning font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Chờ thanh toán</span>
                                                     </div>
-                                                    <p className="text-[14px] text-on-surface-variant mb-md">Ngày đặt: {new Date(order.orderDate).toLocaleString('vi-VN')} • Tổng tiền: {order.totalAmount.toLocaleString('vi-VN')}đ</p>
+                                                    <p className="text-[14px] text-on-surface-variant mb-md">Ngày đặt: {new Date(order.orderDate.endsWith('Z') ? order.orderDate : `${order.orderDate}Z`).toLocaleString('vi-VN')} • Tổng tiền: {order.totalAmount.toLocaleString('vi-VN')}đ</p>
                                                     <div className="mb-sm">
                                                         <CountdownTimer orderDate={order.orderDate} />
                                                     </div>
@@ -624,7 +625,7 @@ export default function ClientPortalPage() {
                                                         {(order.status === 'Cancelled' || order.status === 3) && <span className="bg-error/10 text-error font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Đã huỷ</span>}
                                                         {(order.status === 'Failed' || order.status === 4) && <span className="bg-error/20 text-error font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Thất bại / Hết hạn</span>}
                                                     </div>
-                                                    <p className="text-[14px] text-on-surface-variant mb-md">Ngày đặt: {new Date(order.orderDate).toLocaleString('vi-VN')} • Tổng tiền: {order.totalAmount.toLocaleString('vi-VN')}đ</p>
+                                                    <p className="text-[14px] text-on-surface-variant mb-md">Ngày đặt: {new Date(order.orderDate.endsWith('Z') ? order.orderDate : `${order.orderDate}Z`).toLocaleString('vi-VN')} • Tổng tiền: {order.totalAmount.toLocaleString('vi-VN')}đ</p>
                                                     {order.customerNotes && <p className="text-[13px] text-error mt-1 italic">{order.customerNotes}</p>}
                                                 </div>
                                                 <div className="flex flex-col gap-2">
