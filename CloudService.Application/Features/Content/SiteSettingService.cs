@@ -52,12 +52,19 @@ namespace CloudService.Application.Services
         public async Task<bool> UpdateSettingAsync(string key, string value)
         {
             var settings = await _repository.GetAllAsync();
-            var setting = settings.FirstOrDefault(x => x.Key == key);
+            var setting = settings.FirstOrDefault(x => x.Key.Equals(key, System.StringComparison.OrdinalIgnoreCase));
             
-            if (setting == null) return false;
-
-            setting.Value = value;
-            _repository.Update(setting);
+            if (setting == null) 
+            {
+                setting = new SiteSetting { Key = key, Value = value, Description = "" };
+                await _repository.AddAsync(setting);
+            } 
+            else 
+            {
+                setting.Value = value;
+                _repository.Update(setting);
+            }
+            
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
