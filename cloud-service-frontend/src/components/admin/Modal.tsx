@@ -34,15 +34,19 @@ export default function Modal({ isOpen, onClose, title, children, footer, maxWid
         }
     };
 
-    // Prevent body scroll when modal is open
+    // Prevent body scroll when modal is open (Fix for iOS Safari as well)
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
+            // A robust fix for mobile iOS Safari scrolling
+            document.body.classList.add('modal-open-lock');
         } else {
             document.body.style.overflow = 'unset';
+            document.body.classList.remove('modal-open-lock');
         }
         return () => {
             document.body.style.overflow = 'unset';
+            document.body.classList.remove('modal-open-lock');
         };
     }, [isOpen]);
 

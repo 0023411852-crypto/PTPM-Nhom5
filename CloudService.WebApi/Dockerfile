@@ -19,7 +19,4 @@ RUN dotnet publish "CloudService.WebApi.csproj" -c Release -o /app/publish /p:Us
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-# Copy seed SQL files from build context root to /app
-COPY --from=build /src/seed_data_database_script_1.sql ./
-COPY --from=build /src/update_categories.sql ./
 ENTRYPOINT ["dotnet", "CloudService.WebApi.dll"]

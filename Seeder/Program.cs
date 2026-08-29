@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Microsoft.Data.SqlClient;
 
 namespace Seeder
@@ -7,7 +8,13 @@ namespace Seeder
     {
         static void Main(string[] args)
         {
-            string connString = "Server=.\\SQLEXPRESS01;Database=CloudServiceDB;Trusted_Connection=True;TrustServerCertificate=True";
+            // Allow passing connection string via command line arguments for server deployments
+            string connString = args.Length > 0 
+                ? args[0] 
+                : "Server=localhost;Database=CloudServiceDB_v2;Trusted_Connection=True;TrustServerCertificate=True;";
+
+            Console.WriteLine($"[Seeder] Using Connection String: {connString}");
+
             using (SqlConnection conn = new SqlConnection(connString))
             {
                 conn.Open();
@@ -37,8 +44,44 @@ END
 ";
                     cmd.ExecuteNonQuery();
                 }
+                Console.WriteLine("Media seeded successfully!");
+
+                // Execute sql scripts
+                string projectDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
+                string dataDir = Path.Combine(projectDir, "Data");
+                
+                string seedDataPath = Path.Combine(dataDir, "seed_data_database_script_1.sql");
+                ExecuteSqlScript(conn, seedDataPath);
+
+                string updateCategoriesPath = Path.Combine(dataDir, "update_categories.sql");
+                ExecuteSqlScript(conn, updateCategoriesPath);
             }
-            Console.WriteLine("Media seeded successfully!");
+        }
+
+        static void ExecuteSqlScript(SqlConnection conn, string filePath)
+        {
+            if (File.Exists(filePath))
+            {
+                Console.WriteLine($"Executing {Path.GetFileName(filePath)}...");
+                string sql = File.ReadAllText(filePath);
+                var commands = sql.Split(new[] { "GO\r\n", "GO\n", "GO " }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var command in commands)
+                {
+                    if (!string.IsNullOrWhiteSpace(command))
+                    {
+                        using (SqlCommand cmd = conn.CreateCommand())
+                        {
+                            cmd.CommandText = command;
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+                Console.WriteLine($"Successfully executed {Path.GetFileName(filePath)}.");
+            }
+            else
+            {
+                Console.WriteLine($"File not found: {filePath}");
+            }
         }
     }
 }
