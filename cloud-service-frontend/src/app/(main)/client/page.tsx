@@ -29,8 +29,37 @@ function parseOrderSpecifications(value: string) {
     }
 }
 
+const CountdownTimer = ({ orderDate }: { orderDate: string }) => {
+    const [timeLeft, setTimeLeft] = useState<number>(0);
+
+    useEffect(() => {
+        const orderTime = new Date(orderDate).getTime();
+        const expireTime = orderTime + 15 * 60 * 1000; // 15 mins
+        
+        const updateTimer = () => {
+            const now = new Date().getTime();
+            const diff = expireTime - now;
+            if (diff > 0) {
+                setTimeLeft(Math.floor(diff / 1000));
+            } else {
+                setTimeLeft(0);
+            }
+        };
+
+        updateTimer();
+        const interval = setInterval(updateTimer, 1000);
+        return () => clearInterval(interval);
+    }, [orderDate]);
+
+    if (timeLeft <= 0) return <span className="text-error font-medium">Đã hết hạn</span>;
+
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    return <span className="text-warning font-medium">Hết hạn trong: {minutes}:{seconds < 10 ? '0' : ''}{seconds}</span>;
+};
+
 export default function ClientPortalPage() {
-    const [activeTab, setActiveTab] = useState<'services' | 'orders' | 'support' | 'profile'>('services');
+    const [activeTab, setActiveTab] = useState<'services' | 'pending-orders' | 'orders' | 'support' | 'profile'>('services');
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -379,6 +408,13 @@ export default function ClientPortalPage() {
                                 Giỏ hàng & Quản lý dịch vụ
                             </button>
                             <button 
+                                onClick={() => setActiveTab('pending-orders')}
+                                className={`client-nav-item w-full flex items-center gap-md px-md py-sm rounded-xl transition-colors ${activeTab === 'pending-orders' ? 'client-nav-active font-medium' : 'text-on-surface-variant hover:bg-surface-container'}`}
+                            >
+                                <span className="material-symbols-outlined text-[20px]">pending_actions</span>
+                                Đơn chờ thanh toán
+                            </button>
+                            <button 
                                 onClick={() => setActiveTab('orders')}
                                 className={`client-nav-item w-full flex items-center gap-md px-md py-sm rounded-xl transition-colors ${activeTab === 'orders' ? 'client-nav-active font-medium' : 'text-on-surface-variant hover:bg-surface-container'}`}
                             >
@@ -513,6 +549,55 @@ export default function ClientPortalPage() {
                             </div>
                         )}
 
+                        {/* Tab Đơn chờ thanh toán */}
+                        {activeTab === 'pending-orders' && (
+                            <div className="client-panel bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
+                                <h2 className="font-headline-sm text-headline-sm text-on-surface mb-lg">Đơn chờ thanh toán</h2>
+                                
+                                {loadingOrders ? (
+                                    <div className="text-center py-xl text-secondary">Đang tải dữ liệu...</div>
+                                ) : orders.filter(o => o.status === 'Pending').length === 0 ? (
+                                    <div className="text-center py-2xl">
+                                        <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-md">
+                                            <span className="material-symbols-outlined text-[32px] text-secondary">pending_actions</span>
+                                        </div>
+                                        <p className="text-on-surface-variant mb-md">Bạn không có đơn hàng nào đang chờ thanh toán.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-md">
+                                        {orders.filter(o => o.status === 'Pending').map(order => (
+                                            <div key={order.id} className="client-item-card border border-warning/30 bg-warning/5 rounded-xl p-lg flex flex-col md:flex-row gap-lg justify-between items-start md:items-center hover:border-warning/60 transition-colors">
+                                                <div>
+                                                    <div className="flex items-center gap-sm mb-xs">
+                                                        <h3 className="font-headline-md text-headline-md text-on-surface">Đơn hàng #{order.id.substring(0, 8)}</h3>
+                                                        <span className="bg-warning/10 text-warning font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Chờ thanh toán</span>
+                                                    </div>
+                                                    <p className="text-[14px] text-on-surface-variant mb-md">Ngày đặt: {new Date(order.orderDate).toLocaleString('vi-VN')} • Tổng tiền: {order.totalAmount.toLocaleString('vi-VN')}đ</p>
+                                                    <div className="mb-sm">
+                                                        <CountdownTimer orderDate={order.orderDate} />
+                                                    </div>
+                                                    {order.customerNotes && <p className="text-[13px] text-error mt-1 italic">{order.customerNotes}</p>}
+                                                </div>
+                                                <div className="flex flex-col gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleViewOrderDetail(order.id)}
+                                                        disabled={loadingOrderDetail}
+                                                        className="px-md py-sm border border-primary text-primary font-medium rounded-lg hover:bg-primary-container transition-colors text-center whitespace-nowrap disabled:opacity-60"
+                                                    >
+                                                        {loadingOrderDetail ? 'Đang tải...' : 'Xem chi tiết'}
+                                                    </button>
+                                                    <Link href={`/checkout?orderId=${order.id}`} className="px-md py-sm bg-primary text-on-primary font-medium rounded-lg hover:bg-primary-container transition-colors text-center whitespace-nowrap">
+                                                        Thanh toán ngay
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {/* Tab Lịch sử đơn hàng */}
                         {activeTab === 'orders' && (
                             <div className="client-panel bg-surface rounded-2xl border border-outline-variant p-xl shadow-sm">
@@ -520,7 +605,7 @@ export default function ClientPortalPage() {
                                 
                                 {loadingOrders ? (
                                     <div className="text-center py-xl text-secondary">Đang tải dữ liệu...</div>
-                                ) : orders.length === 0 ? (
+                                ) : orders.filter(o => o.status !== 'Pending').length === 0 ? (
                                     <div className="text-center py-2xl">
                                         <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-md">
                                             <span className="material-symbols-outlined text-[32px] text-secondary">receipt_long</span>
@@ -530,14 +615,14 @@ export default function ClientPortalPage() {
                                     </div>
                                 ) : (
                                     <div className="space-y-md">
-                                        {orders.map(order => (
+                                        {orders.filter(o => o.status !== 'Pending').map(order => (
                                             <div key={order.id} className="client-item-card border border-outline-variant rounded-xl p-lg flex flex-col md:flex-row gap-lg justify-between items-start md:items-center hover:border-primary transition-colors">
                                                 <div>
                                                     <div className="flex items-center gap-sm mb-xs">
                                                         <h3 className="font-headline-md text-headline-md text-on-surface">Đơn hàng #{order.id.substring(0, 8)}</h3>
-                                                        {order.status === 'Pending' && <span className="bg-warning/10 text-warning font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Chờ thanh toán</span>}
                                                         {order.status === 'Completed' && <span className="bg-success/10 text-success font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Hoàn thành</span>}
                                                         {order.status === 'Cancelled' && <span className="bg-error/10 text-error font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Đã huỷ</span>}
+                                                        {order.status === 'Failed' && <span className="bg-error/20 text-error font-label-sm px-2 py-1 rounded-full uppercase text-[12px] font-bold">Thất bại / Hết hạn</span>}
                                                     </div>
                                                     <p className="text-[14px] text-on-surface-variant mb-md">Ngày đặt: {new Date(order.orderDate).toLocaleString('vi-VN')} • Tổng tiền: {order.totalAmount.toLocaleString('vi-VN')}đ</p>
                                                     {order.customerNotes && <p className="text-[13px] text-error mt-1 italic">{order.customerNotes}</p>}
@@ -551,11 +636,6 @@ export default function ClientPortalPage() {
                                                     >
                                                         {loadingOrderDetail ? 'Đang tải...' : 'Xem chi tiết'}
                                                     </button>
-                                                    {order.status === 'Pending' && (
-                                                        <Link href={`/checkout?orderId=${order.id}`} className="px-md py-sm bg-primary text-on-primary font-medium rounded-lg hover:bg-primary-container transition-colors text-center whitespace-nowrap">
-                                                            Thanh toán ngay
-                                                        </Link>
-                                                    )}
                                                     {order.status === 'Completed' && !order.isReviewed && (
                                                         <button 
                                                             onClick={() => setReviewOrderId(order.id)}

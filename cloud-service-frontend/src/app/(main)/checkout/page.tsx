@@ -22,7 +22,7 @@ export default function CheckoutPage() {
     const [errorMsg, setErrorMsg] = useState('');
     const [token, setToken] = useState<string | null>(null);
     const [customerNotes, setCustomerNotes] = useState('');
-    const [qrCodeData, setQrCodeData] = useState<{qrCode: string, paymentString: string, amount: number} | null>(null);
+    const [qrCodeData, setQrCodeData] = useState<{qrCode: string, paymentString: string, amount: number, bin?: string, accountNumber?: string, accountName?: string, orderCode?: number} | null>(null);
 
     const [isDemoConfirming, setIsDemoConfirming] = useState(false);
     const [isPayOsSubmitting, setIsPayOsSubmitting] = useState(false);
@@ -93,9 +93,10 @@ export default function CheckoutPage() {
     const fetchQRCode = async (id: string, amount: number, isSingle: boolean = false) => {
         try {
             const endpoint = isSingle 
-                ? `/api/Orders/${id}/payment-qr` 
-                : `/api/Orders/group/${id}/payment-qr?amount=${amount}`;
+                ? `/api/PayOS/create-payment-link/single/${id}` 
+                : `/api/PayOS/create-payment-link/${id}`;
             const res = await fetch(endpoint, {
+                method: 'POST',
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
@@ -103,9 +104,18 @@ export default function CheckoutPage() {
             
             if (res.ok) {
                 const data = await res.json();
-                setQrCodeData(data);
+                // data contains { checkoutUrl, qrCode, bin, accountNumber, accountName, amount, description, orderCode }
+                setQrCodeData({
+                    qrCode: data.qrCode,
+                    paymentString: data.description, 
+                    amount: data.amount,
+                    bin: data.bin,
+                    accountNumber: data.accountNumber,
+                    accountName: data.accountName,
+                    orderCode: data.orderCode
+                } as any);
             } else {
-                console.error("Lỗi khi lấy mã QR:", res.status);
+                console.error("Lỗi khi tạo PayOS link:", res.status);
             }
         } catch (e) {
             console.error(e);
@@ -150,34 +160,31 @@ export default function CheckoutPage() {
         }
     };
 
-    const handlePayOsPayment = async () => {
-        if (!orderGroupId || !token || isPayOsSubmitting) return;
-        setIsPayOsSubmitting(true);
-        setErrorMsg('');
-        try {
-            const endpoint = isSingleOrder 
-                ? `/api/PayOS/create-payment-link/single/${orderGroupId}` 
-                : `/api/PayOS/create-payment-link/${orderGroupId}`;
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            const data = await res.json().catch(() => ({}));
-            
-            if (!res.ok) {
-                setErrorMsg(data.message || 'Không thể tạo link thanh toán PayOS.');
-                return;
-            }
-            
-            if (data.checkoutUrl) {
-                window.location.href = data.checkoutUrl;
-            }
-        } catch {
-            setErrorMsg('Lỗi kết nối khi tạo link thanh toán PayOS.');
-        } finally {
-            setIsPayOsSubmitting(false);
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (isSuccess && orderGroupId && token && !demoPayment) {
+            interval = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/Orders/my-orders`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        const orders = data.data || [];
+                        const isCompleted = orders.some((o: any) => 
+                            (isSingleOrder ? o.id === orderGroupId : o.orderGroupId === orderGroupId) && 
+                            o.status === 'Completed'
+                        );
+                        if (isCompleted) {
+                            clearInterval(interval);
+                            window.location.href = '/client?payment=success';
+                        }
+                    }
+                } catch (e) {}
+            }, 3000);
         }
-    };
+        return () => clearInterval(interval);
+    }, [isSuccess, orderGroupId, token, demoPayment, isSingleOrder]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -276,18 +283,28 @@ export default function CheckoutPage() {
                     <div className="w-20 h-20 bg-primary-container text-primary rounded-full flex items-center justify-center mx-auto mb-lg">
                         <span className="material-symbols-outlined text-[40px]">check_circle</span>
                     </div>
-                    <h1 className="font-display-sm text-display-sm text-on-surface mb-sm">Đơn hàng đã được tạo!</h1>
-                    <p className="font-body-lg text-body-lg text-on-surface-variant mb-xl">
-                        Vui lòng thanh toán để hoàn tất. Đây là luồng thanh toán <strong>DEMO</strong>, bạn có thể quét mã QR minh họa hoặc bấm xác nhận bên dưới.
-                    </p>
+                    <h1 className="font-display-sm text-display-sm text-on-surface mb-sm">
+                        {demoPayment ? 'Thanh Toán Thành Công!' : 'Đơn hàng đã được tạo!'}
+                    </h1>
+                    {!demoPayment && (
+                        <p className="font-body-lg text-body-lg text-on-surface-variant mb-xl">
+                            Vui lòng thanh toán để hoàn tất. Bạn có thể quét mã QR để thanh toán hoặc bấm vào nút DEMO bên dưới để hoàn tất đơn hàng.
+                        </p>
+                    )}
                     
-                    {qrCodeData && (
+                    {qrCodeData && !demoPayment && (
                         <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg inline-block mb-xl mx-auto">
-                            <img src={`data:image/png;base64,${qrCodeData.qrCode}`} alt="Payment QR" className="w-64 h-64 object-contain mx-auto mb-md" />
+                            <img 
+                                src={qrCodeData.bin && qrCodeData.accountNumber 
+                                    ? `https://img.vietqr.io/image/${qrCodeData.bin}-${qrCodeData.accountNumber}-compact2.jpg?amount=${qrCodeData.amount}&addInfo=${qrCodeData.paymentString}&accountName=${qrCodeData.accountName}`
+                                    : `data:image/png;base64,${qrCodeData.qrCode}`} 
+                                alt="Payment QR" 
+                                className="w-64 h-64 object-contain mx-auto mb-md" 
+                            />
                             <div className="text-left bg-surface-container p-md rounded-lg">
-                                <p className="text-[14px] text-on-surface-variant">Ngân hàng: <strong className="text-on-surface">Vietcombank</strong></p>
-                                <p className="text-[14px] text-on-surface-variant">Số TK: <strong className="text-on-surface">0123456789</strong></p>
-                                <p className="text-[14px] text-on-surface-variant">Chủ TK: <strong className="text-on-surface">CONG TY CLOUDNOVA</strong></p>
+                                <p className="text-[14px] text-on-surface-variant">Ngân hàng: <strong className="text-on-surface">{qrCodeData.bin || 'Vietcombank'}</strong></p>
+                                <p className="text-[14px] text-on-surface-variant">Số TK: <strong className="text-on-surface">{qrCodeData.accountNumber || '0123456789'}</strong></p>
+                                <p className="text-[14px] text-on-surface-variant">Chủ TK: <strong className="text-on-surface">{qrCodeData.accountName || 'CONG TY CLOUDNOVA'}</strong></p>
                                 <p className="text-[14px] text-on-surface-variant">Nội dung: <strong className="text-on-surface break-all">{qrCodeData.paymentString}</strong></p>
                                 <p className="text-[14px] text-error mt-2">Tổng thanh toán: <strong className="text-error">{formatCurrency(Number(qrCodeData.amount) || subtotal)}</strong></p>
                             </div>
@@ -296,23 +313,6 @@ export default function CheckoutPage() {
 
                     {!demoPayment ? (
                         <div className="mb-lg space-y-4">
-                            <button
-                                onClick={handlePayOsPayment}
-                                disabled={isPayOsSubmitting || !orderGroupId}
-                                className="w-full max-w-[420px] px-lg py-md bg-gradient-to-r from-[#00C6FF] to-[#0072FF] text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-60 shadow-md"
-                            >
-                                {isPayOsSubmitting ? 'Đang tạo link thanh toán...' : 'Thanh toán qua thẻ (PayOS)'}
-                            </button>
-                            
-                            <div className="relative max-w-[420px] mx-auto py-2">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-outline-variant"></div>
-                                </div>
-                                <div className="relative flex justify-center text-sm">
-                                    <span className="px-2 bg-surface text-on-surface-variant">hoặc</span>
-                                </div>
-                            </div>
-                            
                             <button
                                 onClick={handleConfirmDemoPayment}
                                 disabled={isDemoConfirming || !orderGroupId}
@@ -323,13 +323,87 @@ export default function CheckoutPage() {
                             <p className="text-xs text-on-surface-variant mt-sm max-w-[420px] mx-auto text-center">Luồng demo mô phỏng thanh toán thành công ngay lập tức.</p>
                         </div>
                     ) : (
-                        <div className="text-left bg-primary-container/30 border border-primary rounded-xl p-lg mb-lg">
-                            <p className="font-medium text-primary mb-sm">Thanh toán Demo thành công</p>
-                            <p className="text-sm text-on-surface">Dịch vụ: {demoPayment.serviceName}</p>
-                            <p className="text-sm text-on-surface">IP: {demoPayment.vpsIP}</p>
-                            <p className="text-sm text-on-surface">Tài khoản: {demoPayment.vpsUser}</p>
-                            <p className="text-sm text-on-surface">Mật khẩu: {demoPayment.vpsPassword}</p>
-                            <p className="text-sm text-on-surface-variant mt-sm">Hết hạn: {new Date(demoPayment.expiryDate).toLocaleDateString('vi-VN')}</p>
+                        <div className="text-left bg-surface rounded-2xl border border-primary/30 p-xl mb-lg shadow-sm relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary-fixed-dim"></div>
+                            
+                            <div className="flex items-center gap-md mb-lg border-b border-outline-variant pb-md">
+                                <div className="w-12 h-12 bg-primary-container text-primary rounded-full flex items-center justify-center shrink-0">
+                                    <span className="material-symbols-outlined text-[24px]">verified</span>
+                                </div>
+                                <div>
+                                    <h3 className="font-headline-sm text-headline-sm text-on-surface mb-xs">Thông tin Dịch vụ</h3>
+                                    <p className="text-on-surface-variant text-[14px]">Dịch vụ của bạn đã được khởi tạo và sẵn sàng sử dụng.</p>
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-sm">
+                                <div className="flex items-center justify-between p-sm rounded-lg hover:bg-surface-container-lowest transition-colors">
+                                    <div className="flex items-center gap-sm text-on-surface">
+                                        <span className="material-symbols-outlined text-[20px] text-primary">dns</span>
+                                        <span className="font-medium">Tên dịch vụ</span>
+                                    </div>
+                                    <span className="text-on-surface-variant font-medium">{demoPayment.serviceName}</span>
+                                </div>
+                                
+                                <div className="flex items-center justify-between p-sm bg-surface-container-lowest rounded-lg group">
+                                    <div className="flex items-center gap-sm text-on-surface">
+                                        <span className="material-symbols-outlined text-[20px] text-primary">public</span>
+                                        <span className="font-medium">Địa chỉ IP</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <code className="bg-surface-container px-2 py-1 rounded text-primary font-code-sm">{demoPayment.vpsIP}</code>
+                                        <button 
+                                            onClick={() => navigator.clipboard.writeText(demoPayment.vpsIP)}
+                                            className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high transition-colors text-on-surface-variant opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                            title="Copy IP"
+                                        >
+                                            <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between p-sm rounded-lg group">
+                                    <div className="flex items-center gap-sm text-on-surface">
+                                        <span className="material-symbols-outlined text-[20px] text-primary">person</span>
+                                        <span className="font-medium">Tài khoản</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <code className="bg-surface-container px-2 py-1 rounded text-on-surface font-code-sm">{demoPayment.vpsUser}</code>
+                                        <button 
+                                            onClick={() => navigator.clipboard.writeText(demoPayment.vpsUser)}
+                                            className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high transition-colors text-on-surface-variant opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                            title="Copy Username"
+                                        >
+                                            <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between p-sm bg-surface-container-lowest rounded-lg group">
+                                    <div className="flex items-center gap-sm text-on-surface">
+                                        <span className="material-symbols-outlined text-[20px] text-primary">key</span>
+                                        <span className="font-medium">Mật khẩu</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <code className="bg-surface-container px-2 py-1 rounded text-on-surface font-code-sm">{demoPayment.vpsPassword}</code>
+                                        <button 
+                                            onClick={() => navigator.clipboard.writeText(demoPayment.vpsPassword)}
+                                            className="w-8 h-8 flex items-center justify-center rounded bg-surface-container hover:bg-surface-container-high transition-colors text-on-surface-variant opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                            title="Copy Password"
+                                        >
+                                            <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between p-sm rounded-lg">
+                                    <div className="flex items-center gap-sm text-on-surface">
+                                        <span className="material-symbols-outlined text-[20px] text-primary">event</span>
+                                        <span className="font-medium">Hạn sử dụng</span>
+                                    </div>
+                                    <span className="text-on-surface-variant font-medium">{new Date(demoPayment.expiryDate).toLocaleDateString('vi-VN')}</span>
+                                </div>
+                            </div>
                         </div>
                     )}
                     <div>

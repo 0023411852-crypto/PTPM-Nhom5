@@ -5,6 +5,7 @@ namespace CloudService.Domain.Enums
         Pending,
         Processing,
         Completed,
-        Cancelled
+        Cancelled,
+        Failed
     }
 }
