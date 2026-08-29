@@ -476,5 +476,79 @@ namespace CloudService.Application.Services
             await _unitOfWork.SaveChangesAsync();
             return results;
         }
+        public async Task<List<DemoPaymentResultDto>> ConfirmPayOsPaymentGroupAsync(Guid groupId)
+        {
+            var orderRepo = _unitOfWork.Repository<OrderRequest>();
+            // Không check userId vì request đến từ webhook của PayOS (đã xác thực bằng chữ ký)
+            var orders = await orderRepo.SelectToListAsync(q => q.Where(o => o.OrderGroupId == groupId), includeProperties: "ServicePlan,PlanPrice");
+            
+            if (!orders.Any())
+                return new List<DemoPaymentResultDto>();
+
+            var results = new List<DemoPaymentResultDto>();
+            
+            foreach (var order in orders)
+            {
+                if (order.Status == OrderStatus.Cancelled)
+                    continue;
+
+                if (order.Status == OrderStatus.Completed)
+                {
+                    results.Add(new DemoPaymentResultDto
+                    {
+                        OrderId = order.Id,
+                        Status = order.Status.ToString(),
+                        AlreadyProcessed = true,
+                        DemoMode = false,
+                        ServiceName = "",
+                        VpsIP = "",
+                        VpsUser = "",
+                        VpsPassword = "",
+                        ExpiryDate = DateTime.MinValue
+                    });
+                    continue;
+                }
+
+                order.Status = OrderStatus.Completed;
+                order.UpdatedAt = DateTime.UtcNow;
+
+                var random = new Random();
+                var demoIp = $"10.{random.Next(0, 255)}.{random.Next(0, 255)}.{random.Next(10, 254)}";
+                var demoUser = $"user-{order.Id.ToString("N")[..8]}";
+                var demoPassword = GenerateRandomPassword();
+                var serviceName = order.ServicePlan?.Name ?? "VPS";
+                var expiryDate = DateTime.UtcNow.AddMonths(order.BillingCycle);
+
+                var customerService = new CustomerService
+                {
+                    OrderId = order.Id,
+                    CustomerId = order.UserId,
+                    ServiceName = serviceName,
+                    VpsIP = demoIp,
+                    VpsUser = demoUser,
+                    VpsPassword = demoPassword,
+                    ExpiryDate = expiryDate,
+                    Status = "Active"
+                };
+
+                await _unitOfWork.Repository<CustomerService>().AddAsync(customerService);
+                
+                results.Add(new DemoPaymentResultDto
+                {
+                    OrderId = order.Id,
+                    Status = "Completed",
+                    AlreadyProcessed = false,
+                    DemoMode = false,
+                    ServiceName = serviceName,
+                    VpsIP = demoIp,
+                    VpsUser = demoUser,
+                    VpsPassword = demoPassword,
+                    ExpiryDate = expiryDate
+                });
+            }
+            
+            await _unitOfWork.SaveChangesAsync();
+            return results;
+        }
     }
 }

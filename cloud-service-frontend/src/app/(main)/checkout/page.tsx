@@ -25,6 +25,7 @@ export default function CheckoutPage() {
     const [qrCodeData, setQrCodeData] = useState<{qrCode: string, paymentString: string, amount: number} | null>(null);
 
     const [isDemoConfirming, setIsDemoConfirming] = useState(false);
+    const [isPayOsSubmitting, setIsPayOsSubmitting] = useState(false);
     const [demoPayment, setDemoPayment] = useState<{
         orderId: string;
         status: string;
@@ -110,6 +111,32 @@ export default function CheckoutPage() {
             setErrorMsg('Lỗi kết nối khi xác nhận thanh toán demo.');
         } finally {
             setIsDemoConfirming(false);
+        }
+    };
+
+    const handlePayOsPayment = async () => {
+        if (!orderGroupId || !token || isPayOsSubmitting) return;
+        setIsPayOsSubmitting(true);
+        setErrorMsg('');
+        try {
+            const res = await fetch(`/api/PayOS/create-payment-link/${orderGroupId}`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json().catch(() => ({}));
+            
+            if (!res.ok) {
+                setErrorMsg(data.message || 'Không thể tạo link thanh toán PayOS.');
+                return;
+            }
+            
+            if (data.checkoutUrl) {
+                window.location.href = data.checkoutUrl;
+            }
+        } catch {
+            setErrorMsg('Lỗi kết nối khi tạo link thanh toán PayOS.');
+        } finally {
+            setIsPayOsSubmitting(false);
         }
     };
 
@@ -229,15 +256,32 @@ export default function CheckoutPage() {
                     )}
 
                     {!demoPayment ? (
-                        <div className="mb-lg">
+                        <div className="mb-lg space-y-4">
+                            <button
+                                onClick={handlePayOsPayment}
+                                disabled={isPayOsSubmitting || !orderGroupId}
+                                className="w-full max-w-[420px] px-lg py-md bg-gradient-to-r from-[#00C6FF] to-[#0072FF] text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-60 shadow-md"
+                            >
+                                {isPayOsSubmitting ? 'Đang tạo link thanh toán...' : 'Thanh toán qua thẻ (PayOS)'}
+                            </button>
+                            
+                            <div className="relative max-w-[420px] mx-auto py-2">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-outline-variant"></div>
+                                </div>
+                                <div className="relative flex justify-center text-sm">
+                                    <span className="px-2 bg-surface text-on-surface-variant">hoặc</span>
+                                </div>
+                            </div>
+                            
                             <button
                                 onClick={handleConfirmDemoPayment}
                                 disabled={isDemoConfirming || !orderGroupId}
-                                className="w-full max-w-[420px] px-lg py-md bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors disabled:opacity-60"
+                                className="w-full max-w-[420px] px-lg py-md bg-surface-container border border-outline-variant text-on-surface rounded-lg font-medium hover:bg-surface-container-high transition-colors disabled:opacity-60"
                             >
-                                {isDemoConfirming ? 'Đang xác nhận Demo Payment...' : 'Tôi đã thanh toán (DEMO)'}
+                                {isDemoConfirming ? 'Đang xác nhận...' : 'Tôi đã thanh toán (DEMO)'}
                             </button>
-                            <p className="text-xs text-on-surface-variant mt-sm">Nút này chỉ mô phỏng callback thanh toán, không giao dịch tiền thật.</p>
+                            <p className="text-xs text-on-surface-variant mt-sm max-w-[420px] mx-auto text-center">Luồng demo mô phỏng thanh toán thành công ngay lập tức.</p>
                         </div>
                     ) : (
                         <div className="text-left bg-primary-container/30 border border-primary rounded-xl p-lg mb-lg">
