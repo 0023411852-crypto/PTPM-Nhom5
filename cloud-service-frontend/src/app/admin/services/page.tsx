@@ -277,15 +277,15 @@ export default function AdminServicesPage() {
 
     return (
         <div className="max-w-container-max mx-auto space-y-lg pb-xl">
-            <div className="flex justify-between items-end">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                 <div>
                     <h2 className="font-headline-lg text-headline-lg text-on-surface">Quản lý Dịch vụ & Máy chủ</h2>
                     <p className="font-body-sm text-body-sm text-on-surface-variant mt-unit">Cấu hình các gói VPS, Cloud Server và bảng giá</p>
                 </div>
-                <div className="flex gap-sm">
+                <div className="flex gap-sm w-full sm:w-auto">
                     <button 
                         onClick={handleOpenAdd}
-                        className="px-md py-sm bg-primary text-on-primary rounded-lg font-body-sm text-body-sm font-medium hover:bg-primary-container transition-colors shadow-sm flex items-center gap-sm"
+                        className="px-md py-sm bg-primary text-on-primary rounded-lg font-body-sm text-body-sm font-medium hover:bg-primary-container transition-colors shadow-sm flex items-center justify-center gap-sm w-full sm:w-auto"
                     >
                         <span className="material-symbols-outlined text-[18px]">add</span>
                         Thêm gói mới
@@ -295,7 +295,7 @@ export default function AdminServicesPage() {
 
             <div className="bg-surface rounded-xl border border-outline-variant shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-lg">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse min-w-[1000px]">
                         <thead>
                             <tr className="border-b border-outline-variant text-outline font-label-caps text-label-caps bg-surface-container-low/50">
                                 <th className="py-sm px-md font-semibold">Tên dịch vụ</th>

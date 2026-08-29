@@ -31,13 +31,44 @@ namespace CloudService.Application.Services
             var completedOrderAmounts = await _orderRepo.SelectToListAsync(q => q.Where(o => o.Status == CloudService.Domain.Enums.OrderStatus.Completed).Select(o => o.TotalAmount));
             var totalRevenue = completedOrderAmounts.Sum();
 
+            var now = System.DateTime.UtcNow;
+            
+            // Calculate Activity Flow (New Users over the last 12 months)
+            var monthlyUsers = new int[12];
+            var oneYearAgo = new System.DateTime(now.Year, now.Month, 1).AddMonths(-11);
+            var usersList = await _userRepo.ToListAsync(q => q.Where(u => u.CreatedAt >= oneYearAgo));
+            
+            for (int i = 0; i < 12; i++)
+            {
+                var targetMonth = oneYearAgo.AddMonths(i);
+                monthlyUsers[i] = usersList.Count(u => u.CreatedAt.Year == targetMonth.Year && u.CreatedAt.Month == targetMonth.Month);
+            }
+
+            // Calculate Growth (This month vs Last month)
+            int thisMonthUsers = monthlyUsers[11];
+            int lastMonthUsers = monthlyUsers[10];
+            string userGrowth = "+0.0%";
+            if (lastMonthUsers > 0)
+            {
+                double growth = ((double)(thisMonthUsers - lastMonthUsers) / lastMonthUsers) * 100;
+                userGrowth = (growth > 0 ? "+" : "") + growth.ToString("0.1") + "%";
+            }
+            else if (thisMonthUsers > 0)
+            {
+                userGrowth = "+100.0%";
+            }
+
             return new 
             {
                 totalUsers,
                 totalOrders,
                 pendingOrders,
                 openTickets,
-                totalRevenue
+                totalRevenue,
+                activityFlow = new {
+                    data = monthlyUsers,
+                    growth = userGrowth
+                }
             };
         }
 

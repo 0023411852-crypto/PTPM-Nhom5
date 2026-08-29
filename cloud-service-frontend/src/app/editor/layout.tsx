@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 
 export default function EditorLayout({ children }: { children: React.ReactNode }) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [userProfile, setUserProfile] = useState({
         fullName: 'Biên tập viên',
         email: 'editor@cloudnova.com',
@@ -67,15 +68,31 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
     return (
         <div className="dashboard-shell bg-background text-on-surface font-body-md antialiased overflow-hidden h-screen flex">
             
-            <nav className="dashboard-sidebar fixed left-0 top-0 h-full w-[280px] bg-on-secondary-fixed dark:bg-on-background flex flex-col py-lg px-md border-r border-outline-variant/20 z-20">
-                <div className="flex items-center gap-3 mb-xl px-sm">
-                    <div className="w-8 h-8 rounded bg-primary-container flex items-center justify-center text-surface-container-lowest">
-                        <span className="material-symbols-outlined text-[20px]">cloud</span>
+            {/* Sidebar Overlay (Mobile) */}
+            {isMobileSidebarOpen && (
+                <div 
+                    className="md:hidden fixed inset-0 bg-black/50 z-20"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                />
+            )}
+
+            <nav className={`dashboard-sidebar fixed left-0 top-0 h-full w-[280px] bg-on-secondary-fixed dark:bg-on-background flex flex-col py-lg px-md border-r border-outline-variant/20 z-30 transition-transform duration-300 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+                <div className="flex items-center justify-between gap-3 mb-xl px-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded bg-primary-container flex items-center justify-center text-surface-container-lowest shrink-0">
+                            <span className="material-symbols-outlined text-[20px]">cloud</span>
+                        </div>
+                        <div>
+                            <h1 className="dashboard-brand font-headline-md text-headline-md font-bold text-surface-container-lowest leading-tight">CloudNova</h1>
+                            <p className="font-body-sm text-body-sm text-surface-variant/70 leading-tight hidden md:block">Bảng điều khiển Biên tập viên</p>
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="dashboard-brand font-headline-md text-headline-md font-bold text-surface-container-lowest leading-tight">CloudNova</h1>
-                        <p className="font-body-sm text-body-sm text-surface-variant/70 leading-tight">Bảng điều khiển Biên tập viên</p>
-                    </div>
+                    <button 
+                        className="md:hidden text-surface-variant hover:text-surface-container-lowest p-1"
+                        onClick={() => setIsMobileSidebarOpen(false)}
+                    >
+                        <span className="material-symbols-outlined">close</span>
+                    </button>
                 </div>
 
                 <Link href="/editor/articles/create" className="dashboard-create-link w-full bg-primary-container text-on-primary-container font-body-md text-body-md py-2 px-4 rounded-lg flex items-center justify-center gap-2 mb-lg hover:opacity-90 transition-opacity">
@@ -130,14 +147,24 @@ export default function EditorLayout({ children }: { children: React.ReactNode }
                 </div>
             </nav>
 
-            <div className="flex-1 ml-[280px] flex flex-col min-w-0">
-                <header className="dashboard-header dashboard-topbar fixed top-0 right-0 w-[calc(100%-280px)] h-16 bg-surface dark:bg-surface-dim border-b border-outline-variant flex justify-between items-center px-lg z-10">
-                    <div className="flex items-center gap-lg flex-1">
+            <div className="flex-1 md:ml-[280px] flex flex-col min-w-0">
+                <header className="dashboard-header dashboard-topbar fixed top-0 right-0 left-0 md:left-[280px] h-16 bg-surface dark:bg-surface-dim border-b border-outline-variant flex justify-between items-center px-lg z-10">
+                    <div className="flex items-center gap-2 flex-1">
+                        <button 
+                            className="md:hidden text-on-surface-variant p-2 hover:bg-surface-container rounded-lg shrink-0"
+                            onClick={() => setIsMobileSidebarOpen(true)}
+                        >
+                            <span className="material-symbols-outlined">menu</span>
+                        </button>
                         <span className="font-headline-md text-headline-md text-on-surface whitespace-nowrap">Tổng quan</span>
-                        <div className="relative w-64 hidden lg:block">
-                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
-                            <input className="w-full bg-surface-container-low border border-outline-variant rounded-md pl-10 pr-4 py-1.5 font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="Tìm kiếm..." type="text"/>
-                        </div>
+                        <Link 
+                            href="/"
+                            className="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors font-medium text-[13px] border border-transparent hover:border-primary/20"
+                            title="Ra giao diện bên ngoài"
+                        >
+                            Trang chủ
+                            <span className="material-symbols-outlined text-[16px]">arrow_outward</span>
+                        </Link>
                     </div>
 
                     <div className="flex items-center gap-md">

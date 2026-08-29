@@ -237,7 +237,7 @@ export default function AdminPartnerRequestsPage() {
 
             <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse min-w-[1000px]">
                         <thead>
                             <tr className="bg-surface-container-low border-b border-outline-variant">
                                 <th className="p-4 font-semibold text-on-surface">Người đăng ký</th>

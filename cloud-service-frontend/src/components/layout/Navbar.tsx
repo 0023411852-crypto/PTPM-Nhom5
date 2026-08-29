@@ -10,6 +10,7 @@ export default function Navbar() {
   const [token, setToken] = React.useState<string | null>(null);
   const [fullName, setFullName] = React.useState<string>("");
   const [avatarUrl, setAvatarUrl] = React.useState<string>("");
+  const [role, setRole] = React.useState<string>("");
   const [cartCount, setCartCount] = React.useState(0);
   const [showDropdown, setShowDropdown] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -30,6 +31,7 @@ export default function Navbar() {
       setToken(localStorage.getItem("token"));
       setFullName(localStorage.getItem("fullName") || "User");
       setAvatarUrl(localStorage.getItem("avatarUrl") || localStorage.getItem("avatar") || "");
+      setRole(localStorage.getItem("role") || "");
     };
 
     const syncCartState = () => {
@@ -76,6 +78,7 @@ export default function Navbar() {
   };
 
   return (
+    <>
     <nav className="site-nav fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md shadow-sm border-b border-outline-variant transition-all duration-300">
       <div className="site-nav-inner flex justify-between items-center h-16 px-gutter max-w-[var(--spacing-container-max)] mx-auto">
         <div className="flex items-center gap-md">
@@ -153,6 +156,14 @@ export default function Navbar() {
                     <div className="px-4 py-2 border-b border-outline-variant mb-2">
                       <p className="font-medium text-on-surface overflow-hidden text-ellipsis whitespace-nowrap">{fullName}</p>
                     </div>
+                    
+                    {(role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'editor') && (
+                      <Link href={`/${role?.toLowerCase()}`} onClick={() => setShowDropdown(false)} className="flex items-center gap-3 px-4 py-2 text-primary font-medium hover:bg-primary/10 transition-colors">
+                        <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>admin_panel_settings</span>
+                        Trang quản trị
+                      </Link>
+                    )}
+                    
                     <Link href="/client" onClick={() => setShowDropdown(false)} className="flex items-center gap-3 px-4 py-2 text-on-surface hover:bg-surface-container transition-colors">
                       <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>dashboard</span>
                       Quản lý tài khoản
@@ -170,7 +181,7 @@ export default function Navbar() {
               <Link href="/login" className="nav-cta hidden md:block text-[length:var(--text-label-caps)] font-semibold text-primary border border-primary px-4 py-2 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer active:scale-95 duration-200">
                 Đăng nhập
               </Link>
-              <Link href="/register" className="nav-cta text-[length:var(--text-label-caps)] font-semibold bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-container transition-colors cursor-pointer active:scale-95 duration-200">
+              <Link href="/register" className="nav-cta hidden md:block text-[length:var(--text-label-caps)] font-semibold bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-container transition-colors cursor-pointer active:scale-95 duration-200">
                 Đăng ký ngay
               </Link>
             </>
@@ -181,6 +192,7 @@ export default function Navbar() {
           </button>
         </div>
       </div>
+    </nav>
 
       {/* Mobile Menu Backdrop */}
       {isMobileMenuOpen && (
@@ -191,7 +203,7 @@ export default function Navbar() {
       )}
 
       {/* Mobile Menu Drawer */}
-      <div className={`mobile-drawer flex md:hidden fixed top-0 right-0 h-full w-64 bg-surface shadow-2xl flex-col z-50 transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`mobile-drawer flex md:hidden fixed top-0 right-0 h-[100dvh] w-64 bg-surface shadow-2xl flex-col z-50 transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex justify-between items-center p-4 border-b border-outline-variant">
           <span className="font-bold text-primary">Menu</span>
           <button onClick={() => setIsMobileMenuOpen(false)} className="text-on-surface outline-none">
@@ -215,6 +227,6 @@ export default function Navbar() {
           )}
         </div>
       </div>
-    </nav>
+    </>
   );
 }
